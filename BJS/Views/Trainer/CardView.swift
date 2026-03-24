@@ -15,11 +15,12 @@ struct CardView: View {
                 )
             if !faceDown {
                 Text(cardLabel)
-                    .font(.title2.monospaced().bold())
+                    .font(Typography.mono)
                     .foregroundStyle(suitColor)
             }
         }
         .frame(width: 56, height: 80)
+        .shadow(color: Color.black.opacity(0.12), radius: 4, x: 0, y: 2)
         .accessibilityLabel(faceDown ? "Face down card" : accessibilityDescription)
     }
 

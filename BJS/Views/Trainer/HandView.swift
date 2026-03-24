@@ -11,12 +11,12 @@ struct HandView: View {
             ZStack(alignment: .leading) {
                 ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
                     CardView(card: card, faceDown: faceDownIndices.contains(index))
-                        .offset(x: CGFloat(index) * 32)
+                        .offset(x: CGFloat(index) * Spacing.xl)
                 }
             }
             .frame(height: 80)
         } else {
-            HStack(spacing: 8) {
+            HStack(spacing: Spacing.sm) {
                 ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
                     CardView(card: card, faceDown: faceDownIndices.contains(index))
                 }

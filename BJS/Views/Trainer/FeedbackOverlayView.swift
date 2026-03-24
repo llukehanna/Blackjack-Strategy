@@ -7,7 +7,7 @@ struct FeedbackOverlayView: View {
         ZStack {
             backgroundColor
             Text(feedback.message)
-                .font(.title2.bold())
+                .font(Typography.title)
                 .foregroundStyle(.white)
         }
         .transition(.opacity)
