@@ -56,7 +56,7 @@
 ### Architecture (ARCH)
 
 - [x] **ARCH-01**: All core domain logic — rules engine, strategy evaluation, counting logic, and edge calculation — is packaged as pure Swift with no SwiftUI imports; all domain logic is fully unit-testable without launching a simulator
-- [ ] **ARCH-02**: Strategy evaluation always derives the correct action from the active `BlackjackRules` configuration at runtime — no hardcoded or pre-baked single-ruleset strategy table is acceptable at any layer
+- [x] **ARCH-02**: Strategy evaluation always derives the correct action from the active `BlackjackRules` configuration at runtime — no hardcoded or pre-baked single-ruleset strategy table is acceptable at any layer
 - [ ] **ARCH-03**: All core training and analysis features work fully offline; no network connection is required for any v1 feature
 - [ ] **ARCH-04**: User progress and analytics are persisted on-device only; no cloud sync, user accounts, or backend services are required or included in v1
 
@@ -131,7 +131,7 @@
 | PROG-04 | Phase 5 | Pending |
 | PROG-05 | Phase 5 | Pending |
 | ARCH-01 | Phase 1 | Complete |
-| ARCH-02 | Phase 1 | Pending |
+| ARCH-02 | Phase 1 | Complete |
 | ARCH-03 | Phase 2 | Pending |
 | ARCH-04 | Phase 2 | Pending |
 

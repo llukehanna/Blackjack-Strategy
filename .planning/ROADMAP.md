@@ -35,7 +35,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — BJSCore package structure + Card, BlackjackRules, Action, BlackjackHand, Shoe models with tests
-- [ ] 01-02-PLAN.md — Strategy engine: dealer probabilities, EV computation, table generation, WoO validation
+- [x] 01-02-PLAN.md — Strategy engine: dealer probabilities, EV computation, table generation, WoO validation
 - [x] 01-03-PLAN.md — Hi-Lo counting engine + house edge calculator with WoO validation
 
 ### Phase 2: Strategy Trainer

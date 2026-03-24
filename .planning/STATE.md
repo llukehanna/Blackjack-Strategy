@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-03-24T18:32:12.521Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-03-24T18:45:08.277Z"
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -48,6 +48,7 @@ Plan: 3 of 3
 *Updated after each plan completion*
 | Phase 01 P01 | 12min | 2 tasks | 12 files |
 | Phase 01 P03 | 10min | 2 tasks | 4 files |
+| Phase 01 P02 | 22min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,8 @@ Recent decisions affecting current work:
 - [Phase 01]: CodableTestHelper pattern isolates Foundation from Testing to avoid cross-import overlay issue
 - [Phase 01]: Calibrated 1D/2D deck deltas from WoO confirmed values; added deck-dependent restrictive rule scaling
 - [Phase 01]: EdgeCalculator uses struct (not class) with EdgeResult and RuleContribution top-level types
+- [Phase 01]: American peek conditioning: dealer P(21) conditioned on no-BJ before computing player EVs
+- [Phase 01]: Deck-dependent corrections applied to infinite-deck base for marginal plays (stiff standing, 1-2D doubling, ENHC)
 
 ### Pending Todos
 
@@ -75,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T18:32:12.519Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-03-24T18:45:08.275Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
