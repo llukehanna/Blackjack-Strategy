@@ -27,7 +27,7 @@
 - [ ] **HILO-01**: User can run Hi-Lo counting drills with cards presented one at a time or in configurable group sizes
 - [ ] **HILO-02**: User inputs a running count value after each card or group; app scores accuracy against the correct count
 - [ ] **HILO-03**: Drill sessions track speed (time per card) and accuracy (count error rate) and persist results
-- [ ] **HILO-04**: User can practice true count conversion: app presents a running count and decks remaining; user enters the true count (RC ÷ decks remaining, always floating-point)
+- [ ] **HILO-04**: User can practice true count conversion: app presents a running count and decks remaining; user enters the true count (RC / decks remaining, always floating-point)
 - [ ] **HILO-05**: Card reveal speed is user-adjustable from slow (learning pace) to sub-1-second (casino pace simulation)
 
 ### Edge Calculator (EDGE)
@@ -98,50 +98,48 @@
 
 ## Traceability
 
-*Populated during roadmap creation.*
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RULE-01 | — | Pending |
-| RULE-02 | — | Pending |
-| RULE-03 | — | Pending |
-| STRAT-01 | — | Pending |
-| STRAT-02 | — | Pending |
-| STRAT-03 | — | Pending |
-| STRAT-04 | — | Pending |
-| STRAT-05 | — | Pending |
-| STRAT-06 | — | Pending |
-| STRAT-07 | — | Pending |
-| STRAT-08 | — | Pending |
-| HILO-01 | — | Pending |
-| HILO-02 | — | Pending |
-| HILO-03 | — | Pending |
-| HILO-04 | — | Pending |
-| HILO-05 | — | Pending |
-| EDGE-01 | — | Pending |
-| EDGE-02 | — | Pending |
-| EDGE-03 | — | Pending |
-| EDGE-04 | — | Pending |
-| EDGE-05 | — | Pending |
-| SIM-01 | — | Pending |
-| SIM-02 | — | Pending |
-| SIM-03 | — | Pending |
-| SIM-04 | — | Pending |
-| PROG-01 | — | Pending |
-| PROG-02 | — | Pending |
-| PROG-03 | — | Pending |
-| PROG-04 | — | Pending |
-| PROG-05 | — | Pending |
-| ARCH-01 | — | Pending |
-| ARCH-02 | — | Pending |
-| ARCH-03 | — | Pending |
-| ARCH-04 | — | Pending |
+| RULE-01 | Phase 1 | Pending |
+| RULE-02 | Phase 1 | Pending |
+| RULE-03 | Phase 2 | Pending |
+| STRAT-01 | Phase 2 | Pending |
+| STRAT-02 | Phase 2 | Pending |
+| STRAT-03 | Phase 2 | Pending |
+| STRAT-04 | Phase 2 | Pending |
+| STRAT-05 | Phase 2 | Pending |
+| STRAT-06 | Phase 2 | Pending |
+| STRAT-07 | Phase 5 | Pending |
+| STRAT-08 | Phase 5 | Pending |
+| HILO-01 | Phase 3 | Pending |
+| HILO-02 | Phase 3 | Pending |
+| HILO-03 | Phase 3 | Pending |
+| HILO-04 | Phase 3 | Pending |
+| HILO-05 | Phase 3 | Pending |
+| EDGE-01 | Phase 4 | Pending |
+| EDGE-02 | Phase 4 | Pending |
+| EDGE-03 | Phase 4 | Pending |
+| EDGE-04 | Phase 4 | Pending |
+| EDGE-05 | Phase 4 | Pending |
+| SIM-01 | Phase 6 | Pending |
+| SIM-02 | Phase 6 | Pending |
+| SIM-03 | Phase 6 | Pending |
+| SIM-04 | Phase 6 | Pending |
+| PROG-01 | Phase 2 | Pending |
+| PROG-02 | Phase 2 | Pending |
+| PROG-03 | Phase 5 | Pending |
+| PROG-04 | Phase 5 | Pending |
+| PROG-05 | Phase 5 | Pending |
+| ARCH-01 | Phase 1 | Pending |
+| ARCH-02 | Phase 1 | Pending |
+| ARCH-03 | Phase 2 | Pending |
+| ARCH-04 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 34 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 34 ⚠️
+- Mapped to phases: 34
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-24*
-*Last updated: 2026-03-24 after initial definition*
+*Last updated: 2026-03-24 after roadmap creation*
