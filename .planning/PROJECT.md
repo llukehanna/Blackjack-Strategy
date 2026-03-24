@@ -12,7 +12,15 @@ Users make correct blackjack decisions faster and with more confidence — the a
 
 ### Validated
 
-(None yet — ship to validate)
+**Basic Strategy Trainer** — Validated in Phase 02: strategy-trainer
+- [x] Simulate blackjack hands with configurable casino rules
+- [x] Evaluate user decisions against correct basic strategy and provide instant feedback
+- [x] Track mistakes and accuracy across sessions
+
+**Core / Architecture** — Validated in Phase 01 (rules engine) and Phase 02 (UI layer)
+- [x] Core blackjack rules engine fully independent from UI layer
+- [x] Persistent local progress tracking across sessions (SwiftData)
+- [x] Offline-first — all core features work without a network connection
 
 ### Active
 
@@ -73,10 +81,10 @@ Users make correct blackjack decisions faster and with more confidence — the a
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| iOS/Swift/SwiftUI only | User's explicit direction; fast, native, offline-first | — Pending |
-| Core rules engine separate from UI | Enables testability and future portability | — Pending |
-| No backend for v1 | Keeps scope tight; offline use is a feature for this audience | — Pending |
-| Hi-Lo only (not other count systems) | Simplest standard system; best starting point for learners | — Pending |
+| iOS/Swift/SwiftUI only | User's explicit direction; fast, native, offline-first | Confirmed |
+| Core rules engine separate from UI | Enables testability and future portability | Confirmed — BJSCore package proven in Phase 01 |
+| No backend for v1 | Keeps scope tight; offline use is a feature for this audience | Confirmed — SwiftData + UserDefaults only |
+| Hi-Lo only (not other count systems) | Simplest standard system; best starting point for learners | — Pending (Phase 03) |
 
 ## Evolution
 
@@ -96,4 +104,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-24 after initialization*
+*Last updated: 2026-03-24 — Phase 02 complete: Strategy Trainer MVP delivered*
