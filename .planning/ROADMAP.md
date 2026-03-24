@@ -48,13 +48,13 @@ Plans:
   3. User can select a casino preset that pre-fills the rule configuration form
   4. User can view per-session summary showing decision accuracy percentage, error count, and streak
   5. Session results persist on-device and survive app restarts with no network connection required
-**Plans**: TBD
+**Plans**: 3 plans
 **UI hint**: yes
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — Xcode project scaffold, SwiftData models, casino presets, test stubs
+- [ ] 02-02-PLAN.md — TrainerViewModel game loop + RulesViewModel with tests
+- [ ] 02-03-PLAN.md — All SwiftUI views wired to ViewModels + human verification
 
 ### Phase 3: Hi-Lo Practice
 **Goal**: Users can practice Hi-Lo card counting with configurable drills that build speed and accuracy
@@ -129,7 +129,7 @@ Note: Phases 3 and 4 depend only on Phase 1 and are independent of each other.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Engine | 0/3 | Planning complete | - |
-| 2. Strategy Trainer | 0/3 | Not started | - |
+| 2. Strategy Trainer | 0/3 | Planning complete | - |
 | 3. Hi-Lo Practice | 0/2 | Not started | - |
 | 4. Edge Calculator | 0/2 | Not started | - |
 | 5. Analytics & Adaptive Training | 0/2 | Not started | - |
