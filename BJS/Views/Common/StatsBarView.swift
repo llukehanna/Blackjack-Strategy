@@ -22,11 +22,11 @@ struct StatsBarView: View {
     }
 
     private func statChip(value: String, label: String) -> some View {
-        VStack(spacing: 2) {
+        VStack(spacing: Spacing.xs) {
             Text(value)
-                .font(.body.bold())
+                .font(Typography.statValue)
             Text(label)
-                .font(.caption)
+                .font(Typography.secondary)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
