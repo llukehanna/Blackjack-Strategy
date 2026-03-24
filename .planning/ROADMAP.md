@@ -13,7 +13,7 @@ BJS delivers a complete blackjack training system in six phases. The build order
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Core Engine** - Pure Swift domain package with rules, strategy, counting, and edge engines plus comprehensive test suite
-- [ ] **Phase 2: Strategy Trainer** - MVP feature: interactive basic strategy training with feedback, session tracking, and persistence
+- [x] **Phase 2: Strategy Trainer** - MVP feature: interactive basic strategy training with feedback, session tracking, and persistence (completed 2026-03-24)
 - [ ] **Phase 3: Hi-Lo Practice** - Card counting drills with running count and true count conversion training
 - [ ] **Phase 4: Edge Calculator** - Rule-based house edge analysis with contribution breakdown and game quality rating
 - [ ] **Phase 5: Analytics & Adaptive Training** - Deep progress analytics, improvement trends, and adaptive weak-spot modes
@@ -54,7 +54,7 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md — Xcode project scaffold, SwiftData models, casino presets, test stubs
 - [x] 02-02-PLAN.md — TrainerViewModel game loop + RulesViewModel with tests
-- [ ] 02-03-PLAN.md — All SwiftUI views wired to ViewModels + human verification
+- [x] 02-03-PLAN.md — All SwiftUI views wired to ViewModels + human verification
 
 ### Phase 3: Hi-Lo Practice
 **Goal**: Users can practice Hi-Lo card counting with configurable drills that build speed and accuracy
@@ -129,7 +129,7 @@ Note: Phases 3 and 4 depend only on Phase 1 and are independent of each other.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Engine | 0/3 | Planning complete | - |
-| 2. Strategy Trainer | 0/3 | Planning complete | - |
+| 2. Strategy Trainer | 3/3 | Complete   | 2026-03-24 |
 | 3. Hi-Lo Practice | 0/2 | Not started | - |
 | 4. Edge Calculator | 0/2 | Not started | - |
 | 5. Analytics & Adaptive Training | 0/2 | Not started | - |
