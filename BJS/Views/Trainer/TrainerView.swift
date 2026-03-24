@@ -81,7 +81,7 @@ struct TrainerView: View {
     @ViewBuilder
     private var playArea: some View {
         VStack(spacing: 0) {
-            Spacer(minLength: 24)
+            Spacer(minLength: Spacing.lg)
 
             // Dealer hand
             if let dealerHand = viewModel.dealerHand {
@@ -89,33 +89,33 @@ struct TrainerView: View {
                 HandView(cards: dealerHand.cards, faceDownIndices: faceDownIndices)
             }
 
-            Spacer(minLength: 24)
-                .fixedSize()
+            Spacer(minLength: Spacing.lg)
 
             // Player hand + total
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.sm) {
                 if let playerHand = viewModel.playerHand {
                     HandView(cards: playerHand.cards)
                     Text("Total: \(playerHand.total)")
-                        .font(.subheadline)
+                        .font(Typography.secondary)
+                        .foregroundStyle(.secondary)
                 }
 
                 // Hand result label
                 if viewModel.phase == .showingResult, let result = viewModel.handResult {
                     Text(result.rawValue)
-                        .font(.title2.bold())
-                        .padding(.top, 4)
+                        .font(Typography.title)
+                        .padding(.top, Spacing.xs)
                 }
             }
 
-            Spacer(minLength: 24)
+            Spacer(minLength: Spacing.lg)
 
             // Learn mode hint
             if let correctAction = viewModel.correctActionForDisplay {
                 Text("Correct play: \(correctAction.rawValue.capitalized)")
-                    .font(.subheadline.bold())
+                    .font(Typography.section.bold())
                     .foregroundStyle(.secondary)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, Spacing.sm)
             }
 
             // Action buttons
@@ -131,12 +131,13 @@ struct TrainerView: View {
             Button("End Session") {
                 showEndSessionAlert = true
             }
-            .padding(.top, 16)
+            .buttonStyle(.bordered)
+            .foregroundStyle(.secondary)
+            .padding(.top, Spacing.md)
 
-            Spacer(minLength: 24)
-                .fixedSize()
+            Spacer(minLength: Spacing.lg)
         }
-        .padding(.bottom, 8)
+        .padding(.bottom, Spacing.sm)
         .overlay {
             if let feedback = viewModel.feedbackState {
                 FeedbackOverlayView(feedback: feedback)

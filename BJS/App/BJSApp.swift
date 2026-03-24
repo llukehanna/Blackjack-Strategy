@@ -14,6 +14,7 @@ struct BJSApp: App {
                     }
                 }
             }
+            .tint(BJSColors.accent)
             .environment(rulesViewModel)
         }
         .modelContainer(for: [TrainingSession.self, SessionDecision.self])
