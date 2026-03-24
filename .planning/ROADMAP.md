@@ -68,6 +68,19 @@ Plans:
 - [x] 02.1-02-PLAN.md — Screen-level refactoring (SessionStartView, SessionSummaryView, TrainerView safe area fix, BJSApp global tint)
 - [ ] 02.1-03-PLAN.md — Visual verification checkpoint (screenshots, light/dark mode, SE device test)
 
+### Phase 02.2: Global UI Redesign (INSERTED)
+
+**Goal:** Refactor all UI to conform tightly to `design-system/bjs/MASTER.md` — premium, minimal, analytical. Fix all MASTER.md violations identified in the Phase 02.2 audit, expand the design token system, and gate continuation to Phase 3 on explicit human approval.
+**Requirements**: MASTER.md (design-system/bjs/MASTER.md), V-01 through V-04 (critical violations), T-01 through T-07 (token gaps)
+**Depends on:** Phase 02.1
+**Plans:** 1/4 plans executed
+
+Plans:
+- [x] 02.2-01-PLAN.md — Design token expansion (CornerRadius, Elevation, AnimationTiming, feedback colors, cardFaceDown, Typography.statValue)
+- [ ] 02.2-02-PLAN.md — Component redesign: FeedbackOverlayView (compact banner), ActionButtonsView (two-row), CardView (token application)
+- [ ] 02.2-03-PLAN.md — Screen polish: SessionSummaryView monospaced stats, SectionContainerView surface, final literal scan
+- [ ] 02.2-04-PLAN.md — Visual verification + human approval gate (screenshots: iPhone 16 light/dark, SE light)
+
 ### Phase 3: Hi-Lo Practice
 **Goal**: Users can practice Hi-Lo card counting with configurable drills that build speed and accuracy
 **Depends on**: Phase 1
@@ -135,7 +148,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 2.1 -> 3 -> 4 -> 5 -> 6
+Phases execute in numeric order: 1 -> 2 -> 2.1 -> 2.2 -> 3 -> 4 -> 5 -> 6
 Note: Phases 3 and 4 depend only on Phase 1 and are independent of each other.
 
 | Phase | Plans Complete | Status | Completed |
@@ -143,6 +156,7 @@ Note: Phases 3 and 4 depend only on Phase 1 and are independent of each other.
 | 1. Core Engine | 0/3 | Planning complete | - |
 | 2. Strategy Trainer | 3/3 | Complete   | 2026-03-24 |
 | 2.1 UI/UX Stabilization | 0/3 | Planning complete | - |
+| 2.2 Global UI Redesign | 0/4 | Planning complete | - |
 | 3. Hi-Lo Practice | 0/2 | Not started | - |
 | 4. Edge Calculator | 0/2 | Not started | - |
 | 5. Analytics & Adaptive Training | 0/2 | Not started | - |

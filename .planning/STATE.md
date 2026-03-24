@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 02.1-02-PLAN.md
-last_updated: "2026-03-24T23:09:44.034Z"
+stopped_at: Completed 02.2-01-PLAN.md
+last_updated: "2026-03-24T23:54:58.912Z"
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 2
-  total_plans: 9
-  completed_plans: 8
+  total_plans: 13
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Users make correct blackjack decisions faster and with more confidence — accurate, rule-specific feedback that makes players measurably better.
-**Current focus:** Phase 02.1 — ui-ux-system-layout-stabilization
+**Current focus:** Phase 02.2 — global-ui-redesign
 
 ## Current Position
 
-Phase: 02.1 (ui-ux-system-layout-stabilization) — EXECUTING
-Plan: 3 of 3
+Phase: 02.2 (global-ui-redesign) — EXECUTING
+Plan: 2 of 4
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Plan: 3 of 3
 | Phase 02 P03 | 35min | 3 tasks | 10 files |
 | Phase 02.1 P01 | 2min | 3 tasks | 9 files |
 | Phase 02.1 P02 | 6min | 2 tasks | 4 files |
+| Phase 02.2 P01 | 2min | 6 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,9 @@ Recent decisions affecting current work:
 - [Phase 02.1]: Adaptive accent color via UIColor dynamic provider, not asset catalog (per D-04)
 - [Phase 02.1]: Global accent tint applied at TabView level for consistent system control theming
 - [Phase 02.1]: SessionSummaryView background normalized to systemGroupedBackground; stat cards retain secondarySystemBackground for floating effect
+- [Phase 02.2]: CornerRadius, Elevation, AnimationTiming as caseless enums — matches existing token pattern
+- [Phase 02.2]: Typography.statValue uses .title3.monospacedDigit().bold() for compact stat chip fit
+- [Phase 02.2]: cardFaceDown uses adaptive UIColor dynamic provider — brand-adjacent slate replacing Color.blue.opacity(0.8)
 
 ### Roadmap Evolution
 
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T23:09:44.032Z
-Stopped at: Completed 02.1-02-PLAN.md
+Last session: 2026-03-24T23:54:58.908Z
+Stopped at: Completed 02.2-01-PLAN.md
 Resume file: None
