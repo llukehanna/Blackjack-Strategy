@@ -31,12 +31,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Strategy engine returns the correct action for any hand/upcard/ruleset combination, validated against Wizard of Odds for at least 10 distinct rule sets
   4. Counting engine correctly calculates Hi-Lo running count and true count (floating-point division, end-of-shoe invariant: RC = 0)
   5. Edge calculator returns house edge percentage within 0.01% of Wizard of Odds reference for at least 10 rule combinations
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — BJSCore package structure + Card, BlackjackRules, Action, BlackjackHand, Shoe models with tests
+- [ ] 01-02-PLAN.md — Strategy engine: dealer probabilities, EV computation, table generation, WoO validation
+- [ ] 01-03-PLAN.md — Hi-Lo counting engine + house edge calculator with WoO validation
 
 ### Phase 2: Strategy Trainer
 **Goal**: Users can practice basic strategy decisions with rule-specific feedback and track their accuracy across sessions
@@ -128,7 +128,7 @@ Note: Phases 3 and 4 depend only on Phase 1 and are independent of each other.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Engine | 0/3 | Not started | - |
+| 1. Core Engine | 0/3 | Planning complete | - |
 | 2. Strategy Trainer | 0/3 | Not started | - |
 | 3. Hi-Lo Practice | 0/2 | Not started | - |
 | 4. Edge Calculator | 0/2 | Not started | - |
