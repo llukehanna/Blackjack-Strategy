@@ -141,7 +141,7 @@ struct TrainerView: View {
         .overlay {
             if let feedback = viewModel.feedbackState {
                 FeedbackOverlayView(feedback: feedback)
-                    .animation(.easeIn(duration: 0.15), value: viewModel.feedbackState != nil)
+                    .animation(.easeInOut(duration: AnimationTiming.feedbackFade), value: viewModel.feedbackState != nil)
             }
         }
     }
@@ -163,17 +163,17 @@ struct TrainerView: View {
         switch phase {
         case .showingFeedback:
             Task {
-                try? await Task.sleep(for: .seconds(1.0))
+                try? await Task.sleep(for: .seconds(AnimationTiming.feedbackHold))
                 viewModel.advanceFromFeedback()
             }
         case .playingOut:
             Task {
-                try? await Task.sleep(for: .seconds(0.3))
+                try? await Task.sleep(for: .seconds(AnimationTiming.dealerPlayOut))
                 viewModel.playOutDealer()
             }
         case .showingResult:
             Task {
-                try? await Task.sleep(for: .seconds(1.0))
+                try? await Task.sleep(for: .seconds(AnimationTiming.handResultHold))
                 viewModel.advanceToNextHand()
             }
         default:
