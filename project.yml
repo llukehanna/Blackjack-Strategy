@@ -1,0 +1,34 @@
+name: BJS
+options:
+  bundleIdPrefix: com.bjs
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "26.3"
+  defaultConfig: Debug
+settings:
+  base:
+    SWIFT_VERSION: "6.2"
+    SWIFT_STRICT_CONCURRENCY: complete
+    OTHER_SWIFT_FLAGS: "-enable-upcoming-feature DefaultIsolationMainActor"
+targets:
+  BJS:
+    type: application
+    platform: iOS
+    sources: [BJS]
+    dependencies:
+      - package: BJSCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.bjs.app
+        INFOPLIST_VALUES:
+          CFBundleName: BJS
+          UILaunchScreen: {}
+  BJSTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [BJSTests]
+    dependencies:
+      - target: BJS
+packages:
+  BJSCore:
+    path: ./BJSCore
