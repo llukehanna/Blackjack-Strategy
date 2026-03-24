@@ -7,10 +7,10 @@ struct CardView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(faceDown ? Color.blue.opacity(0.8) : Color(.systemBackground))
+            RoundedRectangle(cornerRadius: CornerRadius.card)
+                .fill(faceDown ? BJSColors.cardFaceDown : Color(.systemBackground))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: CornerRadius.card)
                         .stroke(Color.secondary, lineWidth: 1)
                 )
             if !faceDown {
@@ -20,7 +20,12 @@ struct CardView: View {
             }
         }
         .frame(width: 56, height: 80)
-        .shadow(color: Color.black.opacity(0.12), radius: 4, x: 0, y: 2)
+        .shadow(
+            color: Color.black.opacity(Elevation.cardShadowOpacity),
+            radius: Elevation.cardShadowRadius,
+            x: 0,
+            y: Elevation.cardShadowY
+        )
         .accessibilityLabel(faceDown ? "Face down card" : accessibilityDescription)
     }
 
