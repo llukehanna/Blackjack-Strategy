@@ -56,6 +56,18 @@ Plans:
 - [x] 02-02-PLAN.md — TrainerViewModel game loop + RulesViewModel with tests
 - [x] 02-03-PLAN.md — All SwiftUI views wired to ViewModels + human verification
 
+### Phase 02.1: UI/UX System & Layout Stabilization (INSERTED)
+
+**Goal:** Establish a consistent design token system (spacing, typography, color) and fix all layout/safe-area bugs across the 3 main screens, creating a production-ready visual foundation before new feature development continues
+**Requirements**: D-01 through D-22 (design decisions from discuss-phase)
+**Depends on:** Phase 2
+**Plans:** 3 plans
+
+Plans:
+- [ ] 02.1-01-PLAN.md — Design tokens (Spacing, BJSColors, Typography) + leaf component refactoring (CardView, HandView, FeedbackOverlayView, StatsBarView, ActionButtonsView)
+- [ ] 02.1-02-PLAN.md — Screen-level refactoring (SessionStartView, SessionSummaryView, TrainerView safe area fix, BJSApp global tint)
+- [ ] 02.1-03-PLAN.md — Visual verification checkpoint (screenshots, light/dark mode, SE device test)
+
 ### Phase 3: Hi-Lo Practice
 **Goal**: Users can practice Hi-Lo card counting with configurable drills that build speed and accuracy
 **Depends on**: Phase 1
@@ -123,13 +135,14 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+Phases execute in numeric order: 1 -> 2 -> 2.1 -> 3 -> 4 -> 5 -> 6
 Note: Phases 3 and 4 depend only on Phase 1 and are independent of each other.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Engine | 0/3 | Planning complete | - |
 | 2. Strategy Trainer | 3/3 | Complete   | 2026-03-24 |
+| 2.1 UI/UX Stabilization | 0/3 | Planning complete | - |
 | 3. Hi-Lo Practice | 0/2 | Not started | - |
 | 4. Edge Calculator | 0/2 | Not started | - |
 | 5. Analytics & Adaptive Training | 0/2 | Not started | - |
