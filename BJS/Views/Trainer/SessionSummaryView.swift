@@ -8,43 +8,45 @@ struct SessionSummaryView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: Spacing.lg) {
                 // Heading
                 Text("Session Complete")
-                    .font(.title2.bold())
-                    .padding(.top, 24)
+                    .font(Typography.title)
+                    .padding(.top, Spacing.lg)
 
                 // Stats grid (2x2)
                 LazyVGrid(columns: [
                     GridItem(.flexible()),
                     GridItem(.flexible())
-                ], spacing: 16) {
+                ], spacing: Spacing.md) {
                     statCard(label: "Hands Played", value: "\(stats.handCount)")
                     statCard(label: "Accuracy", value: "\(Int(stats.accuracy))%")
                     statCard(label: "Errors", value: "\(stats.errorCount)")
                     statCard(label: "Best Streak", value: "\(stats.bestStreak)")
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, Spacing.md)
 
                 // Mistake Log
                 if !mistakes.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text("Mistakes")
-                            .font(.subheadline.bold())
-                            .padding(.horizontal, 16)
+                            .font(Typography.section)
+                            .bold()
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, Spacing.md)
 
                         ForEach(Array(mistakes.enumerated()), id: \.offset) { _, record in
                             Text("\(record.handDescription) \u{2014} \(record.playerAction.rawValue.capitalized) \u{00B7} Correct: \(record.correctAction.rawValue.capitalized)")
-                                .font(.subheadline)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 4)
+                                .font(Typography.body)
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.vertical, Spacing.xs)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 // Actions
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.smd) {
                     Button("Play Again") {
                         onPlayAgain()
                     }
@@ -57,24 +59,24 @@ struct SessionSummaryView: View {
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 24)
+                .padding(.horizontal, Spacing.md)
+                .padding(.bottom, Spacing.lg)
             }
         }
-        .background(Color(.secondarySystemBackground))
+        .background(Color(.systemGroupedBackground))
     }
 
     @ViewBuilder
     private func statCard(label: String, value: String) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: Spacing.xs) {
             Text(label)
-                .font(.subheadline)
+                .font(Typography.secondary)
                 .foregroundStyle(.secondary)
             Text(value)
-                .font(.title2.bold())
+                .font(Typography.title)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        .padding(.vertical, Spacing.md)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color(.secondarySystemBackground))
