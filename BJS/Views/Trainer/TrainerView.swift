@@ -21,6 +21,7 @@ struct TrainerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Stats bar sits directly below the navigation bar
             StatsBarView(stats: viewModel.sessionStats)
 
             if viewModel.phase == .sessionSummary {
@@ -80,7 +81,7 @@ struct TrainerView: View {
     @ViewBuilder
     private var playArea: some View {
         VStack(spacing: 0) {
-            Spacer()
+            Spacer(minLength: 24)
 
             // Dealer hand
             if let dealerHand = viewModel.dealerHand {
@@ -88,26 +89,26 @@ struct TrainerView: View {
                 HandView(cards: dealerHand.cards, faceDownIndices: faceDownIndices)
             }
 
-            Spacer()
-                .frame(height: 24)
+            Spacer(minLength: 24)
+                .fixedSize()
 
             // Player hand + total
-            if let playerHand = viewModel.playerHand {
-                HandView(cards: playerHand.cards)
-                Text("Total: \(playerHand.total)")
-                    .font(.subheadline)
-                    .padding(.top, 4)
+            VStack(spacing: 8) {
+                if let playerHand = viewModel.playerHand {
+                    HandView(cards: playerHand.cards)
+                    Text("Total: \(playerHand.total)")
+                        .font(.subheadline)
+                }
+
+                // Hand result label
+                if viewModel.phase == .showingResult, let result = viewModel.handResult {
+                    Text(result.rawValue)
+                        .font(.title2.bold())
+                        .padding(.top, 4)
+                }
             }
 
-            // Hand result label
-            if viewModel.phase == .showingResult, let result = viewModel.handResult {
-                Text(result.rawValue)
-                    .font(.title2.bold())
-                    .padding(.top, 8)
-            }
-
-            Spacer()
-                .frame(height: 24)
+            Spacer(minLength: 24)
 
             // Learn mode hint
             if let correctAction = viewModel.correctActionForDisplay {
@@ -131,10 +132,11 @@ struct TrainerView: View {
                 showEndSessionAlert = true
             }
             .padding(.top, 16)
-            .padding(.bottom, 24)
 
-            Spacer()
+            Spacer(minLength: 24)
+                .fixedSize()
         }
+        .padding(.bottom, 8)
         .overlay {
             if let feedback = viewModel.feedbackState {
                 FeedbackOverlayView(feedback: feedback)

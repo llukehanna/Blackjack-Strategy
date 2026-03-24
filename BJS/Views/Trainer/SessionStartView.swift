@@ -8,9 +8,10 @@ struct SessionStartView: View {
     @State private var showRuleConfig = false
 
     var body: some View {
-        Form {
-            Section {
-                VStack(spacing: 16) {
+        ScrollView {
+            VStack(spacing: 0) {
+                // Header
+                VStack(spacing: 8) {
                     Text("Ready to Practice")
                         .font(.title2.bold())
                     Text("Choose your rules and mode, then start a session to begin training.")
@@ -19,47 +20,85 @@ struct SessionStartView: View {
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-            }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 24)
 
-            Section("Mode") {
-                Picker("Training Mode", selection: $selectedMode) {
-                    Text("Learn").tag(TrainingMode.learn)
-                    Text("Test").tag(TrainingMode.test)
+                Divider()
+
+                // Mode picker
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Mode")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 16)
+
+                    Picker("Training Mode", selection: $selectedMode) {
+                        Text("Learn").tag(TrainingMode.learn)
+                        Text("Test").tag(TrainingMode.test)
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal, 16)
                 }
-                .pickerStyle(.segmented)
-            }
+                .padding(.vertical, 16)
 
-            Section("Casino Preset") {
-                @Bindable var vm = rulesVM
-                Picker("Preset", selection: $vm.selectedPreset) {
-                    ForEach(CasinoPreset.allCases) { preset in
-                        Text(preset.rawValue).tag(preset)
+                Divider()
+
+                // Casino Preset picker
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Casino Preset")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 16)
+
+                    @Bindable var vm = rulesVM
+                    Picker("Preset", selection: $vm.selectedPreset) {
+                        ForEach(CasinoPreset.allCases) { preset in
+                            Text(preset.rawValue).tag(preset)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal, 16)
+                    .onChange(of: rulesVM.selectedPreset) { _, newValue in
+                        rulesVM.selectPreset(newValue)
                     }
                 }
-                .pickerStyle(.segmented)
-                .onChange(of: rulesVM.selectedPreset) { _, newValue in
-                    rulesVM.selectPreset(newValue)
-                }
-            }
+                .padding(.vertical, 16)
 
-            Section("Rules") {
-                Text(rulesVM.rulesSummary)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Button("Edit Rules") {
-                    showRuleConfig = true
-                }
-            }
+                Divider()
 
-            Section {
+                // Rules summary
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Rules")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 16)
+
+                    Text(rulesVM.rulesSummary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 16)
+
+                    Button("Edit Rules") {
+                        showRuleConfig = true
+                    }
+                    .padding(.horizontal, 16)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 16)
+
+                Divider()
+
+                // Start Session CTA
                 Button("Start Session") {
                     isSessionActive = true
                 }
                 .buttonStyle(.borderedProminent)
                 .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 24)
             }
         }
+        .background(Color(.systemGroupedBackground))
         .navigationTitle("Practice")
         .navigationDestination(isPresented: $isSessionActive) {
             TrainerView(mode: selectedMode, rules: rulesVM.rules)
