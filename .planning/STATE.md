@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-03-24T22:13:48.980Z"
+status: Ready to execute
+stopped_at: Completed 02.1-01-PLAN.md
+last_updated: "2026-03-24T23:01:12.201Z"
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Users make correct blackjack decisions faster and with more confidence — accurate, rule-specific feedback that makes players measurably better.
-**Current focus:** Phase 02 — strategy-trainer
+**Current focus:** Phase 02.1 — ui-ux-system-layout-stabilization
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
+Phase: 02.1 (ui-ux-system-layout-stabilization) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Plan: Not started
 | Phase 02 P01 | 2min | 3 tasks | 10 files |
 | Phase 02 P02 | 4min | 2 tasks | 3 files |
 | Phase 02 P03 | 35min | 3 tasks | 10 files |
+| Phase 02.1 P01 | 2min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,12 @@ Recent decisions affecting current work:
 - [Phase 02]: pendingPlayerAction pattern separates feedback display from action execution
 - [Phase 02]: SessionStartView uses ScrollView+VStack instead of Form for reliable safe-area behavior with TabView
 - [Phase 02]: playArea uses Spacer(minLength:) for flexible vertical distribution; FeedbackOverlayView scoped to playArea .overlay not full screen
+- [Phase 02.1]: Design tokens as caseless enums (Spacing, BJSColors, Typography) for non-instantiable namespaces
+- [Phase 02.1]: Adaptive accent color via UIColor dynamic provider, not asset catalog (per D-04)
+
+### Roadmap Evolution
+
+- Phase 02.1 inserted after Phase 02: UI/UX System & Layout Stabilization (URGENT)
 
 ### Pending Todos
 
@@ -89,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T22:07:59.649Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-03-24T23:01:12.199Z
+Stopped at: Completed 02.1-01-PLAN.md
 Resume file: None
