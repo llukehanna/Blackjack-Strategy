@@ -3,18 +3,19 @@ import SwiftData
 
 @main
 struct BJSApp: App {
+    @State private var rulesViewModel = RulesViewModel()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TabView {
+                Tab("Practice", systemImage: "suit.spade.fill") {
+                    NavigationStack {
+                        SessionStartView()
+                    }
+                }
+            }
+            .environment(rulesViewModel)
         }
         .modelContainer(for: [TrainingSession.self, SessionDecision.self])
-    }
-}
-
-/// Temporary root view -- replaced in Plan 03 with TabView + NavigationStack
-struct ContentView: View {
-    var body: some View {
-        Text("BJS - Strategy Trainer")
-            .font(.title2)
     }
 }
