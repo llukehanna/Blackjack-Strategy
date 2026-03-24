@@ -9,7 +9,7 @@
 
 - [x] **RULE-01**: App exposes a canonical `BlackjackRules` model covering: deck count (1–8), S17/H17, blackjack payout (3:2 / 6:5 / 2:1), DAS, RSA, hit split aces, max split hands, surrender rule (none / late / early), double restrictions (any two / 9–11 / 10–11), and peek / no-peek (American hole-card vs ENHC)
 - [x] **RULE-02**: The same `BlackjackRules` value is used by the Strategy Trainer, Edge Calculator, and Full Shoe Simulator — one shared rule configuration, consistent across features
-- [ ] **RULE-03**: Casino presets pre-fill the rule configuration form as a UX convenience — presets are not part of the domain model itself
+- [x] **RULE-03**: Casino presets pre-fill the rule configuration form as a UX convenience — presets are not part of the domain model itself
 
 ### Basic Strategy Trainer (STRAT)
 
@@ -47,7 +47,7 @@
 
 ### Analytics and Progress (PROG)
 
-- [ ] **PROG-01**: Session results are persisted locally on-device using SwiftData; no network connection required
+- [x] **PROG-01**: Session results are persisted locally on-device using SwiftData; no network connection required
 - [ ] **PROG-02**: User can view a per-session summary: decision accuracy %, error count, and current streak
 - [ ] **PROG-03**: User can view accuracy broken down by hand type: hard totals, soft totals, and pairs
 - [ ] **PROG-04**: User can view an improvement trend chart showing accuracy over time (Swift Charts)
@@ -57,8 +57,8 @@
 
 - [x] **ARCH-01**: All core domain logic — rules engine, strategy evaluation, counting logic, and edge calculation — is packaged as pure Swift with no SwiftUI imports; all domain logic is fully unit-testable without launching a simulator
 - [x] **ARCH-02**: Strategy evaluation always derives the correct action from the active `BlackjackRules` configuration at runtime — no hardcoded or pre-baked single-ruleset strategy table is acceptable at any layer
-- [ ] **ARCH-03**: All core training and analysis features work fully offline; no network connection is required for any v1 feature
-- [ ] **ARCH-04**: User progress and analytics are persisted on-device only; no cloud sync, user accounts, or backend services are required or included in v1
+- [x] **ARCH-03**: All core training and analysis features work fully offline; no network connection is required for any v1 feature
+- [x] **ARCH-04**: User progress and analytics are persisted on-device only; no cloud sync, user accounts, or backend services are required or included in v1
 
 ---
 
@@ -102,7 +102,7 @@
 |-------------|-------|--------|
 | RULE-01 | Phase 1 | Complete |
 | RULE-02 | Phase 1 | Complete |
-| RULE-03 | Phase 2 | Pending |
+| RULE-03 | Phase 2 | Complete |
 | STRAT-01 | Phase 2 | Pending |
 | STRAT-02 | Phase 2 | Pending |
 | STRAT-03 | Phase 2 | Pending |
@@ -125,15 +125,15 @@
 | SIM-02 | Phase 6 | Pending |
 | SIM-03 | Phase 6 | Pending |
 | SIM-04 | Phase 6 | Pending |
-| PROG-01 | Phase 2 | Pending |
+| PROG-01 | Phase 2 | Complete |
 | PROG-02 | Phase 2 | Pending |
 | PROG-03 | Phase 5 | Pending |
 | PROG-04 | Phase 5 | Pending |
 | PROG-05 | Phase 5 | Pending |
 | ARCH-01 | Phase 1 | Complete |
 | ARCH-02 | Phase 1 | Complete |
-| ARCH-03 | Phase 2 | Pending |
-| ARCH-04 | Phase 2 | Pending |
+| ARCH-03 | Phase 2 | Complete |
+| ARCH-04 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 34 total

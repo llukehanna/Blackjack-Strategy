@@ -52,7 +52,7 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 02-01-PLAN.md — Xcode project scaffold, SwiftData models, casino presets, test stubs
+- [x] 02-01-PLAN.md — Xcode project scaffold, SwiftData models, casino presets, test stubs
 - [ ] 02-02-PLAN.md — TrainerViewModel game loop + RulesViewModel with tests
 - [ ] 02-03-PLAN.md — All SwiftUI views wired to ViewModels + human verification
 

@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-24T18:48:48.564Z"
+status: Ready to execute
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-24T21:11:31.414Z"
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Users make correct blackjack decisions faster and with more confidence — accurate, rule-specific feedback that makes players measurably better.
-**Current focus:** Phase 01 — core-engine
+**Current focus:** Phase 02 — strategy-trainer
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
+Phase: 02 (strategy-trainer) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Plan: Not started
 | Phase 01 P01 | 12min | 2 tasks | 12 files |
 | Phase 01 P03 | 10min | 2 tasks | 4 files |
 | Phase 01 P02 | 22min | 2 tasks | 5 files |
+| Phase 02 P01 | 2min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - [Phase 01]: EdgeCalculator uses struct (not class) with EdgeResult and RuleContribution top-level types
 - [Phase 01]: American peek conditioning: dealer P(21) conditioned on no-BJ before computing player EVs
 - [Phase 01]: Deck-dependent corrections applied to infinite-deck base for marginal plays (stiff standing, 1-2D doubling, ENHC)
+- [Phase 02]: BlackjackRules stored as JSON Data blob in SwiftData (not flattened columns)
+- [Phase 02]: Action stored as String rawValue in SessionDecision -- SwiftData cannot persist external enums
+- [Phase 02]: XcodeGen manages project generation -- avoids .xcodeproj merge conflicts
 
 ### Pending Todos
 
@@ -78,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T18:45:08.275Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-03-24T21:11:31.412Z
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
