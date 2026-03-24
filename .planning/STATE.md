@@ -1,3 +1,17 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: Ready to execute
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-03-24T18:19:45.093Z"
+progress:
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 1
+---
+
 # Project State
 
 ## Project Reference
@@ -5,20 +19,17 @@
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Users make correct blackjack decisions faster and with more confidence — accurate, rule-specific feedback that makes players measurably better.
-**Current focus:** Phase 1: Core Engine
+**Current focus:** Phase 01 — core-engine
 
 ## Current Position
 
-Phase: 1 of 6 (Core Engine)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-03-24 — Roadmap created
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 01 (core-engine) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: -
 - Total execution time: 0 hours
@@ -30,10 +41,12 @@ Progress: [░░░░░░░░░░] 0%
 | - | - | - | - |
 
 **Recent Trend:**
+
 - Last 5 plans: -
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01 P01 | 12min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -45,6 +58,9 @@ Recent decisions affecting current work:
 - [Roadmap]: Engine-first build order — all domain logic verified before UI
 - [Roadmap]: Phases 3 (Hi-Lo) and 4 (Edge Calc) are independent; can execute in either order after Phase 1
 - [Roadmap]: PROG distributed — basic tracking in Phase 2, analytics depth in Phase 5
+- [Phase 01]: All BJSCore types made public for downstream import BJSCore consumption
+- [Phase 01]: Swift Testing via CLT requires explicit -Xswiftc -F and -Xlinker -rpath flags
+- [Phase 01]: CodableTestHelper pattern isolates Foundation from Testing to avoid cross-import overlay issue
 
 ### Pending Todos
 
@@ -56,6 +72,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24
-Stopped at: Roadmap created, ready to plan Phase 1
+Last session: 2026-03-24T18:19:45.091Z
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None

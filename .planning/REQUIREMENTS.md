@@ -7,7 +7,7 @@
 
 ### Rules Model (RULE)
 
-- [ ] **RULE-01**: App exposes a canonical `BlackjackRules` model covering: deck count (1–8), S17/H17, blackjack payout (3:2 / 6:5 / 2:1), DAS, RSA, hit split aces, max split hands, surrender rule (none / late / early), double restrictions (any two / 9–11 / 10–11), and peek / no-peek (American hole-card vs ENHC)
+- [x] **RULE-01**: App exposes a canonical `BlackjackRules` model covering: deck count (1–8), S17/H17, blackjack payout (3:2 / 6:5 / 2:1), DAS, RSA, hit split aces, max split hands, surrender rule (none / late / early), double restrictions (any two / 9–11 / 10–11), and peek / no-peek (American hole-card vs ENHC)
 - [ ] **RULE-02**: The same `BlackjackRules` value is used by the Strategy Trainer, Edge Calculator, and Full Shoe Simulator — one shared rule configuration, consistent across features
 - [ ] **RULE-03**: Casino presets pre-fill the rule configuration form as a UX convenience — presets are not part of the domain model itself
 
@@ -55,7 +55,7 @@
 
 ### Architecture (ARCH)
 
-- [ ] **ARCH-01**: All core domain logic — rules engine, strategy evaluation, counting logic, and edge calculation — is packaged as pure Swift with no SwiftUI imports; all domain logic is fully unit-testable without launching a simulator
+- [x] **ARCH-01**: All core domain logic — rules engine, strategy evaluation, counting logic, and edge calculation — is packaged as pure Swift with no SwiftUI imports; all domain logic is fully unit-testable without launching a simulator
 - [ ] **ARCH-02**: Strategy evaluation always derives the correct action from the active `BlackjackRules` configuration at runtime — no hardcoded or pre-baked single-ruleset strategy table is acceptable at any layer
 - [ ] **ARCH-03**: All core training and analysis features work fully offline; no network connection is required for any v1 feature
 - [ ] **ARCH-04**: User progress and analytics are persisted on-device only; no cloud sync, user accounts, or backend services are required or included in v1
@@ -100,7 +100,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RULE-01 | Phase 1 | Pending |
+| RULE-01 | Phase 1 | Complete |
 | RULE-02 | Phase 1 | Pending |
 | RULE-03 | Phase 2 | Pending |
 | STRAT-01 | Phase 2 | Pending |
@@ -130,7 +130,7 @@
 | PROG-03 | Phase 5 | Pending |
 | PROG-04 | Phase 5 | Pending |
 | PROG-05 | Phase 5 | Pending |
-| ARCH-01 | Phase 1 | Pending |
+| ARCH-01 | Phase 1 | Complete |
 | ARCH-02 | Phase 1 | Pending |
 | ARCH-03 | Phase 2 | Pending |
 | ARCH-04 | Phase 2 | Pending |
