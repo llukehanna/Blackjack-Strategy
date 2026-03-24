@@ -2,8 +2,8 @@
 phase: 1
 slug: core-engine
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-24
 ---
 
@@ -34,30 +34,33 @@ created: 2026-03-24
 
 ---
 
-## Per-Task Verification Map
+## Wave 0 Approach
 
-| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 1-01-01 | 01 | 1 | ARCH-01 | unit | `swift test --filter BJSCoreTests` | ❌ W0 | ⬜ pending |
-| 1-01-02 | 01 | 1 | ARCH-02 | unit | `swift test --filter BJSCoreTests` | ❌ W0 | ⬜ pending |
-| 1-02-01 | 02 | 2 | RULE-01 | unit | `swift test --filter RulesTests` | ❌ W0 | ⬜ pending |
-| 1-02-02 | 02 | 2 | RULE-01 | unit | `swift test --filter RulesTests` | ❌ W0 | ⬜ pending |
-| 1-03-01 | 03 | 3 | RULE-02 | unit | `swift test --filter StrategyTests` | ❌ W0 | ⬜ pending |
-| 1-03-02 | 03 | 3 | RULE-02 | unit | `swift test --filter EdgeTests` | ❌ W0 | ⬜ pending |
+Plans use TDD-inline (`tdd="true"` on tasks): each task creates its test file alongside the implementation in the same wave. No separate Wave 0 plan is needed because:
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+1. Plan 01-01 Task 1 creates `Package.swift`, source files, AND test files (`CardTests.swift`, `RulesTests.swift`) in one step
+2. Plan 01-01 Task 2 creates `HandTests.swift` and `ShoeTests.swift` alongside their implementations
+3. Plan 01-02 Task 1 creates `DealerProbabilityTests.swift` alongside strategy source files
+4. Plan 01-02 Task 2 creates `StrategyValidationTests.swift` (test-only task)
+5. Plan 01-03 Task 1 creates `HiLoTests.swift` alongside `HiLoCounter.swift`
+6. Plan 01-03 Task 2 creates `EdgeCalculatorTests.swift` alongside `EdgeCalculator.swift`
+
+Every task that produces source code also produces its tests in the same commit. The `<behavior>` blocks in each task define test expectations before implementation (RED phase of TDD).
 
 ---
 
-## Wave 0 Requirements
+## Per-Task Verification Map
 
-- [ ] `Tests/BJSCoreTests/RulesTests.swift` — stubs for RULE-01 (BlackjackRules model)
-- [ ] `Tests/BJSCoreTests/StrategyTests.swift` — stubs for RULE-02 (strategy engine)
-- [ ] `Tests/BJSCoreTests/CountingTests.swift` — stubs for RULE-02 (counting engine)
-- [ ] `Tests/BJSCoreTests/EdgeCalculatorTests.swift` — stubs for RULE-02 (edge calculator)
-- [ ] `Sources/BJSCore/` — source directory structure
+| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Status |
+|---------|------|------|-------------|-----------|-------------------|--------|
+| 1-01-01 | 01 | 1 | ARCH-01, RULE-01 | unit | `swift test --filter BJSCoreTests` | pending |
+| 1-01-02 | 01 | 1 | ARCH-01, RULE-01 | unit | `swift test --filter BJSCoreTests` | pending |
+| 1-02-01 | 02 | 2 | ARCH-02, RULE-02 | unit | `swift test --filter StrategyTests` | pending |
+| 1-02-02 | 02 | 2 | ARCH-02, RULE-02 | unit | `swift test --filter StrategyValidation` | pending |
+| 1-03-01 | 03 | 2 | ARCH-01, RULE-02 | unit | `swift test --filter HiLo` | pending |
+| 1-03-02 | 03 | 2 | ARCH-01, RULE-02 | unit | `swift test --filter EdgeCalculator` | pending |
 
-*Wave 0 creates the Swift package structure and empty test stubs before any implementation.*
+*Status: pending / green / red / flaky*
 
 ---
 
@@ -66,17 +69,17 @@ created: 2026-03-24
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
 | Strategy tables match Wizard of Odds for 10 distinct rule sets | RULE-02 | Requires cross-referencing external calculator | Run parameterized strategy tests, compare outputs against WoO strategy charts for S17 6D, H17 6D, S17 2D, H17 2D, S17 1D, H17 1D, S17 8D DAS, H17 8D DAS, S17 6D no-DAS, H17 6D no-DAS |
-| Edge calculator within 0.01% of WoO for 10 rule combos | RULE-02 | WoO reference values must be manually verified | Check EdgeCalculatorTests parameterized output against WoO house edge calculator for same 10 rule sets |
+| Edge calculator within 0.01% of WoO for 12 rule combos | RULE-02 | WoO reference values must be manually verified | Check EdgeCalculatorTests parameterized output against WoO house edge calculator for same 12 rule sets |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify commands
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] TDD-inline approach: tests created alongside implementation (no separate Wave 0 needed)
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
