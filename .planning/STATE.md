@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-24T21:11:31.414Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-24T21:16:57.443Z"
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-24)
 ## Current Position
 
 Phase: 02 (strategy-trainer) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Plan: 2 of 3
 | Phase 01 P03 | 10min | 2 tasks | 4 files |
 | Phase 01 P02 | 22min | 2 tasks | 5 files |
 | Phase 02 P01 | 2min | 3 tasks | 10 files |
+| Phase 02 P02 | 4min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Recent decisions affecting current work:
 - [Phase 02]: BlackjackRules stored as JSON Data blob in SwiftData (not flattened columns)
 - [Phase 02]: Action stored as String rawValue in SessionDecision -- SwiftData cannot persist external enums
 - [Phase 02]: XcodeGen manages project generation -- avoids .xcodeproj merge conflicts
+- [Phase 02]: mapAction exposed as static method for direct unit testing
+- [Phase 02]: correctActionMapped computed property bridges strategy lookup and action mapping
+- [Phase 02]: pendingPlayerAction pattern separates feedback display from action execution
 
 ### Pending Todos
 
@@ -82,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T21:11:31.412Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-03-24T21:16:57.440Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None

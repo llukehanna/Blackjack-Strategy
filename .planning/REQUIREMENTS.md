@@ -13,12 +13,12 @@
 
 ### Basic Strategy Trainer (STRAT)
 
-- [ ] **STRAT-01**: User can simulate blackjack hands under the currently active `BlackjackRules` configuration
-- [ ] **STRAT-02**: App evaluates each player decision against the correct basic strategy for the active rule set — no hardcoded single strategy table anywhere in the codebase
-- [ ] **STRAT-03**: User receives correct/incorrect feedback immediately after each decision, before the hand outcome is revealed
-- [ ] **STRAT-04**: App tracks decision accuracy percentage and a per-mistake log for each session
-- [ ] **STRAT-05**: Learn mode displays the correct action before requiring user input (guided practice)
-- [ ] **STRAT-06**: Test mode drills decisions without hints (unguided evaluation)
+- [x] **STRAT-01**: User can simulate blackjack hands under the currently active `BlackjackRules` configuration
+- [x] **STRAT-02**: App evaluates each player decision against the correct basic strategy for the active rule set — no hardcoded single strategy table anywhere in the codebase
+- [x] **STRAT-03**: User receives correct/incorrect feedback immediately after each decision, before the hand outcome is revealed
+- [x] **STRAT-04**: App tracks decision accuracy percentage and a per-mistake log for each session
+- [x] **STRAT-05**: Learn mode displays the correct action before requiring user input (guided practice)
+- [x] **STRAT-06**: Test mode drills decisions without hints (unguided evaluation)
 - [ ] **STRAT-07**: Speed mode adds a per-decision timer and tracks reaction time alongside accuracy
 - [ ] **STRAT-08**: Weak-spot mode weights hand presentation toward categories where the user has the highest historical error rate
 
@@ -48,7 +48,7 @@
 ### Analytics and Progress (PROG)
 
 - [x] **PROG-01**: Session results are persisted locally on-device using SwiftData; no network connection required
-- [ ] **PROG-02**: User can view a per-session summary: decision accuracy %, error count, and current streak
+- [x] **PROG-02**: User can view a per-session summary: decision accuracy %, error count, and current streak
 - [ ] **PROG-03**: User can view accuracy broken down by hand type: hard totals, soft totals, and pairs
 - [ ] **PROG-04**: User can view an improvement trend chart showing accuracy over time (Swift Charts)
 - [ ] **PROG-05**: Strategy Trainer adaptively weights hand presentation toward categories with the highest historical error rate for the user
@@ -103,12 +103,12 @@
 | RULE-01 | Phase 1 | Complete |
 | RULE-02 | Phase 1 | Complete |
 | RULE-03 | Phase 2 | Complete |
-| STRAT-01 | Phase 2 | Pending |
-| STRAT-02 | Phase 2 | Pending |
-| STRAT-03 | Phase 2 | Pending |
-| STRAT-04 | Phase 2 | Pending |
-| STRAT-05 | Phase 2 | Pending |
-| STRAT-06 | Phase 2 | Pending |
+| STRAT-01 | Phase 2 | Complete |
+| STRAT-02 | Phase 2 | Complete |
+| STRAT-03 | Phase 2 | Complete |
+| STRAT-04 | Phase 2 | Complete |
+| STRAT-05 | Phase 2 | Complete |
+| STRAT-06 | Phase 2 | Complete |
 | STRAT-07 | Phase 5 | Pending |
 | STRAT-08 | Phase 5 | Pending |
 | HILO-01 | Phase 3 | Pending |
@@ -126,7 +126,7 @@
 | SIM-03 | Phase 6 | Pending |
 | SIM-04 | Phase 6 | Pending |
 | PROG-01 | Phase 2 | Complete |
-| PROG-02 | Phase 2 | Pending |
+| PROG-02 | Phase 2 | Complete |
 | PROG-03 | Phase 5 | Pending |
 | PROG-04 | Phase 5 | Pending |
 | PROG-05 | Phase 5 | Pending |
