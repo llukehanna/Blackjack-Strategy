@@ -19,6 +19,7 @@ targets:
       - package: BJSCore
     settings:
       base:
+        GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.bjs.app
         INFOPLIST_VALUES:
           CFBundleName: BJS
@@ -27,6 +28,9 @@ targets:
     type: bundle.unit-test
     platform: iOS
     sources: [BJSTests]
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: BJS
 packages:

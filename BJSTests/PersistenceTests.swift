@@ -4,6 +4,7 @@ import Foundation
 @testable import BJS
 import BJSCore
 
+@MainActor
 struct PersistenceTests {
     private func makeContainer() throws -> ModelContainer {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
