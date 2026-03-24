@@ -8,7 +8,7 @@
 ### Rules Model (RULE)
 
 - [x] **RULE-01**: App exposes a canonical `BlackjackRules` model covering: deck count (1–8), S17/H17, blackjack payout (3:2 / 6:5 / 2:1), DAS, RSA, hit split aces, max split hands, surrender rule (none / late / early), double restrictions (any two / 9–11 / 10–11), and peek / no-peek (American hole-card vs ENHC)
-- [ ] **RULE-02**: The same `BlackjackRules` value is used by the Strategy Trainer, Edge Calculator, and Full Shoe Simulator — one shared rule configuration, consistent across features
+- [x] **RULE-02**: The same `BlackjackRules` value is used by the Strategy Trainer, Edge Calculator, and Full Shoe Simulator — one shared rule configuration, consistent across features
 - [ ] **RULE-03**: Casino presets pre-fill the rule configuration form as a UX convenience — presets are not part of the domain model itself
 
 ### Basic Strategy Trainer (STRAT)
@@ -101,7 +101,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | RULE-01 | Phase 1 | Complete |
-| RULE-02 | Phase 1 | Pending |
+| RULE-02 | Phase 1 | Complete |
 | RULE-03 | Phase 2 | Pending |
 | STRAT-01 | Phase 2 | Pending |
 | STRAT-02 | Phase 2 | Pending |
