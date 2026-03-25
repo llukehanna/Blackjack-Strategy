@@ -10,57 +10,54 @@ struct SessionStartView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Mode picker
-                SectionContainerView {
-                    Text("Mode")
-                        .font(Typography.section)
-                        .foregroundStyle(.secondary)
+                // Sections with 1pt gap as hairline separator (matches iOS grouped table behavior)
+                VStack(spacing: 1) {
+                    // Mode picker
+                    SectionContainerView {
+                        Text("Mode")
+                            .font(Typography.section)
+                            .foregroundStyle(.secondary)
 
-                    Picker("Training Mode", selection: $selectedMode) {
-                        Text("Learn").tag(TrainingMode.learn)
-                        Text("Test").tag(TrainingMode.test)
+                        Picker("Training Mode", selection: $selectedMode) {
+                            Text("Learn").tag(TrainingMode.learn)
+                            Text("Test").tag(TrainingMode.test)
+                        }
+                        .pickerStyle(.segmented)
                     }
-                    .pickerStyle(.segmented)
-                }
 
-                Divider()
+                    // Casino Preset picker
+                    SectionContainerView {
+                        Text("Casino Preset")
+                            .font(Typography.section)
+                            .foregroundStyle(.secondary)
 
-                // Casino Preset picker
-                SectionContainerView {
-                    Text("Casino Preset")
-                        .font(Typography.section)
-                        .foregroundStyle(.secondary)
-
-                    @Bindable var vm = rulesVM
-                    Picker("Preset", selection: $vm.selectedPreset) {
-                        ForEach(CasinoPreset.allCases) { preset in
-                            Text(preset.rawValue).tag(preset)
+                        @Bindable var vm = rulesVM
+                        Picker("Preset", selection: $vm.selectedPreset) {
+                            ForEach(CasinoPreset.allCases) { preset in
+                                Text(preset.rawValue).tag(preset)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .onChange(of: rulesVM.selectedPreset) { _, newValue in
+                            rulesVM.selectPreset(newValue)
                         }
                     }
-                    .pickerStyle(.segmented)
-                    .onChange(of: rulesVM.selectedPreset) { _, newValue in
-                        rulesVM.selectPreset(newValue)
+
+                    // Rules summary
+                    SectionContainerView {
+                        Text("Rules")
+                            .font(Typography.section)
+                            .foregroundStyle(.secondary)
+
+                        Text(rulesVM.rulesSummary)
+                            .font(Typography.secondary)
+                            .foregroundStyle(.secondary)
+
+                        Button("Edit Rules") {
+                            showRuleConfig = true
+                        }
                     }
                 }
-
-                Divider()
-
-                // Rules summary
-                SectionContainerView {
-                    Text("Rules")
-                        .font(Typography.section)
-                        .foregroundStyle(.secondary)
-
-                    Text(rulesVM.rulesSummary)
-                        .font(Typography.secondary)
-                        .foregroundStyle(.secondary)
-
-                    Button("Edit Rules") {
-                        showRuleConfig = true
-                    }
-                }
-
-                Divider()
 
                 // Start Session CTA
                 Button("Start Session") {
