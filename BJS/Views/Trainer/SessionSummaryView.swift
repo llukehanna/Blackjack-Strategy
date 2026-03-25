@@ -35,11 +35,19 @@ struct SessionSummaryView: View {
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, Spacing.md)
 
-                        ForEach(Array(mistakes.enumerated()), id: \.offset) { _, record in
-                            Text("\(record.handDescription) \u{2014} \(record.playerAction.rawValue.capitalized) \u{00B7} Correct: \(record.correctAction.rawValue.capitalized)")
-                                .font(Typography.body)
-                                .padding(.horizontal, Spacing.md)
-                                .padding(.vertical, Spacing.xs)
+                        ForEach(Array(mistakes.enumerated()), id: \.offset) { index, record in
+                            VStack(spacing: 0) {
+                                Text("\(record.handDescription) \u{2014} \(record.playerAction.rawValue.capitalized) \u{00B7} Correct: \(record.correctAction.rawValue.capitalized)")
+                                    .font(Typography.body)
+                                    .padding(.horizontal, Spacing.md)
+                                    .padding(.vertical, Spacing.sm)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                if index < mistakes.count - 1 {
+                                    Divider()
+                                        .padding(.leading, Spacing.md)
+                                }
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -73,12 +81,12 @@ struct SessionSummaryView: View {
                 .font(Typography.secondary)
                 .foregroundStyle(.secondary)
             Text(value)
-                .font(Typography.title)
+                .font(Typography.statValue)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: CornerRadius.statCard)
                 .fill(Color(.secondarySystemBackground))
         )
     }
