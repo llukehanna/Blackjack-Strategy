@@ -21,7 +21,7 @@ struct CardView: View {
         }
         .frame(width: 56, height: 80)
         .shadow(
-            color: Color.black.opacity(Elevation.cardShadowOpacity),
+            color: Elevation.cardShadowColor,
             radius: Elevation.cardShadowRadius,
             x: 0,
             y: Elevation.cardShadowY

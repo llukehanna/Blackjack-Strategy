@@ -39,8 +39,8 @@ struct FeedbackOverlayView: View {
 
     private var iconColor: Color {
         switch feedback {
-        case .correct: return Color(UIColor.systemGreen)
-        case .incorrect: return Color(UIColor.systemRed)
+        case .correct: return BJSColors.feedbackCorrectIcon
+        case .incorrect: return BJSColors.feedbackIncorrectIcon
         }
     }
 
@@ -53,8 +53,8 @@ struct FeedbackOverlayView: View {
 
     private var borderColor: Color {
         switch feedback {
-        case .correct: return Color.green.opacity(0.25)
-        case .incorrect: return Color.red.opacity(0.25)
+        case .correct: return BJSColors.feedbackCorrectBorder
+        case .incorrect: return BJSColors.feedbackIncorrectBorder
         }
     }
 }

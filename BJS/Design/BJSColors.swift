@@ -15,6 +15,18 @@ enum BJSColors {
     /// Muted red tint for incorrect feedback backgrounds (10% opacity)
     static let feedbackIncorrectBackground = Color.red.opacity(0.10)
 
+    /// Subtle green border for correct feedback banner (25% opacity)
+    static let feedbackCorrectBorder = Color.green.opacity(0.25)
+
+    /// Subtle red border for incorrect feedback banner (25% opacity)
+    static let feedbackIncorrectBorder = Color.red.opacity(0.25)
+
+    /// Icon tint for correct feedback (system semantic green)
+    static let feedbackCorrectIcon = Color(UIColor.systemGreen)
+
+    /// Icon tint for incorrect feedback (system semantic red)
+    static let feedbackIncorrectIcon = Color(UIColor.systemRed)
+
     /// Face-down card back color — brand-adjacent slate, adapts to color scheme
     static let cardFaceDown = Color(
         UIColor { traits in
