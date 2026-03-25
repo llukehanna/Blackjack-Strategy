@@ -8,74 +8,99 @@ struct SessionStartView: View {
     @State private var showRuleConfig = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // Sections with 1pt gap as hairline separator (matches iOS grouped table behavior)
-                VStack(spacing: 1) {
-                    // Mode picker
-                    SectionContainerView {
-                        Text("Mode")
-                            .font(Typography.section)
-                            .foregroundStyle(.secondary)
+        VStack(spacing: 0) {
+            // Scrollable config content
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    Spacer().frame(height: Spacing.lg)
 
-                        Picker("Training Mode", selection: $selectedMode) {
-                            Text("Learn").tag(TrainingMode.learn)
-                            Text("Test").tag(TrainingMode.test)
-                        }
-                        .pickerStyle(.segmented)
-                    }
+                    // MODE section
+                    sectionLabel("MODE")
+                    Spacer().frame(height: Spacing.xs)
+                    TrainingModeToggle(selection: $selectedMode)
 
-                    // Casino Preset picker
-                    SectionContainerView {
-                        Text("Casino Preset")
-                            .font(Typography.section)
-                            .foregroundStyle(.secondary)
+                    Spacer().frame(height: Spacing.lg)
 
-                        @Bindable var vm = rulesVM
-                        Picker("Preset", selection: $vm.selectedPreset) {
-                            ForEach(CasinoPreset.allCases) { preset in
-                                Text(preset.rawValue).tag(preset)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .onChange(of: rulesVM.selectedPreset) { _, newValue in
-                            rulesVM.selectPreset(newValue)
-                        }
-                    }
-
-                    // Rules summary
-                    SectionContainerView {
-                        Text("Rules")
-                            .font(Typography.section)
-                            .foregroundStyle(.secondary)
-
-                        Text(rulesVM.rulesSummary)
-                            .font(Typography.secondary)
-                            .foregroundStyle(.secondary)
-
-                        Button("Edit Rules") {
-                            showRuleConfig = true
-                        }
-                    }
+                    // RULES section
+                    sectionLabel("RULES")
+                    Spacer().frame(height: Spacing.xs)
+                    rulesRow
                 }
-
-                // Start Session CTA
-                Button("Start Session") {
-                    isSessionActive = true
-                }
-                .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.lg)
             }
+
+            // Pinned CTA — outside ScrollView, always visible
+            Divider()
+            ctaButton
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.md)
+                .padding(.bottom, 0)
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear.frame(height: 0)
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Practice")
+        .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(isPresented: $isSessionActive) {
             TrainerView(mode: selectedMode, rules: rulesVM.rules)
         }
         .sheet(isPresented: $showRuleConfig) {
             RuleConfigView()
         }
+        .onChange(of: showRuleConfig) { _, _ in
+            // No action needed — rulesVM updates itself
+        }
+    }
+
+    // MARK: - Components
+
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.caption.bold())
+            .foregroundStyle(.secondary)
+            .tracking(1.2)
+            .padding(.horizontal, Spacing.md)
+    }
+
+    private var rulesRow: some View {
+        Button {
+            showRuleConfig = true
+        } label: {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text(rulesVM.selectedPreset.rawValue)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text(rulesVM.rulesSummary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.sm)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, Spacing.md)
+    }
+
+    private var ctaButton: some View {
+        Button {
+            isSessionActive = true
+        } label: {
+            Text("Start Session")
+                .font(.headline.bold())
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .background(BJSColors.accent)
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
+        }
+        .buttonStyle(.plain)
     }
 }
