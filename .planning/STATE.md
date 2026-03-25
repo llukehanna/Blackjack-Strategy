@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Completed 02.2-04-PLAN.md (awaiting human approval gate)
-last_updated: "2026-03-25T00:24:09.508Z"
+status: Ready to execute
+stopped_at: Completed 02.3-01-PLAN.md
+last_updated: "2026-03-25T00:48:16.489Z"
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 12
+  total_plans: 17
+  completed_plans: 13
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Users make correct blackjack decisions faster and with more confidence — accurate, rule-specific feedback that makes players measurably better.
-**Current focus:** Phase 02.2 — global-ui-redesign
+**Current focus:** Phase 02.3 — screen-level-redesign
 
 ## Current Position
 
-Phase: 02.2 (global-ui-redesign) — EXECUTING
-Plan: 4 of 4
+Phase: 02.3 (screen-level-redesign) — EXECUTING
+Plan: 2 of 4
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Plan: 4 of 4
 | Phase 02.2 P02 | 4min | 4 tasks | 4 files |
 | Phase 02.2 P03 | 4min | 3 tasks | 7 files |
 | Phase 02.2 P04 | 15min | 5 tasks | 3 files |
+| Phase 02.3 P01 | 3min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,8 @@ Recent decisions affecting current work:
 - [Phase 02.2]: ActionButtonsView secondary row omitted entirely when empty — no secondary actions, no row rendered
 - [Phase 02.2]: SectionContainerView gets secondarySystemBackground fill for MASTER.md light layering; SessionStartView uses VStack(spacing:1) hairline gap instead of Divider() when background fill provides separation
 - [Phase 02.2]: Elevation.cardShadowColor token consolidates Color.black + opacity into single token; BJSColors extended with feedbackCorrectIcon/Border and feedbackIncorrectIcon/Border for complete FeedbackOverlayView tokenization
+- [Phase 02.3]: TrainingModeToggle imports SwiftUI only — TrainingMode is in app module not BJSCore
+- [Phase 02.3]: Pinned CTA pattern: outer VStack(spacing:0), ScrollView for content, Divider separator, CTA outside scroll
 
 ### Roadmap Evolution
 
@@ -110,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T00:24:09.506Z
-Stopped at: Completed 02.2-04-PLAN.md (awaiting human approval gate)
+Last session: 2026-03-25T00:48:16.486Z
+Stopped at: Completed 02.3-01-PLAN.md
 Resume file: None

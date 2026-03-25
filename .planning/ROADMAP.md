@@ -81,6 +81,18 @@ Plans:
 - [x] 02.2-03-PLAN.md — Screen polish: SessionSummaryView monospaced stats, SectionContainerView surface, final literal scan
 - [x] 02.2-04-PLAN.md — Visual verification + human approval gate (screenshots: iPhone 16 light/dark, SE light)
 
+### Phase 02.3: Screen-Level Redesign (INSERTED)
+
+**Goal:** Materially redesign SessionStartView, TrainerView, and SessionSummaryView at the layout and composition level — not a restyling pass. Each screen gets a new structure, hierarchy, and scan path conforming to the Apple Sports / Vercel / Raycast premium utility benchmark. Human approval gate before Phase 3.
+**Depends on:** Phase 02.2
+**Plans:** 1/4 plans executed
+
+Plans:
+- [x] 02.3-01-PLAN.md — Typography tokens (heroStat, playerTotal) + TrainingModeToggle component + SessionStartView redesign
+- [ ] 02.3-02-PLAN.md — StatsBarView redesign (42pt, inline chips) + TrainerView play field (zone labels, YOU+total, action dock)
+- [ ] 02.3-03-PLAN.md — SessionSummaryView redesign (72pt hero, tertiary stats, compact mistakes, plain Home)
+- [ ] 02.3-04-PLAN.md — Visual verification + human approval gate (screenshots: iPhone 16 light/dark, SE light)
+
 ### Phase 3: Hi-Lo Practice
 **Goal**: Users can practice Hi-Lo card counting with configurable drills that build speed and accuracy
 **Depends on**: Phase 1
