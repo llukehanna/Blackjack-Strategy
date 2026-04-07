@@ -28,22 +28,22 @@ expected: Bottom of trainer is a single 88pt action dock containing STAND on the
 result: pass
 note: "Image #4 confirms two-row dock with STAND/Practice/HIT layout."
 
-### 4. Feedback overlay — bottom-anchored dark card
-expected: After making a wrong decision, a feedback card appears anchored to the bottom of the play area, in the dark BJS palette, NOT a full-screen white modal sheet.
+### 4. Feedback overlay — bottom-anchored white card (NOT full-screen)
+expected: After making a decision, a WHITE feedback card appears anchored to the bottom of the play area (per UI-SPEC surfaceOverlay = #FFFFFF). The play area above remains visible — the card only covers the dock region, not the whole screen.
 result: issue
-reported: "Image #8: feedback renders as a full-screen WHITE modal sheet covering most of the trainer area, not a bottom-anchored dark card."
+reported: "Image #8: feedback renders as a full-screen modal covering most of the trainer area instead of being a small bottom-anchored card. Card color is correct (white per spec) — only the structural sizing is the bug."
 severity: blocker
 
-### 5. Feedback overlay — X badge straddles player's last card
-expected: The red X (or green check) badge straddles (overlaps) the bottom edge of the player's last card in the play area, per UI-SPEC.
+### 5. Feedback overlay — X badge straddles top edge of feedback card
+expected: The red X (or green check) badge straddles (overlaps) the TOP edge of the white feedback card — half above, half below — per UI-SPEC. Because the card sits just below the player's hand, this also means the badge visually appears at the boundary between the player's last card and the feedback card.
 result: issue
-reported: "Image #8: X badge is centered above the white modal sheet — it does not straddle the player's last card; the player's hand isn't even visible behind the modal."
+reported: "Image #8: X badge is centered above the modal sheet but does not straddle a card edge — direct consequence of the test 4 sizing bug."
 severity: blocker
 
-### 6. UNDERSTAND WHY button
-expected: Tapping UNDERSTAND WHY opens an explanation of why the correct strategic move was correct.
+### 6. WHY button (renamed from UNDERSTAND WHY)
+expected: Tapping the WHY button on the feedback card opens an explanation of why the correct strategic move was correct, given the current hand and casino rules. Renamed from "UNDERSTAND WHY" to just "WHY" per user direction.
 result: issue
-reported: "User reported: pressing UNDERSTAND WHY does nothing for both Learn and Test modes."
+reported: "User reported: pressing UNDERSTAND WHY does nothing in both Learn and Test modes. Also: button label should be renamed to 'WHY'."
 severity: blocker
 
 ### 7. SessionStartView — dark BJS theme
@@ -137,21 +137,26 @@ blocked: 0
     - "Reduce internal top clearance to ~8pt so the heading sits flush below the badge"
   debug_session: ""
 
-- truth: "UNDERSTAND WHY button opens an explanation of the correct move"
+- truth: "WHY button (renamed from UNDERSTAND WHY) opens a real explanation of the correct strategic move"
   status: failed
-  reason: "User reported: pressing UNDERSTAND WHY does nothing in both Learn and Test modes."
+  reason: "User reported: pressing the button does nothing. User direction: rename label to 'WHY' and BUILD a real explanation, not a stub."
   severity: blocker
   test: 6
-  root_cause: "The onUnderstandWhy closure passed to FeedbackOverlayView in TrainerView is a hardcoded {} no-op — it was intentionally stubbed in Plan 03 (UI-07-D7) and never wired. No state property exists on TrainerViewModel or TrainerView to back the action."
+  root_cause: "The onUnderstandWhy closure passed to FeedbackOverlayView in TrainerView is a hardcoded {} no-op — intentionally stubbed in Plan 03 (UI-07-D7) and never wired. No state, no destination view, no explanation content source."
   artifacts:
     - path: "BJS/Views/Trainer/TrainerView.swift"
       issue: "Line 49 — onUnderstandWhy: { /* no-op placeholder — UI-07-D7 */ } is a literal empty closure"
     - path: "BJS/ViewModels/TrainerViewModel.swift"
-      issue: "No 'show explanation' / 'understand why' state property exists on the ViewModel"
+      issue: "No explanation/why state property exists"
+    - path: "BJS/Views/Trainer/FeedbackOverlayView.swift"
+      issue: "Button label currently 'UNDERSTAND WHY' — needs to be renamed to 'WHY'"
   missing:
-    - "Add @State private var showingExplanation: Bool = false on TrainerView (or @Observable property on TrainerViewModel)"
-    - "Replace the no-op closure body with { showingExplanation = true }"
-    - "Add a destination view (sheet, navigation, or inline expansion) bound to that state that explains the correct strategy decision for the current hand"
+    - "Rename the button label from 'UNDERSTAND WHY' to 'WHY' in FeedbackOverlayView (and update the FeedbackOverlayTests copy contract that asserts the label)"
+    - "Add a sheet/state binding on TrainerView (e.g. @State private var whyContext: WhyContext?) that opens when WHY is tapped"
+    - "Build a WhyExplanationView that takes the current decision context (hand total/type, dealer up card, action user chose, correct action, casino rules in play) and renders a short explanation of why the correct move is correct"
+    - "Source the explanation content from BJSCore strategy logic — the strategy table already encodes the correct decision per (hand_type, hand_total, dealer_up_card, rules); the explanation needs to verbalize WHY (e.g. 'Hard 16 vs dealer 10: standing loses 75%, hitting busts often but loses less in the long run' or similar). Initial implementation can use template strings keyed off (hand_state, correct_action) without needing per-hand probability calculations."
+    - "Wire the closure: onWhy: { whyContext = makeContext(from: feedbackState) }"
+    - "Add a test that taps the WHY button and asserts the explanation sheet appears with non-empty content"
   debug_session: ""
 
 - truth: "SessionStartView uses the dark BJS palette and BJS typography"
