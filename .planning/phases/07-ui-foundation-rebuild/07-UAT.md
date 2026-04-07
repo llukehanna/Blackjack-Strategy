@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 07-ui-foundation-rebuild
 source: [07-01-SUMMARY.md, 07-02-SUMMARY.md, 07-03-SUMMARY.md]
 started: 2026-04-07T15:55:00Z
-updated: 2026-04-07T16:00:00Z
+updated: 2026-04-07T16:05:00Z
 ---
 
 ## Current Test
@@ -91,44 +91,67 @@ blocked: 0
 
 ## Gaps
 
-- truth: "Dealer and player hands render with visibly different overlap"
+- truth: "Dealer and player hands render with visibly different overlap, each card mostly visible"
   status: failed
-  reason: "User reported: dealer and player look like simple side-by-side pairs with similar spacing; differentiation is not visually obvious."
-  severity: minor
+  reason: "User reported: cards stack on top of each other; dealer/player overlap differentiation invisible."
+  severity: major
   test: 2
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "CardView uses .aspectRatio(5/7, .fit) with no explicit width and HandView's .frame(width: cardWidth) is applied to the Group wrapping CardView, not to the Image inside. Each card renders wider than the 88pt the negative spacing was calculated against, so the overlap fraction is much larger than intended and the dealer/player rawValue difference (0.30 vs 0.45) is swamped by the size inflation."
+  artifacts:
+    - path: "BJS/Views/Trainer/CardView.swift"
+      issue: "Line 26 — .aspectRatio(5.0/7.0, contentMode: .fit) with no explicit .frame(width:) inside CardView"
+    - path: "BJS/Views/Trainer/HandView.swift"
+      issue: "Line 29 — .frame(width: cardWidth) applied to the Group wrapper, not to the CardView Image"
+  missing:
+    - "CardView accepts an explicit width parameter (or applies .frame(width:) directly to its Image) so the rendered card is always cardWidth regardless of parent layout context"
+    - "HandView passes cardWidth into CardView and removes the wrapping-Group .frame so the negative spacing is computed against the true rendered width"
   debug_session: ""
 
-- truth: "Feedback renders as a bottom-anchored dark card in the trainer view"
+- truth: "Feedback renders as a bottom-anchored card in the trainer view (NOT a full-screen sheet)"
   status: failed
-  reason: "User reported: feedback renders as a full-screen WHITE modal sheet covering the trainer area."
+  reason: "User reported: feedback renders as a full-screen modal covering the trainer area. NOTE: per UI-SPEC, the feedback card surface is intentionally WHITE (surfaceOverlay = #FFFFFF) — the color is correct, the structural layout is the bug."
   severity: blocker
   test: 4
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "FeedbackOverlayView wraps its card in an outer VStack containing Spacer(minLength: 0) + the card ZStack. The Spacer expands to fill the full screen height that TrainerView's ZStack(alignment: .bottom) allocates to it, so the overlay layer occupies the entire screen, blocking the play area above. The card itself sizes correctly via .fixedSize(vertical: true) — only the wrapping VStack is wrong."
+  artifacts:
+    - path: "BJS/Views/Trainer/FeedbackOverlayView.swift"
+      issue: "Lines 32–62 — outer VStack { Spacer(minLength: 0); ZStack(card) } expands to full screen height"
+  missing:
+    - "Remove the outer VStack and Spacer; let the ZStack(card) be the root view of FeedbackOverlayView"
+    - "Once the wrapping VStack is removed, the existing .fixedSize(vertical: true) and TrainerView's ZStack(alignment: .bottom) will naturally pin the card to the bottom and only cover the dock area"
   debug_session: ""
 
-- truth: "Feedback X badge straddles the player's last card"
+- truth: "Feedback X badge straddles the top edge of the white feedback card (which sits just below the player's hand)"
   status: failed
-  reason: "User reported: X badge is centered above the modal sheet, not straddling the player's last card."
+  reason: "User reported: X badge is centered above the full-screen modal, not straddling the player's last card."
   severity: blocker
   test: 5
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Per UI-SPEC, the badge straddles the top edge of the white feedback card itself (not directly the player card). The badge offset logic in FeedbackOverlayView (.offset(y: -24) inside ZStack(.top)) is correct. The visible bug is a CONSEQUENCE of the full-screen-VStack issue (test 4) — once that's fixed, the card top will sit just below the play area and the badge will appear to straddle the player's last card. Secondary minor issue: 40pt of internal top clearance (Spacer lg + padding md) leaves a 16pt dead-zone gap between badge bottom and the heading."
+  artifacts:
+    - path: "BJS/Views/Trainer/FeedbackOverlayView.swift"
+      issue: "Line 59 — badge.offset(y: -24) is geometrically correct; depends on test 4 fix"
+    - path: "BJS/Views/Trainer/FeedbackOverlayView.swift"
+      issue: "Lines ~38–45 — Spacer.frame(height: Spacing.lg) + .padding(.top, Spacing.md) yields 40pt clearance, leaving a 16pt dead-zone below the badge"
+  missing:
+    - "Fix test 4 first; verify the badge visually straddles the white card top edge after that"
+    - "Reduce internal top clearance to ~8pt so the heading sits flush below the badge"
   debug_session: ""
 
 - truth: "UNDERSTAND WHY button opens an explanation of the correct move"
   status: failed
-  reason: "User reported: pressing UNDERSTAND WHY does nothing for both Learn and Test modes."
+  reason: "User reported: pressing UNDERSTAND WHY does nothing in both Learn and Test modes."
   severity: blocker
   test: 6
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "The onUnderstandWhy closure passed to FeedbackOverlayView in TrainerView is a hardcoded {} no-op — it was intentionally stubbed in Plan 03 (UI-07-D7) and never wired. No state property exists on TrainerViewModel or TrainerView to back the action."
+  artifacts:
+    - path: "BJS/Views/Trainer/TrainerView.swift"
+      issue: "Line 49 — onUnderstandWhy: { /* no-op placeholder — UI-07-D7 */ } is a literal empty closure"
+    - path: "BJS/ViewModels/TrainerViewModel.swift"
+      issue: "No 'show explanation' / 'understand why' state property exists on the ViewModel"
+  missing:
+    - "Add @State private var showingExplanation: Bool = false on TrainerView (or @Observable property on TrainerViewModel)"
+    - "Replace the no-op closure body with { showingExplanation = true }"
+    - "Add a destination view (sheet, navigation, or inline expansion) bound to that state that explains the correct strategy decision for the current hand"
   debug_session: ""
 
 - truth: "SessionStartView uses the dark BJS palette and BJS typography"
@@ -180,10 +203,17 @@ blocked: 0
 
 - truth: "STAND triggers feedback overlay so user learns whether the decision was correct"
   status: failed
-  reason: "User reported: pressing STAND skips the feedback overlay entirely and jumps to the next hand. STAND does not trigger the feedback flow."
+  reason: "User reported: pressing STAND skips the feedback overlay entirely and jumps to the next hand."
   severity: blocker
   test: 12
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "TrainerView.handlePhaseChange spawns fire-and-forget Tasks for .playingOut (0.3s sleep → playOutDealer) and .showingResult (1.0s sleep → advanceToNextHand → dealNewHand → feedbackState = nil) with NO cancellation. A stale .showingResult Task from a previous hand can complete its sleep during the current hand's .showingFeedback phase and reset feedbackState, causing the STAND overlay to disappear immediately or never become visible. STAND is more affected than HIT because the STAND path goes through both auto-advance timers (.playingOut → .showingResult), while HIT-no-bust returns directly to .awaitingDecision without any timer."
+  artifacts:
+    - path: "BJS/Views/Trainer/TrainerView.swift"
+      issue: "Lines 186–201 — handlePhaseChange spawns Task { try? await Task.sleep(...); ... } with no cancellation tokens"
+    - path: "BJS/Views/Trainer/TrainerView.swift"
+      issue: "Line 64 — .onChange(of: viewModel.phase) does not cancel previously-launched Tasks when phase resets to .awaitingDecision or .showingFeedback"
+  missing:
+    - "Store Task handles as @State private var playingOutTask: Task<Void, Never>? and showingResultTask"
+    - "At the top of handlePhaseChange (and on phase reset to .awaitingDecision/.showingFeedback), cancel any pending tasks before launching new ones"
+    - "Add a phase-guard inside each Task closure: guard viewModel.phase == .playingOut else { return } before calling playOutDealer() — same for .showingResult"
   debug_session: ""
