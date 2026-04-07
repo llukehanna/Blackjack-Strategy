@@ -2,13 +2,16 @@ import SwiftUI
 import SwiftData
 import BJSCore
 
+/// TrainerView — visual contract for the whole app per UI-SPEC 07.
+/// Delete-and-rewrite against the layout contract: nav chrome, dealer hand, watermark,
+/// player hand, table-edge arcs, two-row action dock, bottom-card feedback overlay.
+/// No StatsBar, no hand-total numerics, no DEALER/YOU labels. TrainerViewModel is unchanged.
 struct TrainerView: View {
     @State private var viewModel: TrainerViewModel
     @Environment(\.modelContext) private var modelContext
     @Environment(RulesViewModel.self) private var rulesVM
     @Environment(\.dismiss) private var dismiss
-    @State private var showRuleConfig = false
-    @State private var showEndSessionAlert = false
+    @State private var showEndSessionConfirm = false
 
     private let mode: TrainingMode
 
@@ -20,9 +23,8 @@ struct TrainerView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Stats bar sits directly below the navigation bar
-            StatsBarView(stats: viewModel.sessionStats)
+        ZStack(alignment: .bottom) {
+            BJSColors.surfaceBase.ignoresSafeArea()
 
             if viewModel.phase == .sessionSummary {
                 SessionSummaryView(
@@ -32,56 +34,46 @@ struct TrainerView: View {
                         viewModel.startNewSession()
                         dismiss()
                     },
-                    onHome: {
-                        dismiss()
-                    }
+                    onHome: { dismiss() }
                 )
             } else {
-                playArea
+                mainStack
+            }
+
+            if let feedback = viewModel.feedbackState {
+                FeedbackOverlayView(
+                    isCorrect: feedback.isCorrect,
+                    userActionLabel: userActionLabel(from: feedback),
+                    correctActionLabel: correctActionLabel(from: feedback),
+                    onDeal: { viewModel.advanceFromFeedback() },
+                    onUnderstandWhy: { /* no-op placeholder — UI-07-D7 */ }
+                )
+                .animation(AnimationTiming.overlayIn, value: viewModel.feedbackState != nil)
             }
         }
-        .navigationTitle("Practice")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(viewModel.phase != .sessionSummary)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showRuleConfig = true
-                } label: {
-                    Image(systemName: "gearshape")
-                }
-            }
-        }
-        .sheet(isPresented: $showRuleConfig) {
-            RuleConfigView()
-        }
-        .onChange(of: showRuleConfig) { _, isShowing in
-            if !isShowing {
-                viewModel.updateRules(rulesVM.rules)
-            }
-        }
-        .alert("End Session?", isPresented: $showEndSessionAlert) {
-            Button("Cancel", role: .cancel) {}
-            Button("End", role: .destructive) {
+        .navigationBarHidden(true)
+        .alert("End this session?", isPresented: $showEndSessionConfirm) {
+            Button("End Session", role: .destructive) {
                 viewModel.endSession(modelContext: modelContext)
             }
+            Button("Keep Playing", role: .cancel) {}
         } message: {
-            Text("Your progress for this session will be saved.")
+            Text("Your session results so far will be saved.")
         }
-        .onAppear {
-            viewModel.dealNewHand()
-        }
+        .onAppear { viewModel.dealNewHand() }
         .onChange(of: viewModel.phase) { _, newPhase in
             handlePhaseChange(newPhase)
         }
     }
 
-    // MARK: - Play Area
+    // MARK: - Main Stack
 
     @ViewBuilder
-    private var playArea: some View {
+    private var mainStack: some View {
         VStack(spacing: 0) {
-            Spacer(minLength: Spacing.lg)
+            navChrome
+
+            Spacer().frame(height: Spacing.xxl)
 
             // Dealer hand
             if let dealerHand = viewModel.dealerHand {
@@ -89,64 +81,69 @@ struct TrainerView: View {
                 HandView(cards: dealerHand.cards, faceDownIndices: faceDownIndices, overlap: .dealer)
             }
 
-            Spacer(minLength: Spacing.lg)
+            Spacer().frame(height: Spacing.xl)
 
-            // Player hand + total
-            VStack(spacing: Spacing.sm) {
-                if let playerHand = viewModel.playerHand {
-                    HandView(cards: playerHand.cards, overlap: .player)
-                    Text("Total: \(playerHand.total)")
-                        .font(Typography.caption) // #warning("Phase 7: TrainerView uses placeholder token — will be re-skinned in a later phase")
-                        .foregroundStyle(.secondary)
-                }
+            // Brand watermark
+            Text("BJS")
+                .font(Typography.caption)
+                .tracking(3)
+                .foregroundStyle(BJSColors.watermarkInk.opacity(0.25))
 
-                // Hand result label
-                if viewModel.phase == .showingResult, let result = viewModel.handResult {
-                    Text(result.rawValue)
-                        .font(Typography.title)
-                        .padding(.top, Spacing.xs)
-                }
+            Spacer().frame(height: Spacing.xl)
+
+            // Player hand (no total label, no player-side caption per UI-07-D10)
+            if let playerHand = viewModel.playerHand {
+                HandView(cards: playerHand.cards, overlap: .player)
             }
 
-            Spacer(minLength: Spacing.lg)
+            Spacer(minLength: 0)
 
-            // Learn mode hint
-            if let correctAction = viewModel.correctActionForDisplay {
-                Text("Correct play: \(correctAction.rawValue.capitalized)")
-                    .font(Typography.caption) // #warning("Phase 7: TrainerView uses placeholder token — will be re-skinned in a later phase")
-                    .foregroundStyle(.secondary)
-                    .padding(.bottom, Spacing.sm)
-            }
+            // Table-edge arcs
+            TableEdgeArcs()
+                .frame(height: 60)
 
-            // Action buttons
-            ActionButtonsView(
-                availableActions: viewModel.availableActions,
-                isEnabled: viewModel.phase == .awaitingDecision,
-                onAction: { action in
-                    viewModel.playerAction(action)
-                }
-            )
-
-            // End Session button
-            Button("End Session") {
-                showEndSessionAlert = true
-            }
-            .buttonStyle(.bordered)
-            .foregroundStyle(.secondary)
-            .padding(.top, Spacing.md)
-
-            Spacer(minLength: Spacing.lg)
-        }
-        .padding(.bottom, Spacing.sm)
-        .overlay {
-            if let feedback = viewModel.feedbackState {
-                FeedbackOverlayView(feedback: feedback)
-                    .animation(AnimationTiming.overlayIn, value: viewModel.feedbackState != nil) // #warning("Phase 7: TrainerView uses placeholder token — will be re-skinned in a later phase")
+            // Action dock — hidden behind feedback overlay when feedback shown
+            if viewModel.feedbackState == nil {
+                ActionButtonsView(
+                    canSplit: viewModel.availableActions.contains(.split),
+                    canDouble: viewModel.availableActions.contains(.double),
+                    canSurrender: viewModel.availableActions.contains(.surrender),
+                    isEnabled: viewModel.phase == .awaitingDecision,
+                    onStand: { viewModel.playerAction(.stand) },
+                    onHit: { viewModel.playerAction(.hit) },
+                    onSplit: { viewModel.playerAction(.split) },
+                    onDouble: { viewModel.playerAction(.double) },
+                    onSurrender: { viewModel.playerAction(.surrender) }
+                )
             }
         }
     }
 
-    // MARK: - State
+    // MARK: - Nav Chrome
+
+    @ViewBuilder
+    private var navChrome: some View {
+        HStack {
+            Button(action: { showEndSessionConfirm = true }) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(BJSColors.textPrimary)
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(BJSColors.surfaceRaised))
+            }
+            Spacer()
+            Button(action: { /* SOS placeholder — UI-07-D9 */ }) {
+                Text("SOS")
+                    .font(Typography.caption)
+                    .tracking(1.5)
+                    .foregroundStyle(BJSColors.actionLabel)
+            }
+        }
+        .padding(.horizontal, Spacing.lg)
+        .frame(height: 44)
+    }
+
+    // MARK: - Derived state
 
     private var shouldRevealDealerHole: Bool {
         switch viewModel.phase {
@@ -157,27 +154,88 @@ struct TrainerView: View {
         }
     }
 
+    private func userActionLabel(from feedback: FeedbackResult) -> String {
+        let action = viewModel.decisions.last?.playerAction
+        return Self.label(for: action)
+    }
+
+    private func correctActionLabel(from feedback: FeedbackResult) -> String {
+        switch feedback {
+        case .incorrect(let correctAction):
+            return Self.label(for: correctAction)
+        case .correct:
+            return Self.label(for: viewModel.decisions.last?.correctAction)
+        }
+    }
+
+    static func label(for action: Action?) -> String {
+        guard let action = action else { return "" }
+        switch action {
+        case .stand: return "STAND"
+        case .hit: return "HIT"
+        case .split: return "SPLIT"
+        case .double: return "DOUBLE"
+        case .surrender: return "SURREN."
+        }
+    }
+
     // MARK: - Phase Auto-Advance
+    // Feedback is now user-advanced via the DEAL button in FeedbackOverlayView.
+    // playingOut / showingResult still auto-advance on short timers.
 
     private func handlePhaseChange(_ phase: TrainerPhase) {
         switch phase {
-        case .showingFeedback:
-            Task {
-                try? await Task.sleep(for: .seconds(1.0)) // #warning("Phase 7: TrainerView uses placeholder timing — will be re-skinned in a later phase")
-                viewModel.advanceFromFeedback()
-            }
         case .playingOut:
             Task {
-                try? await Task.sleep(for: .seconds(0.3)) // #warning("Phase 7: TrainerView uses placeholder timing — will be re-skinned in a later phase")
+                try? await Task.sleep(for: .seconds(0.3))
                 viewModel.playOutDealer()
             }
         case .showingResult:
             Task {
-                try? await Task.sleep(for: .seconds(1.0)) // #warning("Phase 7: TrainerView uses placeholder timing — will be re-skinned in a later phase")
+                try? await Task.sleep(for: .seconds(1.0))
                 viewModel.advanceToNextHand()
             }
         default:
             break
         }
+    }
+}
+
+// MARK: - Table Edge Arcs
+
+/// Two thin gold arcs suggesting the felt edge of a blackjack table.
+/// Geometry is approximate per UI-SPEC (observed: false — inferred from reference).
+private struct TableEdgeArcs: View {
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                Ellipse()
+                    .stroke(BJSColors.accentGold.opacity(0.8), lineWidth: 1)
+                    .frame(width: geo.size.width * 1.8, height: geo.size.height * 3)
+                    .offset(y: geo.size.height * 1.2)
+                Ellipse()
+                    .stroke(BJSColors.accentGold.opacity(0.5), lineWidth: 1)
+                    .frame(width: geo.size.width * 2.1, height: geo.size.height * 3.4)
+                    .offset(y: geo.size.height * 1.4)
+            }
+            .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+// MARK: - Previews
+
+#Preview("Pre-decision") {
+    NavigationStack {
+        TrainerView(mode: .test, rules: BlackjackRules())
+            .environment(RulesViewModel())
+    }
+}
+
+#Preview("Feedback — Incorrect") {
+    NavigationStack {
+        TrainerView(mode: .test, rules: BlackjackRules())
+            .environment(RulesViewModel())
     }
 }
