@@ -57,7 +57,8 @@ struct TrainerView: View {
         .sheet(item: $whyContext) { ctx in
             WhyExplanationView(context: ctx)
         }
-        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
         .alert("End this session?", isPresented: $showEndSessionConfirm) {
             Button("End Session", role: .destructive) {
                 viewModel.endSession(modelContext: modelContext)
