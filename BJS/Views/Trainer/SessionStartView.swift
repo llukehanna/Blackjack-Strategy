@@ -38,7 +38,7 @@ struct SessionStartView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             Color.clear.frame(height: 0)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(BJSColors.surfaceBase)
         .navigationTitle("Practice")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(isPresented: $isSessionActive) {
@@ -56,8 +56,8 @@ struct SessionStartView: View {
 
     private func sectionLabel(_ text: String) -> some View {
         Text(text)
-            .font(.caption.bold())
-            .foregroundStyle(.secondary)
+            .font(Typography.caption)
+            .foregroundStyle(BJSColors.textSecondary)
             .tracking(1.2)
             .padding(.horizontal, Spacing.md)
     }
@@ -69,20 +69,20 @@ struct SessionStartView: View {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(rulesVM.selectedPreset.rawValue)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                        .font(Typography.body)
+                        .foregroundStyle(BJSColors.textPrimary)
                     Text(rulesVM.rulesSummary)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(Typography.caption)
+                        .foregroundStyle(BJSColors.textSecondary)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.caption.bold())
-                    .foregroundStyle(.secondary)
+                    .font(Typography.caption)
+                    .foregroundStyle(BJSColors.textSecondary)
             }
             .padding(.horizontal, Spacing.md)
             .padding(.vertical, Spacing.sm)
-            .background(Color(.secondarySystemBackground))
+            .background(BJSColors.surfaceRaised)
             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
         }
         .buttonStyle(.plain)
@@ -94,11 +94,11 @@ struct SessionStartView: View {
             isSessionActive = true
         } label: {
             Text("Start Session")
-                .font(.headline.bold())
-                .foregroundStyle(.white)
+                .font(Typography.body)
+                .foregroundStyle(BJSColors.textOnOverlay)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
-                .background(BJSColors.accentGold) // #warning("Phase 7: SessionStartView uses placeholder token — will be re-skinned in a later phase")
+                .background(BJSColors.accentGold)
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
         }
         .buttonStyle(.plain)

@@ -12,6 +12,7 @@ struct SessionSummaryView: View {
                 // Heading
                 Text("Session Complete")
                     .font(Typography.title)
+                    .foregroundStyle(BJSColors.textPrimary)
                     .padding(.top, Spacing.lg)
 
                 // Stats grid (2x2)
@@ -30,15 +31,15 @@ struct SessionSummaryView: View {
                 if !mistakes.isEmpty {
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text("Mistakes")
-                            .font(Typography.caption) // #warning("Phase 7: SessionSummaryView uses placeholder token — will be re-skinned in a later phase")
-                            .bold()
-                            .foregroundStyle(.secondary)
+                            .font(Typography.caption)
+                            .foregroundStyle(BJSColors.textSecondary)
                             .padding(.horizontal, Spacing.md)
 
                         ForEach(Array(mistakes.enumerated()), id: \.offset) { index, record in
                             VStack(spacing: 0) {
                                 Text("\(record.handDescription) \u{2014} \(record.playerAction.rawValue.capitalized) \u{00B7} Correct: \(record.correctAction.rawValue.capitalized)")
                                     .font(Typography.body)
+                                    .foregroundStyle(BJSColors.textPrimary)
                                     .padding(.horizontal, Spacing.md)
                                     .padding(.vertical, Spacing.sm)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -54,7 +55,7 @@ struct SessionSummaryView: View {
                 }
 
                 // Actions
-                VStack(spacing: Spacing.sm) { // #warning("Phase 7: SessionSummaryView uses placeholder token — will be re-skinned in a later phase")
+                VStack(spacing: Spacing.sm) {
                     Button("Play Again") {
                         onPlayAgain()
                     }
@@ -71,23 +72,24 @@ struct SessionSummaryView: View {
                 .padding(.bottom, Spacing.lg)
             }
         }
-        .background(Color(.systemGroupedBackground))
+        .background(BJSColors.surfaceBase)
     }
 
     @ViewBuilder
     private func statCard(label: String, value: String) -> some View {
         VStack(spacing: Spacing.xs) {
             Text(label)
-                .font(Typography.caption) // #warning("Phase 7: SessionSummaryView uses placeholder token — will be re-skinned in a later phase")
-                .foregroundStyle(.secondary)
+                .font(Typography.caption)
+                .foregroundStyle(BJSColors.textSecondary)
             Text(value)
-                .font(Typography.body) // #warning("Phase 7: SessionSummaryView uses placeholder token — will be re-skinned in a later phase")
+                .font(Typography.body)
+                .foregroundStyle(BJSColors.textPrimary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: CornerRadius.card) // #warning("Phase 7: SessionSummaryView uses placeholder token — will be re-skinned in a later phase")
-                .fill(Color(.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: CornerRadius.card)
+                .fill(BJSColors.surfaceRaised)
         )
     }
 }
