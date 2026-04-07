@@ -173,3 +173,17 @@ Note: Phases 3 and 4 depend only on Phase 1 and are independent of each other.
 | 4. Edge Calculator | 0/2 | Not started | - |
 | 5. Analytics & Adaptive Training | 0/2 | Not started | - |
 | 6. Full Shoe Simulation | 0/2 | Not started | - |
+
+### Phase 7: UI Foundation Rebuild
+
+**Goal:** Rebuild the BJS visual foundation to shippable quality using the 21 Blackjack Strategy Trainer reference (design-system/reference/IMG_7838–7849). Lock a strict design token system, ship real CC0 playing-card art via CardView, and rebuild TrainerView end-to-end as the visual contract for every other screen. Foundation-only — other screens rebuilt later.
+**Requirements**: TBD
+**Depends on:** Phase 02.3
+**UI hint:** yes
+**Plans:** 4 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Token rewrite (16 colors, 3 type roles, 6 spacing, 5 corner radii, elevation, animation) + mechanical migration of all existing views + DesignTokenTests
+- [ ] 07-02-PLAN.md — Public-domain SVG card deck import + ATTRIBUTION + CardView/HandView rebuild with differentiated overlap + Card/Hand tests
+- [ ] 07-03-PLAN.md — TrainerView + ActionButtonsView + FeedbackOverlayView end-to-end rebuild against UI-SPEC + FeedbackOverlayTests
+- [ ] 07-04-PLAN.md — Full suite run + human visual approval gate against IMG_7841/IMG_7843
