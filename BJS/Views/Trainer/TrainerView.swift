@@ -12,6 +12,8 @@ struct TrainerView: View {
     @Environment(RulesViewModel.self) private var rulesVM
     @Environment(\.dismiss) private var dismiss
     @State private var showEndSessionConfirm = false
+    @State private var playingOutTask: Task<Void, Never>?
+    @State private var showingResultTask: Task<Void, Never>?
 
     private let mode: TrainingMode
 
@@ -184,15 +186,26 @@ struct TrainerView: View {
     // playingOut / showingResult still auto-advance on short timers.
 
     private func handlePhaseChange(_ phase: TrainerPhase) {
+        // Always cancel any pending phase-transition tasks to prevent stale
+        // closures from mutating state during a later phase (UAT test 12).
+        playingOutTask?.cancel()
+        playingOutTask = nil
+        showingResultTask?.cancel()
+        showingResultTask = nil
+
         switch phase {
         case .playingOut:
-            Task {
+            playingOutTask = Task { @MainActor in
                 try? await Task.sleep(for: .seconds(0.3))
+                guard !Task.isCancelled else { return }
+                guard viewModel.phase == .playingOut else { return }
                 viewModel.playOutDealer()
             }
         case .showingResult:
-            Task {
+            showingResultTask = Task { @MainActor in
                 try? await Task.sleep(for: .seconds(1.0))
+                guard !Task.isCancelled else { return }
+                guard viewModel.phase == .showingResult else { return }
                 viewModel.advanceToNextHand()
             }
         default:
