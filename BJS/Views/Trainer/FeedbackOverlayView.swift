@@ -29,37 +29,34 @@ struct FeedbackOverlayView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 0)
-            ZStack(alignment: .top) {
-                RoundedRectangle(cornerRadius: CornerRadius.overlay)
-                    .fill(BJSColors.surfaceOverlay)
-                    .ignoresSafeArea(edges: .bottom)
+        ZStack(alignment: .top) {
+            RoundedRectangle(cornerRadius: CornerRadius.overlay)
+                .fill(BJSColors.surfaceOverlay)
+                .ignoresSafeArea(edges: .bottom)
 
-                VStack(spacing: Spacing.md) {
-                    Spacer().frame(height: Spacing.lg)
-                    Text(isCorrect ? Self.headingCorrect : Self.headingIncorrect)
-                        .font(Typography.title)
-                        .foregroundStyle(BJSColors.textOnOverlay)
-                    Text(bodyAttributedString)
-                        .font(Typography.body)
-                        .foregroundStyle(BJSColors.textOnOverlayMuted)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, Spacing.lg)
-                    VStack(spacing: Spacing.sm) {
-                        UnderstandWhyButton(action: onUnderstandWhy)
-                        DealButton(action: onDeal)
-                    }
+            VStack(spacing: Spacing.md) {
+                Spacer().frame(height: Spacing.xs)
+                Text(isCorrect ? Self.headingCorrect : Self.headingIncorrect)
+                    .font(Typography.title)
+                    .foregroundStyle(BJSColors.textOnOverlay)
+                Text(bodyAttributedString)
+                    .font(Typography.body)
+                    .foregroundStyle(BJSColors.textOnOverlayMuted)
+                    .multilineTextAlignment(.center)
                     .padding(.horizontal, Spacing.lg)
-                    .padding(.bottom, Spacing.xl)
+                VStack(spacing: Spacing.sm) {
+                    UnderstandWhyButton(action: onUnderstandWhy)
+                    DealButton(action: onDeal)
                 }
-                .padding(.top, Spacing.md)
-
-                badge
-                    .offset(y: -24) // half outside top edge (48pt / 2)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.bottom, Spacing.xl)
             }
-            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, Spacing.md)
+
+            badge
+                .offset(y: -24) // half outside top edge (48pt / 2)
         }
+        .fixedSize(horizontal: false, vertical: true)
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .accessibilityElement(children: .contain)
         .accessibilityLabel(isCorrect ? Self.headingCorrect : Self.headingIncorrect)
