@@ -1,72 +1,84 @@
 import SwiftUI
 import BJSCore
 
+/// Two-row 88pt action dock per UI-SPEC 07 action button contract.
+/// Row 1 is always STAND + HIT. Row 2 renders SPLIT / DOUBLE / SURREN. only for legal actions.
+/// The secondary row is omitted entirely when no secondary action is legal.
 struct ActionButtonsView: View {
-    let availableActions: [Action]
+    let canSplit: Bool
+    let canDouble: Bool
+    let canSurrender: Bool
     let isEnabled: Bool
-    let onAction: (Action) -> Void
-
-    private var primaryActions: [Action] {
-        availableActions.filter { isPrimaryAction($0) }
-    }
-
-    private var secondaryActions: [Action] {
-        availableActions.filter { !isPrimaryAction($0) }
-    }
+    let onStand: () -> Void
+    let onHit: () -> Void
+    let onSplit: () -> Void
+    let onDouble: () -> Void
+    let onSurrender: () -> Void
 
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            if !primaryActions.isEmpty {
-                actionRow(primaryActions)
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                ActionCell(icon: "hand.raised", label: "STAND", action: onStand)
+                verticalDivider
+                ActionCell(icon: "plus", label: "HIT", action: onHit)
             }
-            if !secondaryActions.isEmpty {
-                actionRow(secondaryActions)
+            if secondaryRowVisible {
+                horizontalDivider
+                HStack(spacing: 0) {
+                    if canSplit {
+                        ActionCell(icon: "arrow.left.and.right", label: "SPLIT", action: onSplit)
+                    }
+                    if canSplit && (canDouble || canSurrender) {
+                        verticalDivider
+                    }
+                    if canDouble {
+                        ActionCell(icon: "multiply.square", label: "DOUBLE", action: onDouble)
+                    }
+                    if canDouble && canSurrender {
+                        verticalDivider
+                    }
+                    if canSurrender {
+                        ActionCell(icon: "flag", label: "SURREN.", action: onSurrender)
+                    }
+                }
             }
         }
-        .padding(.horizontal, Spacing.md)
-    }
-
-    @ViewBuilder
-    private func actionRow(_ actions: [Action]) -> some View {
-        HStack(spacing: Spacing.sm) { // #warning("Phase 7: ActionButtonsView uses placeholder token — will be re-skinned in a later phase")
-            ForEach(actions, id: \.self) { action in
-                actionButton(action)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func actionButton(_ action: Action) -> some View {
-        Button {
-            onAction(action)
-        } label: {
-            Text(action.rawValue.capitalized)
-                .font(Typography.body) // #warning("Phase 7: ActionButtonsView uses placeholder token — will be re-skinned in a later phase")
-                .frame(maxWidth: .infinity, minHeight: 44)
-                .background(
-                    RoundedRectangle(cornerRadius: CornerRadius.button)
-                        .fill(buttonFill(for: action))
-                )
-                .foregroundStyle(buttonLabelColor(for: action))
-        }
+        .background(BJSColors.surfaceBase)
         .disabled(!isEnabled)
     }
 
-    private func isPrimaryAction(_ action: Action) -> Bool {
-        action == .hit || action == .stand
+    private var secondaryRowVisible: Bool { canSplit || canDouble || canSurrender }
+
+    private var verticalDivider: some View {
+        Rectangle()
+            .fill(BJSColors.borderSubtle)
+            .frame(width: 1)
     }
 
-    private func buttonFill(for action: Action) -> Color {
-        if !isEnabled {
-            return Color(.systemGray3)
-        }
-        return isPrimaryAction(action) ? BJSColors.accentGold : Color(.systemGray5) // #warning("Phase 7: ActionButtonsView uses placeholder token — will be re-skinned in a later phase")
+    private var horizontalDivider: some View {
+        Rectangle()
+            .fill(BJSColors.borderSubtle)
+            .frame(height: 1)
     }
+}
 
-    private func buttonLabelColor(for action: Action) -> Color {
-        if !isEnabled {
-            return .secondary
+private struct ActionCell: View {
+    let icon: String
+    let label: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: Spacing.xs) {
+                Image(systemName: icon)
+                    .font(.system(size: 24, weight: .regular))
+                Text(label)
+                    .font(Typography.caption)
+                    .tracking(1.5)
+            }
+            .foregroundStyle(BJSColors.actionLabel)
+            .frame(maxWidth: .infinity)
+            .frame(height: 88)
         }
-        return isPrimaryAction(action) ? .white : .primary
     }
 }
