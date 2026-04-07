@@ -12,6 +12,7 @@ struct CardViewTests {
                 let card = Card(rank: rank, suit: suit)
                 let view = CardView(card: card).frame(width: 88, height: 123)
                 let host = UIHostingController(rootView: view)
+                host.view.frame = CGRect(x: 0, y: 0, width: 88, height: 123)
                 host.view.layoutIfNeeded()
                 #expect(host.view.bounds.width > 0)
             }
@@ -20,6 +21,7 @@ struct CardViewTests {
 
     @Test func faceDownRenders() {
         let host = UIHostingController(rootView: CardView(faceDown: true).frame(width: 88, height: 123))
+        host.view.frame = CGRect(x: 0, y: 0, width: 88, height: 123)
         host.view.layoutIfNeeded()
         #expect(host.view.bounds.width > 0)
     }
