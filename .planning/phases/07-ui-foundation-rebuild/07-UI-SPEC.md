@@ -146,7 +146,7 @@ Strict 6-value scale (multiples of 4). Every layout in TrainerView composes from
 | sm | 8pt | Compact stacking (badge to text, paired controls) | `observed: false — inferred` |
 | md | 16pt | Default element spacing, action button internal padding | IMG_7841 action-cell internal padding visually ~16pt |
 | lg | 24pt | Group separation, screen horizontal padding, feedback-card horizontal padding | IMG_7843 feedback-card horizontal inset visually ~20–24pt |
-| xl | 40pt | Major vertical breaks between play-field zones (dealer→watermark→player) | IMG_7841 vertical rhythm between dealer hand, watermark, player hand visually ~40pt |
+| xl | 48pt | Major vertical breaks between play-field zones (dealer→watermark→player) | IMG_7841 vertical rhythm between dealer hand, watermark, player hand eye-sampled ~40pt; rounded UP to standard-set value 48pt — 8pt within tolerance of an eye-sample, and adopting the standard 4/8/16/24/32/48/64 grid protects downstream screens |
 | xxl | 64pt | Top-of-screen breathing room above dealer cards | IMG_7841 top-of-screen-to-dealer-hand visually ~64pt below status bar |
 
 Action button cell minimum tap target is **88pt tall** (corrected from previous 56pt — IMG_7841 cells are visibly taller than typical 56pt; composed as `lg` vertical padding around a 24pt icon + `xs` gap + caption label).
@@ -155,17 +155,17 @@ Action button cell minimum tap target is **88pt tall** (corrected from previous 
 
 ## Typography
 
-Five-role scale. SF Pro system font. Numerics use `.monospacedDigit()` so totals/counts don't jitter.
+Three-role scale. SF Pro system font. Numerics use `.monospacedDigit()` where they appear so any future digit rendering doesn't jitter.
 
 | Role | Size | Weight | Line Height | Notes | Evidence |
 |------|------|--------|-------------|-------|----------|
 | caption | 12pt | semibold (600) | 1.2 | Action button labels, zone labels — uppercase, tracked +1.5 | IMG_7841 action labels visibly small caps ~12pt |
 | body | 16pt | regular (400) | 1.5 | Feedback overlay body copy | IMG_7843 body text size visually ~16pt |
 | title | 22pt | bold (700) | 1.25 | Feedback overlay heading (`Incorrect!`, `Well played!`) | IMG_7843 / IMG_7847 heading visually ~22pt bold (corrected from 20pt semibold) |
-| heroNumeric | 28pt | bold (700), monospaced digits, rounded | 1.1 | Counting trainer −1/0/+1 numerals; **NOT used in strategy TrainerView** | IMG_7846 |
-| display | 34pt | bold (700), rounded | 1.1 | Reserved — not used by TrainerView this phase | `observed: false — inferred for forward-compatibility with SessionSummary hero stat` |
 
-**Two weights total:** regular (400) and bold (600/700 emphasis role).
+**Three sizes, two weights total:** regular (400) and bold (600/700 emphasis role).
+
+**Why no `heroNumeric` or `display` token this phase:** TrainerView this phase renders **zero hand-total numerics** (per UI-07-D10 — IMG_7841 shows none). The counting trainer (which would need `heroNumeric` for the −1/0/+1 numerals per IMG_7846) and SessionSummary (which would need a hero stat) are explicitly **out of scope** per `07-CONTEXT.md`. Card rank/pip rendering is drawn from **SVG card art assets** (Byron Knoll CC0 deck) — no text token required. Any future screen needing larger numerics adds the token in its own phase, justified against its own reference.
 
 ---
 
@@ -243,13 +243,13 @@ Single focal point per screen. Generous breathing room. Stats and end-session mo
 │         [DEALER HAND]               │  ← 88pt cards, 30% overlap, centered
 │         (no label)                  │
 │                                     │
-│  xl (40pt) gap                      │
+│  xl (48pt) gap                      │
 │                                     │
 │      BLACKJACKTRAINING.APP          │  ← watermarkInk (#3A5868 @ 25%)
 │      (faint cool watermark,         │     caption size, tracked, uppercase
 │       caption size)                 │
 │                                     │
-│  xl (40pt) gap                      │
+│  xl (48pt) gap                      │
 │                                     │
 │         [PLAYER HAND]               │  ← 88pt cards, 45% overlap, centered
 │         (no label, no totals)       │
@@ -308,7 +308,7 @@ Visual reference: IMG_7843 (incorrect, strategy), IMG_7847 (correct, counting), 
 | Heading | `title` typography (22pt bold), `textOnOverlay`, centered, `lg` (24pt) top padding inside the card (below the badge) | IMG_7843 |
 | Body | `body` typography, `textOnOverlayMuted` (`#0A0A0E` @ 65%), centered, max 2 lines, `lg` horizontal padding, `sm` top gap below heading. Inline action verbs bolded via attributed string. | IMG_7843 |
 | Buttons (strategy TrainerView — 2 buttons) | Stacked vertically with `sm` (8pt) gap between: (1) **UNDERSTAND WHY** — `surfaceOverlay` fill, 1pt `borderOnOverlay` stroke, `textOnOverlay` uppercase caption, `questionmark.circle` icon, 56pt tall, `CornerRadius.overlayButton = 12pt`; (2) **DEAL** — `actionDark` fill, white uppercase caption, `square.on.square` icon, 56pt tall, 12pt corner radius. | IMG_7843 |
-| Padding | Card horizontal padding `lg` (24pt), top-to-heading `lg` below badge midpoint, button block bottom padding generous (`xl` 40pt incl. safe area) | IMG_7843 |
+| Padding | Card horizontal padding `lg` (24pt), top-to-heading `lg` below badge midpoint, button block bottom padding generous (`xl` 48pt incl. safe area) | IMG_7843 |
 | Entry animation | Slide up from bottom + fade, `AnimationTiming.overlayIn` = 280ms `easeOut` | `observed: false — inferred motion timing` |
 | Dismiss | Tapping DEAL dismisses overlay and advances to next hand. Tapping UNDERSTAND WHY is a no-op placeholder this phase (button rendered for visual fidelity to reference; Know-Why functionality lands in a later phase). | reference shows the button; behavior decision below |
 | Background dim | None — overlay sits over action dock only; play field above remains fully visible | IMG_7843 |
@@ -358,8 +358,6 @@ BJSColors.cardBackRed           // #B82828
 Typography.caption              // 12pt semibold, tracked +1.5
 Typography.body                 // 16pt regular, line-height 1.5
 Typography.title                // 22pt bold, line-height 1.25
-Typography.heroNumeric          // 28pt bold rounded monospaced (counting trainer)
-Typography.display              // 34pt bold rounded (reserved, future)
 
 Spacing.xs   // 4
 Spacing.sm   // 8
