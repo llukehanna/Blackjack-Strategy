@@ -1,38 +1,20 @@
 import SwiftUI
 
 enum BJSColors {
-    static let accent = Color(
-        UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(red: 0.82, green: 0.85, blue: 0.88, alpha: 1.0)  // #D1D9E0 light slate
-                : UIColor(red: 0.11, green: 0.17, blue: 0.23, alpha: 1.0)  // #1C2B3A dark slate
-        }
-    )
-
-    /// Muted green tint for correct feedback backgrounds (10% opacity)
-    static let feedbackCorrectBackground = Color.green.opacity(0.10)
-
-    /// Muted red tint for incorrect feedback backgrounds (10% opacity)
-    static let feedbackIncorrectBackground = Color.red.opacity(0.10)
-
-    /// Subtle green border for correct feedback banner (25% opacity)
-    static let feedbackCorrectBorder = Color.green.opacity(0.25)
-
-    /// Subtle red border for incorrect feedback banner (25% opacity)
-    static let feedbackIncorrectBorder = Color.red.opacity(0.25)
-
-    /// Icon tint for correct feedback (system semantic green)
-    static let feedbackCorrectIcon = Color(UIColor.systemGreen)
-
-    /// Icon tint for incorrect feedback (system semantic red)
-    static let feedbackIncorrectIcon = Color(UIColor.systemRed)
-
-    /// Face-down card back color — brand-adjacent slate, adapts to color scheme
-    static let cardFaceDown = Color(
-        UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(red: 0.56, green: 0.64, blue: 0.71, alpha: 1.0)  // muted light slate for dark bg
-                : UIColor(red: 0.11, green: 0.17, blue: 0.23, alpha: 1.0)  // #1C2B3A dark slate for light bg
-        }
-    )
+    static let surfaceBase        = Color(red: 0x0A/255, green: 0x0A/255, blue: 0x0E/255)
+    static let surfaceRaised      = Color(red: 0x16/255, green: 0x16/255, blue: 0x1B/255)
+    static let actionDark         = Color(red: 0x1F/255, green: 0x1F/255, blue: 0x25/255)
+    static let surfaceOverlay     = Color.white
+    static let borderSubtle       = Color.white.opacity(0.08)
+    static let borderOnOverlay    = Color(red: 0xD8/255, green: 0xD8/255, blue: 0xDC/255)
+    static let accentGold         = Color(red: 0xE0/255, green: 0xA4/255, blue: 0x36/255)
+    static let actionLabel        = Color(red: 0x6B/255, green: 0x84/255, blue: 0x99/255)
+    static let watermarkInk       = Color(red: 0x3A/255, green: 0x58/255, blue: 0x68/255)
+    static let textPrimary        = Color.white
+    static let textSecondary      = Color.white.opacity(0.6)
+    static let textOnOverlay      = Color(red: 0x0A/255, green: 0x0A/255, blue: 0x0E/255)
+    static let textOnOverlayMuted = Color(red: 0x0A/255, green: 0x0A/255, blue: 0x0E/255).opacity(0.65)
+    static let feedbackCorrect    = Color(red: 0x2B/255, green: 0xB6/255, blue: 0x73/255)
+    static let feedbackIncorrect  = Color(red: 0xE5/255, green: 0x48/255, blue: 0x4D/255)
+    static let cardBackRed        = Color(red: 0xB8/255, green: 0x28/255, blue: 0x28/255)
 }

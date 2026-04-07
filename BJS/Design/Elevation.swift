@@ -1,10 +1,13 @@
-import CoreGraphics
 import SwiftUI
 
 enum Elevation {
-    static let cardShadowOpacity: Double = 0.12
-    static let cardShadowRadius: CGFloat = 4
-    static let cardShadowY: CGFloat = 2
-    /// Base shadow color for card elevation
-    static let cardShadowColor: Color = Color.black.opacity(cardShadowOpacity)
+    struct Shadow {
+        let color: Color
+        let radius: CGFloat
+        let x: CGFloat
+        let y: CGFloat
+    }
+
+    static let card    = Shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
+    static let overlay = Shadow(color: .black.opacity(0.6), radius: 24, x: 0, y: -8)
 }
