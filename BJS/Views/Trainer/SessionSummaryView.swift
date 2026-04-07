@@ -30,7 +30,7 @@ struct SessionSummaryView: View {
                 if !mistakes.isEmpty {
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text("Mistakes")
-                            .font(Typography.section)
+                            .font(Typography.caption) // #warning("Phase 7: SessionSummaryView uses placeholder token — will be re-skinned in a later phase")
                             .bold()
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, Spacing.md)
@@ -54,7 +54,7 @@ struct SessionSummaryView: View {
                 }
 
                 // Actions
-                VStack(spacing: Spacing.smd) {
+                VStack(spacing: Spacing.sm) { // #warning("Phase 7: SessionSummaryView uses placeholder token — will be re-skinned in a later phase")
                     Button("Play Again") {
                         onPlayAgain()
                     }
@@ -78,15 +78,15 @@ struct SessionSummaryView: View {
     private func statCard(label: String, value: String) -> some View {
         VStack(spacing: Spacing.xs) {
             Text(label)
-                .font(Typography.secondary)
+                .font(Typography.caption) // #warning("Phase 7: SessionSummaryView uses placeholder token — will be re-skinned in a later phase")
                 .foregroundStyle(.secondary)
             Text(value)
-                .font(Typography.statValue)
+                .font(Typography.body) // #warning("Phase 7: SessionSummaryView uses placeholder token — will be re-skinned in a later phase")
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: CornerRadius.statCard)
+            RoundedRectangle(cornerRadius: CornerRadius.card) // #warning("Phase 7: SessionSummaryView uses placeholder token — will be re-skinned in a later phase")
                 .fill(Color(.secondarySystemBackground))
         )
     }

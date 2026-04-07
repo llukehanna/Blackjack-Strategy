@@ -9,16 +9,16 @@ struct FeedbackOverlayView: View {
                 Image(systemName: iconName)
                     .foregroundStyle(iconColor)
                 Text(feedback.message)
-                    .font(Typography.buttonLabel)
+                    .font(Typography.body) // #warning("Phase 7: FeedbackOverlayView uses placeholder token — will be re-skinned in a later phase")
                     .foregroundStyle(.primary)
             }
             .padding(.horizontal, Spacing.md)
             .padding(.vertical, Spacing.sm)
             .background(
-                RoundedRectangle(cornerRadius: CornerRadius.banner)
+                RoundedRectangle(cornerRadius: CornerRadius.overlayButton) // #warning("Phase 7: FeedbackOverlayView uses placeholder token — will be re-skinned in a later phase")
                     .fill(backgroundColor)
                     .overlay(
-                        RoundedRectangle(cornerRadius: CornerRadius.banner)
+                        RoundedRectangle(cornerRadius: CornerRadius.overlayButton)
                             .stroke(borderColor, lineWidth: 0.5)
                     )
             )
@@ -39,22 +39,24 @@ struct FeedbackOverlayView: View {
 
     private var iconColor: Color {
         switch feedback {
-        case .correct: return BJSColors.feedbackCorrectIcon
-        case .incorrect: return BJSColors.feedbackIncorrectIcon
+        case .correct: return BJSColors.feedbackCorrect
+        case .incorrect: return BJSColors.feedbackIncorrect
         }
     }
 
     private var backgroundColor: Color {
+        // #warning("Phase 7: FeedbackOverlayView uses placeholder token — will be re-skinned in a later phase")
         switch feedback {
-        case .correct: return BJSColors.feedbackCorrectBackground
-        case .incorrect: return BJSColors.feedbackIncorrectBackground
+        case .correct: return BJSColors.feedbackCorrect.opacity(0.10)
+        case .incorrect: return BJSColors.feedbackIncorrect.opacity(0.10)
         }
     }
 
     private var borderColor: Color {
+        // #warning("Phase 7: FeedbackOverlayView uses placeholder token — will be re-skinned in a later phase")
         switch feedback {
-        case .correct: return BJSColors.feedbackCorrectBorder
-        case .incorrect: return BJSColors.feedbackIncorrectBorder
+        case .correct: return BJSColors.feedbackCorrect.opacity(0.25)
+        case .incorrect: return BJSColors.feedbackIncorrect.opacity(0.25)
         }
     }
 }

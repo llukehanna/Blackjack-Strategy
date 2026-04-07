@@ -11,7 +11,7 @@ struct HandView: View {
             ZStack(alignment: .leading) {
                 ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
                     CardView(card: card, faceDown: faceDownIndices.contains(index))
-                        .offset(x: CGFloat(index) * Spacing.xl)
+                        .offset(x: CGFloat(index) * Spacing.lg) // #warning("Phase 7: HandView uses placeholder token — will be re-skinned in a later phase")
                 }
             }
             .frame(height: 80)

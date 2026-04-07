@@ -96,7 +96,7 @@ struct TrainerView: View {
                 if let playerHand = viewModel.playerHand {
                     HandView(cards: playerHand.cards)
                     Text("Total: \(playerHand.total)")
-                        .font(Typography.secondary)
+                        .font(Typography.caption) // #warning("Phase 7: TrainerView uses placeholder token — will be re-skinned in a later phase")
                         .foregroundStyle(.secondary)
                 }
 
@@ -113,7 +113,7 @@ struct TrainerView: View {
             // Learn mode hint
             if let correctAction = viewModel.correctActionForDisplay {
                 Text("Correct play: \(correctAction.rawValue.capitalized)")
-                    .font(Typography.section.bold())
+                    .font(Typography.caption) // #warning("Phase 7: TrainerView uses placeholder token — will be re-skinned in a later phase")
                     .foregroundStyle(.secondary)
                     .padding(.bottom, Spacing.sm)
             }
@@ -141,7 +141,7 @@ struct TrainerView: View {
         .overlay {
             if let feedback = viewModel.feedbackState {
                 FeedbackOverlayView(feedback: feedback)
-                    .animation(.easeInOut(duration: AnimationTiming.feedbackFade), value: viewModel.feedbackState != nil)
+                    .animation(AnimationTiming.overlayIn, value: viewModel.feedbackState != nil) // #warning("Phase 7: TrainerView uses placeholder token — will be re-skinned in a later phase")
             }
         }
     }
@@ -163,17 +163,17 @@ struct TrainerView: View {
         switch phase {
         case .showingFeedback:
             Task {
-                try? await Task.sleep(for: .seconds(AnimationTiming.feedbackHold))
+                try? await Task.sleep(for: .seconds(1.0)) // #warning("Phase 7: TrainerView uses placeholder timing — will be re-skinned in a later phase")
                 viewModel.advanceFromFeedback()
             }
         case .playingOut:
             Task {
-                try? await Task.sleep(for: .seconds(AnimationTiming.dealerPlayOut))
+                try? await Task.sleep(for: .seconds(0.3)) // #warning("Phase 7: TrainerView uses placeholder timing — will be re-skinned in a later phase")
                 viewModel.playOutDealer()
             }
         case .showingResult:
             Task {
-                try? await Task.sleep(for: .seconds(AnimationTiming.handResultHold))
+                try? await Task.sleep(for: .seconds(1.0)) // #warning("Phase 7: TrainerView uses placeholder timing — will be re-skinned in a later phase")
                 viewModel.advanceToNextHand()
             }
         default:

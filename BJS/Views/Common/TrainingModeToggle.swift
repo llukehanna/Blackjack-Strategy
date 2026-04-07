@@ -25,7 +25,7 @@ struct TrainingModeToggle: View {
             Text(label)
                 .font(.headline.bold())
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(selection == mode ? BJSColors.accent : Color(.systemGray6))
+                .background(selection == mode ? BJSColors.accentGold : Color(.systemGray6)) // #warning("Phase 7: TrainingModeToggle uses placeholder token — will be re-skinned in a later phase")
                 .foregroundStyle(selection == mode ? Color.white : Color.primary)
         }
         .buttonStyle(.plain)

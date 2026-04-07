@@ -8,23 +8,23 @@ struct CardView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: CornerRadius.card)
-                .fill(faceDown ? BJSColors.cardFaceDown : Color(.systemBackground))
+                .fill(faceDown ? BJSColors.cardBackRed : Color(.systemBackground))
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerRadius.card)
                         .stroke(Color.secondary, lineWidth: 1)
                 )
             if !faceDown {
                 Text(cardLabel)
-                    .font(Typography.mono)
+                    .font(Typography.body) // #warning("Phase 7: CardView uses placeholder token — will be re-skinned in a later phase")
                     .foregroundStyle(suitColor)
             }
         }
         .frame(width: 56, height: 80)
         .shadow(
-            color: Elevation.cardShadowColor,
-            radius: Elevation.cardShadowRadius,
-            x: 0,
-            y: Elevation.cardShadowY
+            color: Elevation.card.color,
+            radius: Elevation.card.radius,
+            x: Elevation.card.x,
+            y: Elevation.card.y
         )
         .accessibilityLabel(faceDown ? "Face down card" : accessibilityDescription)
     }

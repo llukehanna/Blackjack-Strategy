@@ -98,7 +98,7 @@ struct SessionStartView: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
-                .background(BJSColors.accent)
+                .background(BJSColors.accentGold) // #warning("Phase 7: SessionStartView uses placeholder token — will be re-skinned in a later phase")
                 .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
         }
         .buttonStyle(.plain)

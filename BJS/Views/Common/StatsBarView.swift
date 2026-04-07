@@ -24,9 +24,9 @@ struct StatsBarView: View {
     private func statChip(value: String, label: String) -> some View {
         VStack(spacing: Spacing.xs) {
             Text(value)
-                .font(Typography.statValue)
+                .font(Typography.body) // #warning("Phase 7: StatsBarView uses placeholder token — will be re-skinned in a later phase")
             Text(label)
-                .font(Typography.secondary)
+                .font(Typography.caption) // #warning("Phase 7: StatsBarView uses placeholder token — will be re-skinned in a later phase")
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)

@@ -28,7 +28,7 @@ struct ActionButtonsView: View {
 
     @ViewBuilder
     private func actionRow(_ actions: [Action]) -> some View {
-        HStack(spacing: Spacing.smd) {
+        HStack(spacing: Spacing.sm) { // #warning("Phase 7: ActionButtonsView uses placeholder token — will be re-skinned in a later phase")
             ForEach(actions, id: \.self) { action in
                 actionButton(action)
             }
@@ -41,7 +41,7 @@ struct ActionButtonsView: View {
             onAction(action)
         } label: {
             Text(action.rawValue.capitalized)
-                .font(Typography.buttonLabel)
+                .font(Typography.body) // #warning("Phase 7: ActionButtonsView uses placeholder token — will be re-skinned in a later phase")
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .background(
                     RoundedRectangle(cornerRadius: CornerRadius.button)
@@ -60,7 +60,7 @@ struct ActionButtonsView: View {
         if !isEnabled {
             return Color(.systemGray3)
         }
-        return isPrimaryAction(action) ? BJSColors.accent : Color(.systemGray5)
+        return isPrimaryAction(action) ? BJSColors.accentGold : Color(.systemGray5) // #warning("Phase 7: ActionButtonsView uses placeholder token — will be re-skinned in a later phase")
     }
 
     private func buttonLabelColor(for action: Action) -> Color {

@@ -14,7 +14,7 @@ struct BJSApp: App {
                     }
                 }
             }
-            .tint(BJSColors.accent)
+            .tint(BJSColors.accentGold) // #warning("Phase 7: BJSApp uses placeholder token — will be re-skinned in a later phase")
             .environment(rulesViewModel)
         }
         .modelContainer(for: [TrainingSession.self, SessionDecision.self])
