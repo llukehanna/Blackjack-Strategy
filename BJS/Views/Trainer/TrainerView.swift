@@ -86,7 +86,7 @@ struct TrainerView: View {
             // Dealer hand
             if let dealerHand = viewModel.dealerHand {
                 let faceDownIndices: Set<Int> = shouldRevealDealerHole ? [] : [1]
-                HandView(cards: dealerHand.cards, faceDownIndices: faceDownIndices)
+                HandView(cards: dealerHand.cards, faceDownIndices: faceDownIndices, overlap: .dealer)
             }
 
             Spacer(minLength: Spacing.lg)
@@ -94,7 +94,7 @@ struct TrainerView: View {
             // Player hand + total
             VStack(spacing: Spacing.sm) {
                 if let playerHand = viewModel.playerHand {
-                    HandView(cards: playerHand.cards)
+                    HandView(cards: playerHand.cards, overlap: .player)
                     Text("Total: \(playerHand.total)")
                         .font(Typography.caption) // #warning("Phase 7: TrainerView uses placeholder token — will be re-skinned in a later phase")
                         .foregroundStyle(.secondary)

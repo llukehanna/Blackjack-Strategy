@@ -1,26 +1,35 @@
 import SwiftUI
 import BJSCore
 
+/// Overlap ratios for overlapping hand layouts.
+/// Raw value is the fraction of `cardWidth` to subtract from HStack spacing.
+enum HandOverlap: CGFloat {
+    case dealer = 0.30
+    case player = 0.45
+}
+
 struct HandView: View {
     let cards: [Card]
     var faceDownIndices: Set<Int> = []
+    let overlap: HandOverlap
+
+    /// Default card width per UI-SPEC (88pt).
+    private let cardWidth: CGFloat = 88
 
     var body: some View {
-        if cards.count >= 5 {
-            // Overlapping layout for 5+ cards
-            ZStack(alignment: .leading) {
-                ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
-                    CardView(card: card, faceDown: faceDownIndices.contains(index))
-                        .offset(x: CGFloat(index) * Spacing.lg) // #warning("Phase 7: HandView uses placeholder token — will be re-skinned in a later phase")
+        HStack(spacing: -cardWidth * overlap.rawValue) {
+            ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
+                Group {
+                    if faceDownIndices.contains(index) {
+                        CardView(faceDown: true)
+                    } else {
+                        CardView(card: card)
+                    }
                 }
-            }
-            .frame(height: 80)
-        } else {
-            HStack(spacing: Spacing.sm) {
-                ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
-                    CardView(card: card, faceDown: faceDownIndices.contains(index))
-                }
+                .frame(width: cardWidth)
             }
         }
+        // NOTE: do NOT clip this HStack — negative spacing relies on overflow so
+        // adjacent cards can visually overlap (07-RESEARCH Pitfall 4).
     }
 }
