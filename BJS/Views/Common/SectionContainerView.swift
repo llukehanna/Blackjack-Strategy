@@ -14,6 +14,6 @@ struct SectionContainerView<Content: View>: View {
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemBackground))
+        .background(BJSColors.surfaceRaised)
     }
 }

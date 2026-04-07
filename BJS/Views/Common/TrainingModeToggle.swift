@@ -12,7 +12,7 @@ struct TrainingModeToggle: View {
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.button))
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.button)
-                .stroke(Color(.separator), lineWidth: 0.5)
+                .stroke(BJSColors.borderSubtle, lineWidth: 0.5)
         )
         .padding(.horizontal, Spacing.md)
     }
@@ -23,10 +23,10 @@ struct TrainingModeToggle: View {
             selection = mode
         } label: {
             Text(label)
-                .font(.headline.bold())
+                .font(Typography.body)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(selection == mode ? BJSColors.accentGold : Color(.systemGray6)) // #warning("Phase 7: TrainingModeToggle uses placeholder token — will be re-skinned in a later phase")
-                .foregroundStyle(selection == mode ? Color.white : Color.primary)
+                .background(selection == mode ? BJSColors.accentGold : BJSColors.surfaceRaised)
+                .foregroundStyle(selection == mode ? BJSColors.textOnOverlay : BJSColors.textSecondary)
         }
         .buttonStyle(.plain)
     }

@@ -13,10 +13,10 @@ struct StatsBarView: View {
         }
         .padding(.vertical, Spacing.sm)
         .frame(maxWidth: .infinity)
-        .background(Color(.secondarySystemBackground))
+        .background(BJSColors.surfaceRaised)
         .overlay(alignment: .bottom) {
             Rectangle()
-                .fill(Color(.separator))
+                .fill(BJSColors.borderSubtle)
                 .frame(height: 0.5)
         }
     }
@@ -24,17 +24,18 @@ struct StatsBarView: View {
     private func statChip(value: String, label: String) -> some View {
         VStack(spacing: Spacing.xs) {
             Text(value)
-                .font(Typography.body) // #warning("Phase 7: StatsBarView uses placeholder token — will be re-skinned in a later phase")
+                .font(Typography.body)
+                .foregroundStyle(BJSColors.textPrimary)
             Text(label)
-                .font(Typography.caption) // #warning("Phase 7: StatsBarView uses placeholder token — will be re-skinned in a later phase")
-                .foregroundStyle(.secondary)
+                .font(Typography.caption)
+                .foregroundStyle(BJSColors.textSecondary)
         }
         .frame(maxWidth: .infinity)
     }
 
     private var thinDivider: some View {
         Rectangle()
-            .fill(Color(.separator))
+            .fill(BJSColors.borderSubtle)
             .frame(width: 0.5, height: 24)
     }
 }
