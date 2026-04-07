@@ -184,6 +184,6 @@ Note: Phases 3 and 4 depend only on Phase 1 and are independent of each other.
 
 Plans:
 - [x] 07-01-PLAN.md — Token rewrite (16 colors, 3 type roles, 6 spacing, 5 corner radii, elevation, animation) + mechanical migration of all existing views + DesignTokenTests
-- [ ] 07-02-PLAN.md — Public-domain SVG card deck import + ATTRIBUTION + CardView/HandView rebuild with differentiated overlap + Card/Hand tests
+- [x] 07-02-PLAN.md — Public-domain SVG card deck import + ATTRIBUTION + CardView/HandView rebuild with differentiated overlap + Card/Hand tests
 - [ ] 07-03-PLAN.md — TrainerView + ActionButtonsView + FeedbackOverlayView end-to-end rebuild against UI-SPEC + FeedbackOverlayTests
 - [ ] 07-04-PLAN.md — Full suite run + human visual approval gate against IMG_7841/IMG_7843
