@@ -159,11 +159,11 @@ Three-role scale. SF Pro system font. Numerics use `.monospacedDigit()` where th
 
 | Role | Size | Weight | Line Height | Notes | Evidence |
 |------|------|--------|-------------|-------|----------|
-| caption | 12pt | semibold (600) | 1.2 | Action button labels, zone labels — uppercase, tracked +1.5 | IMG_7841 action labels visibly small caps ~12pt |
+| caption | 12pt | bold (700) | 1.2 | Action button labels, zone labels — uppercase, tracked +1.5 | IMG_7841 action labels visibly small caps ~12pt |
 | body | 16pt | regular (400) | 1.5 | Feedback overlay body copy | IMG_7843 body text size visually ~16pt |
 | title | 22pt | bold (700) | 1.25 | Feedback overlay heading (`Incorrect!`, `Well played!`) | IMG_7843 / IMG_7847 heading visually ~22pt bold (corrected from 20pt semibold) |
 
-**Three sizes, two weights total:** regular (400) and bold (600/700 emphasis role).
+**Three sizes, two weights total:** regular (400) and bold (700). Caption and title both use bold (700) — semibold (600) is not used as a token in this phase.
 
 **Why no `heroNumeric` or `display` token this phase:** TrainerView this phase renders **zero hand-total numerics** (per UI-07-D10 — IMG_7841 shows none). The counting trainer (which would need `heroNumeric` for the −1/0/+1 numerals per IMG_7846) and SessionSummary (which would need a hero stat) are explicitly **out of scope** per `07-CONTEXT.md`. Card rank/pip rendering is drawn from **SVG card art assets** (Byron Knoll CC0 deck) — no text token required. Any future screen needing larger numerics adds the token in its own phase, justified against its own reference.
 
@@ -285,7 +285,7 @@ Single focal point per screen. Generous breathing room. Stats and end-session mo
 
 - Existing `StatsBarView` content (running session accuracy, decision count, streak) and "End Session" affordance are **removed from the play area entirely**.
 - Top-left: back chevron (`chevron.left` SF Symbol in a 32pt `surfaceRaised` circular hit-target, glyph in `textPrimary`) → ends the session with confirmation.
-- Top-right: **"SOS" text button** in `actionLabel` blue, ~14pt semibold uppercase tracked — wired in this phase as a placeholder no-op (corrected from previous "book icon" — IMG_7841 clearly shows the text "SOS").
+- Top-right: **"SOS" text button** in `actionLabel` blue — `caption` typography (12pt bold, tracked +1.5), uppercase — wired in this phase as a placeholder no-op (corrected from previous "book icon" — IMG_7841 clearly shows the text "SOS").
 - Inline session stats are **not displayed** during play. They surface in SessionSummaryView (out of scope).
 
 ### TrainerView states the contract must cover
@@ -355,7 +355,7 @@ BJSColors.feedbackCorrect       // #2BB673
 BJSColors.feedbackIncorrect     // #E5484D
 BJSColors.cardBackRed           // #B82828
 
-Typography.caption              // 12pt semibold, tracked +1.5
+Typography.caption              // 12pt bold, tracked +1.5
 Typography.body                 // 16pt regular, line-height 1.5
 Typography.title                // 22pt bold, line-height 1.25
 
@@ -363,7 +363,7 @@ Spacing.xs   // 4
 Spacing.sm   // 8
 Spacing.md   // 16
 Spacing.lg   // 24
-Spacing.xl   // 40
+Spacing.xl   // 48
 Spacing.xxl  // 64
 
 CornerRadius.card           // 8
