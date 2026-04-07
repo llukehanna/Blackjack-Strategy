@@ -190,5 +190,5 @@ Plans:
 - [ ] 07-05-PLAN.md — GAP: Token migration for SessionStart/SessionSummary/StatsBar/SectionContainer/TrainingModeToggle (UAT 7,8,11)
 - [x] 07-06-PLAN.md — GAP: FeedbackOverlay structural fix (bottom-anchored card, badge clearance) (UAT 4,5)
 - [ ] 07-07-PLAN.md — GAP: TrainerView Task cancellation + phase guards (STAND skip fix) (UAT 12)
-- [ ] 07-08-PLAN.md — GAP: WHY button rename + real explanation feature (WhyExplanation domain + sheet + tests) (UAT 6)
+- [x] 07-08-PLAN.md — GAP: WHY button rename + real explanation feature (WhyExplanation domain + sheet + tests) (UAT 6)
 - [x] 07-09-PLAN.md — GAP: CardView explicit width + HandView wiring (dealer/player overlap fix) (UAT 2)
