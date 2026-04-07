@@ -432,6 +432,43 @@ class TrainerViewModel {
         phase = .sessionSummary
     }
 
+    // MARK: - Why Context
+
+    /// Builds a `WhyContext` from the most recent decision so the WHY sheet
+    /// can render an explanation. Returns `nil` if no decision is currently
+    /// being shown in the feedback overlay.
+    func makeWhyContext() -> WhyContext? {
+        guard feedbackState != nil,
+              let hand = playerHand,
+              let upcard = dealerUpcard,
+              let lastDecision = decisions.last else {
+            return nil
+        }
+
+        let handType: HandType
+        let pairRank: Rank?
+        if hand.isPair {
+            handType = .pair
+            pairRank = hand.cards.first?.rank
+        } else if hand.isSoft {
+            handType = .soft
+            pairRank = nil
+        } else {
+            handType = .hard
+            pairRank = nil
+        }
+
+        return WhyContext(
+            handTotal: hand.total,
+            handType: handType,
+            pairRank: pairRank,
+            dealerUpCard: upcard.rank,
+            userAction: lastDecision.playerAction,
+            correctAction: lastDecision.correctAction,
+            rules: rules
+        )
+    }
+
     // MARK: - Mistakes
 
     var mistakes: [DecisionRecord] {

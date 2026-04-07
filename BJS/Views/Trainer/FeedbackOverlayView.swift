@@ -2,21 +2,21 @@ import SwiftUI
 
 /// Bottom-anchored white-card feedback overlay per UI-SPEC 07 Feedback Overlay Contract.
 /// - Straddling 48pt badge half-overlapping the top edge
-/// - Heading + body + two stacked buttons (UNDERSTAND WHY outlined, DEAL dark fill)
+/// - Heading + body + two stacked buttons (WHY outlined, DEAL dark fill)
 /// - All copy strings are pinned verbatim by FeedbackOverlayTests
 struct FeedbackOverlayView: View {
     let isCorrect: Bool
     let userActionLabel: String
     let correctActionLabel: String
     let onDeal: () -> Void
-    let onUnderstandWhy: () -> Void
+    let onWhy: () -> Void
 
     // MARK: - Copy Contract (UI-SPEC verbatim, pinned by tests)
 
     static let headingCorrect = "Well played!"
     static let headingIncorrect = "Incorrect!"
     static let dealLabel = "DEAL"
-    static let understandWhyLabel = "UNDERSTAND WHY"
+    static let whyLabel = "WHY"
 
     static func incorrectBody(userAction: String, correctAction: String) -> String {
         "In this situation \(userAction) isn't the right move. You should have \(correctAction)."
@@ -45,7 +45,7 @@ struct FeedbackOverlayView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Spacing.lg)
                 VStack(spacing: Spacing.sm) {
-                    UnderstandWhyButton(action: onUnderstandWhy)
+                    WhyButton(action: onWhy)
                     DealButton(action: onDeal)
                 }
                 .padding(.horizontal, Spacing.lg)
@@ -95,14 +95,14 @@ struct FeedbackOverlayView: View {
 
 // MARK: - Buttons
 
-private struct UnderstandWhyButton: View {
+private struct WhyButton: View {
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: Spacing.sm) {
                 Image(systemName: "questionmark.circle")
-                Text(FeedbackOverlayView.understandWhyLabel)
+                Text(FeedbackOverlayView.whyLabel)
                     .font(Typography.caption)
                     .tracking(1.5)
             }

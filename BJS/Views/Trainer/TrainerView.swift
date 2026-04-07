@@ -14,6 +14,7 @@ struct TrainerView: View {
     @State private var showEndSessionConfirm = false
     @State private var playingOutTask: Task<Void, Never>?
     @State private var showingResultTask: Task<Void, Never>?
+    @State private var whyContext: WhyContext?
 
     private let mode: TrainingMode
 
@@ -48,10 +49,13 @@ struct TrainerView: View {
                     userActionLabel: userActionLabel(from: feedback),
                     correctActionLabel: correctActionLabel(from: feedback),
                     onDeal: { viewModel.advanceFromFeedback() },
-                    onUnderstandWhy: { /* no-op placeholder — UI-07-D7 */ }
+                    onWhy: { whyContext = viewModel.makeWhyContext() }
                 )
                 .animation(AnimationTiming.overlayIn, value: viewModel.feedbackState != nil)
             }
+        }
+        .sheet(item: $whyContext) { ctx in
+            WhyExplanationView(context: ctx)
         }
         .navigationBarHidden(true)
         .alert("End this session?", isPresented: $showEndSessionConfirm) {
