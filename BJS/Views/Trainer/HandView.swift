@@ -19,14 +19,11 @@ struct HandView: View {
     var body: some View {
         HStack(spacing: -cardWidth * overlap.rawValue) {
             ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
-                Group {
-                    if faceDownIndices.contains(index) {
-                        CardView(faceDown: true)
-                    } else {
-                        CardView(card: card)
-                    }
+                if faceDownIndices.contains(index) {
+                    CardView(faceDown: true, width: cardWidth)
+                } else {
+                    CardView(card: card, width: cardWidth)
                 }
-                .frame(width: cardWidth)
             }
         }
         // NOTE: do NOT clip this HStack — negative spacing relies on overflow so
