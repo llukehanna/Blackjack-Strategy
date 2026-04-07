@@ -4,26 +4,31 @@ import BJSCore
 struct CardView: View {
     let card: Card?
     let faceDown: Bool
+    let width: CGFloat
 
-    init(card: Card) {
+    init(card: Card, width: CGFloat) {
         self.card = card
         self.faceDown = false
+        self.width = width
     }
 
-    init(card: Card, faceDown: Bool) {
+    init(card: Card, faceDown: Bool, width: CGFloat) {
         self.card = card
         self.faceDown = faceDown
+        self.width = width
     }
 
-    init(faceDown: Bool) {
+    init(faceDown: Bool, width: CGFloat) {
         self.card = nil
         self.faceDown = faceDown
+        self.width = width
     }
 
     var body: some View {
         Image(assetName)
             .resizable()
-            .aspectRatio(5.0 / 7.0, contentMode: .fit)
+            .scaledToFit()
+            .frame(width: width, height: width * 7.0 / 5.0)
             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.card))
             .shadow(
                 color: Elevation.card.color,
