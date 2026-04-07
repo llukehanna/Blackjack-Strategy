@@ -180,10 +180,15 @@ Note: Phases 3 and 4 depend only on Phase 1 and are independent of each other.
 **Requirements**: TBD
 **Depends on:** Phase 02.3
 **UI hint:** yes
-**Plans:** 4 plans
+**Plans:** 9 plans
 
 Plans:
 - [x] 07-01-PLAN.md — Token rewrite (16 colors, 3 type roles, 6 spacing, 5 corner radii, elevation, animation) + mechanical migration of all existing views + DesignTokenTests
 - [x] 07-02-PLAN.md — Public-domain SVG card deck import + ATTRIBUTION + CardView/HandView rebuild with differentiated overlap + Card/Hand tests
 - [x] 07-03-PLAN.md — TrainerView + ActionButtonsView + FeedbackOverlayView end-to-end rebuild against UI-SPEC + FeedbackOverlayTests
 - [ ] 07-04-PLAN.md — Full suite run + human visual approval gate against IMG_7841/IMG_7843
+- [ ] 07-05-PLAN.md — GAP: Token migration for SessionStart/SessionSummary/StatsBar/SectionContainer/TrainingModeToggle (UAT 7,8,11)
+- [ ] 07-06-PLAN.md — GAP: FeedbackOverlay structural fix (bottom-anchored card, badge clearance) (UAT 4,5)
+- [ ] 07-07-PLAN.md — GAP: TrainerView Task cancellation + phase guards (STAND skip fix) (UAT 12)
+- [ ] 07-08-PLAN.md — GAP: WHY button rename + real explanation feature (WhyExplanation domain + sheet + tests) (UAT 6)
+- [ ] 07-09-PLAN.md — GAP: CardView explicit width + HandView wiring (dealer/player overlap fix) (UAT 2)
