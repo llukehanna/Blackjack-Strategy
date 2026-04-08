@@ -31,6 +31,7 @@ struct BJSApp: App {
             .environment(rulesViewModel)
             .fullScreenCover(item: $activeSession) { launch in
                 TrainerView(mode: launch.mode, rules: launch.rules)
+                    .environment(rulesViewModel)
             }
         }
         .modelContainer(for: [TrainingSession.self, SessionDecision.self])
