@@ -1,21 +1,36 @@
 import SwiftUI
 import SwiftData
 
+struct SessionLaunch: Identifiable {
+    let id = UUID()
+    let mode: TrainingMode
+    let rules: BlackjackRules
+}
+
 @main
 struct BJSApp: App {
     @State private var rulesViewModel = RulesViewModel()
+    @State private var activeSession: SessionLaunch?
 
     var body: some Scene {
         WindowGroup {
             TabView {
                 Tab("Practice", systemImage: "suit.spade.fill") {
                     NavigationStack {
-                        SessionStartView()
+                        SessionStartView(onStart: { mode in
+                            activeSession = SessionLaunch(
+                                mode: mode,
+                                rules: rulesViewModel.rules
+                            )
+                        })
                     }
                 }
             }
-            .tint(BJSColors.accentGold) // #warning("Phase 7: BJSApp uses placeholder token — will be re-skinned in a later phase")
+            .tint(BJSColors.accentGold)
             .environment(rulesViewModel)
+            .fullScreenCover(item: $activeSession) { launch in
+                TrainerView(mode: launch.mode, rules: launch.rules)
+            }
         }
         .modelContainer(for: [TrainingSession.self, SessionDecision.self])
     }

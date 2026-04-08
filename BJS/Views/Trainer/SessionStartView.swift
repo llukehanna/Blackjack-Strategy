@@ -2,9 +2,10 @@ import SwiftUI
 import BJSCore
 
 struct SessionStartView: View {
+    let onStart: (TrainingMode) -> Void
+
     @Environment(RulesViewModel.self) private var rulesVM
     @State private var selectedMode: TrainingMode = .test
-    @State private var isSessionActive = false
     @State private var showRuleConfig = false
 
     var body: some View {
@@ -41,9 +42,6 @@ struct SessionStartView: View {
         .background(BJSColors.surfaceBase)
         .navigationTitle("Practice")
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(isPresented: $isSessionActive) {
-            TrainerView(mode: selectedMode, rules: rulesVM.rules)
-        }
         .sheet(isPresented: $showRuleConfig) {
             RuleConfigView()
         }
@@ -91,7 +89,7 @@ struct SessionStartView: View {
 
     private var ctaButton: some View {
         Button {
-            isSessionActive = true
+            onStart(selectedMode)
         } label: {
             Text("Start Session")
                 .font(Typography.body)
