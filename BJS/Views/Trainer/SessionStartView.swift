@@ -41,7 +41,7 @@ struct SessionStartView: View {
         .background(BJSColors.surfaceBase)
         .navigationTitle("Practice")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(isPresented: $isSessionActive) {
+        .fullScreenCover(isPresented: $isSessionActive) {
             TrainerView(mode: selectedMode, rules: rulesVM.rules)
         }
         .sheet(isPresented: $showRuleConfig) {

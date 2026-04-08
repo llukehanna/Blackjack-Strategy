@@ -43,7 +43,7 @@ struct TrainerView: View {
                 mainStack
             }
 
-            if let feedback = viewModel.feedbackState {
+            if let feedback = viewModel.feedbackState, viewModel.phase != .sessionSummary {
                 FeedbackOverlayView(
                     isCorrect: feedback.isCorrect,
                     userActionLabel: userActionLabel(from: feedback),
