@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BJSCore
 
 struct SessionLaunch: Identifiable {
     let id = UUID()
