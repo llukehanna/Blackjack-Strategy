@@ -54,6 +54,7 @@ struct TrainerView: View {
                 .animation(AnimationTiming.overlayIn, value: viewModel.feedbackState != nil)
             }
         }
+        .ignoresSafeArea()
         .sheet(item: $whyContext) { ctx in
             WhyExplanationView(context: ctx)
         }
@@ -79,6 +80,7 @@ struct TrainerView: View {
     private var mainStack: some View {
         VStack(spacing: 0) {
             navChrome
+                .padding(.top, 50)
 
             Spacer().frame(height: Spacing.xxl)
 
