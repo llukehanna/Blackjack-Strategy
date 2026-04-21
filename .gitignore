@@ -20,3 +20,6 @@ xcuserdata/
 
 # Dependency directories
 Packages/
+
+# GSD / Claude Code tooling — not part of shipped code
+.claude/

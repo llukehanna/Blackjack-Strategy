@@ -49,13 +49,13 @@ Per-image catalog of what each reference contributes to the contract.
 - Top nav: back chevron in `#1A1A20` subtle circle (~32pt) top-left; **"SOS" text label** top-right in muted blue-grey `#7A8A9E` — **not a book icon** as previously specified
 - Dealer hand: 8♣ face-up + red card back, overlapping by ~30% (back covers ~30% of the 8♣)
 - Card back: vibrant red `#B82828` field with thin white inner border, subtle pattern (not solid)
-- Watermark "BLACKJACKTRAININGAPP.COM": **distinct cool teal-blue-grey** `#3A5868` at very low opacity (~25%), uppercase, tracked, caption-size, centered between hands
+- Watermark "BJS" (placeholder — final brand wordmark TBD; do NOT use any competitor domain string): **distinct cool teal-blue-grey** `#3A5868` at very low opacity (~25%), uppercase, tracked, caption-size, centered between hands
 - Player hand: 5♥ + 5♣, overlapping by ~45% (visibly more overlap than dealer pair)
 - **No hand-total numerics anywhere** — reference shows zero numeric totals beneath hands
 - **No "DEALER" / "YOU" labels** — confirmed
 - Table-edge arcs: two large amber `#E0A436` ovals clipped at left/right screen edges, ~1pt stroke, positioned at the player-hand vertical band
 - Action dock: lives in the bottom third over a subtle elliptical "table-edge" silhouette (a slightly raised dark band with a soft top highlight) — fill effectively `#0A0A0E` matching base, separated from the play field only by the curved highlight
-- Action button row 1 (STAND, HIT): each cell has the SF Symbol icon in **muted blue** `#5C7892` (clearly cool blue, not neutral grey) above an uppercase caption label in the same blue, label tracked +1.5
+- Action button row 1 (STAND, HIT): each cell has the SF Symbol icon in **muted blue** `#6B8499` (same cool-blue lane as IMG_7841, intentionally differentiated from competitor's exact value) above an uppercase caption label in the same blue, label tracked +1.5
 - Action button row 2 (SPLIT, DOUBLE, SURREN.): same treatment — DOUBLE icon is a "×2" boxed glyph (square outline with "×2" inside), SURREN. uses the flag glyph
 - Hairline dividers between cells: very faint `#FFFFFF14`
 - Cell tap target: roughly 88pt tall (icon ~24pt + caption + generous vertical padding) — taller than initially specified 56pt
@@ -132,7 +132,7 @@ Per-image catalog of what each reference contributes to the contract.
 
 Token files (rewritten in this phase, all under `BJS/Design/`): `BJSColors.swift`, `Typography.swift`, `Spacing.swift`, `CornerRadius.swift`, `Elevation.swift`, `AnimationTiming.swift`. No view file may reference raw colors, fonts, or magic numbers after this phase.
 
-Card art: CC0 deck (Byron Knoll public-domain SVG deck or equivalent) under `BJS/Resources/Cards/`, plus a single matching card-back asset. Attribution recorded in `BJS/Resources/Cards/ATTRIBUTION.md`.
+Card art: CC0/public-domain deck (Byron Knoll public-domain SVG deck or equivalent) under `BJS/Resources/Cards/`, plus a single matching card-back asset. **License verification is MANDATORY before commit:** executor must read the source's actual license page/file, confirm it is public domain or CC0, record the verified source URL + license URL in `BJS/Resources/Cards/ATTRIBUTION.md`, and **abort the task** if the license cannot be positively confirmed (no "probably CC0" — only verified).
 
 ---
 
@@ -184,8 +184,8 @@ All hex values are visually sampled by eye from the reference PNGs. Executor mus
 | Secondary border | `borderSubtle` | `#FFFFFF14` (8% white) | Hairline dividers between action cells | IMG_7841 cell dividers visually ~hairline at very low opacity; `observed: false — opacity inferred` |
 | Overlay border | `borderOnOverlay` | `#D8D8DC` | UNDERSTAND WHY button stroke; outlined buttons on white cards | IMG_7843 button border sampled |
 | Accent (10%) | `accentGold` | `#E0A436` | **Reserved-for list below** | IMG_7838 wordmark, IMG_7841 table arcs, IMG_7848 star badge — all share same warm gold |
-| Action label | `actionLabel` | `#5C7892` | TrainerView action button icons + captions (STAND/HIT/SPLIT/DOUBLE/SURREN.) | IMG_7841 action icons + captions sampled — clearly cool muted blue, NOT neutral grey |
-| Watermark | `watermarkInk` | `#3A5868` at 25% opacity | "BLACKJACKTRAININGAPP.COM" between hands | IMG_7841/7846 watermark sampled — distinct cool teal cast, not white-on-low-opacity |
+| Action label | `actionLabel` | `#6B8499` | TrainerView action button icons + captions (STAND/HIT/SPLIT/DOUBLE/SURREN.) | Inspired by IMG_7841 action icons + captions (same cool muted blue lane), intentionally differentiated — warmer/lighter than competitor's exact value to avoid palette collision |
+| Watermark | `watermarkInk` | `#3A5868` at 25% opacity | "BJS" placeholder wordmark between hands (final brand TBD) | IMG_7841/7846 watermark sampled — distinct cool teal cast, not white-on-low-opacity |
 | Text primary on dark | `textPrimary` | `#FFFFFF` | All text on `surfaceBase`/`surfaceRaised` (when not action-label) | IMG_7840 stat numerics, IMG_7841 nav SOS would fall here |
 | Text secondary on dark | `textSecondary` | `#FFFFFF99` (60% white) | Stat row caption labels, "Module 1" eyebrow text | IMG_7840 / IMG_7839 caption text |
 | Text on light overlay | `textOnOverlay` | `#0A0A0E` | All headings inside white overlay cards | IMG_7843/7845/7847 |
@@ -245,7 +245,7 @@ Single focal point per screen. Generous breathing room. Stats and end-session mo
 │                                     │
 │  xl (48pt) gap                      │
 │                                     │
-│      BLACKJACKTRAINING.APP          │  ← watermarkInk (#3A5868 @ 25%)
+│             BJS                     │  ← watermarkInk (#3A5868 @ 25%)
 │      (faint cool watermark,         │     caption size, tracked, uppercase
 │       caption size)                 │
 │                                     │
@@ -328,7 +328,7 @@ All copy locked here. Executor uses these strings verbatim — no synonyms.
 | Feedback body — correct | `{ACTION} was the right move.` (e.g. `STAND was the right move.`) | `observed: false — inferred from incorrect-state phrasing pattern; reference IMG_7847 shows counting-specific copy not strategy-specific` |
 | Feedback body — incorrect | `In this situation {USER_ACTION} isn't the right move. You should have {CORRECT_ACTION}.` (uppercase action verbs, bolded inline) | IMG_7843 verbatim |
 | Action button labels | `STAND`, `HIT`, `SPLIT`, `DOUBLE`, `SURREN.` (uppercase, tracked, exactly these strings — `SURREN.` truncation matches IMG_7841) | IMG_7841 |
-| Brand watermark | `BLACKJACKTRAINING.APP` (replace competitor wordmark with our brand; uppercase, tracked, watermarkInk @ 25%) | IMG_7841 — pattern observed; specific string is our brand replacement |
+| Brand watermark | `BJS` (placeholder — final brand wordmark TBD; uppercase, tracked, watermarkInk @ 25%; do NOT use any competitor domain string) | IMG_7841 — pattern observed; placeholder string until brand is finalized |
 | Empty state | Not applicable — TrainerView always has hands during play | n/a |
 | Error state | Heading `Something went wrong`, body `Tap DEAL to try again.` | `observed: false — inferred (no error state in references)` |
 | Destructive confirmation — end session via back chevron | Title `End this session?` · Body `Your session results so far will be saved.` · Confirm `End Session` (red `feedbackIncorrect` text on `actionDark`) · Cancel `Keep Playing` (white text on `actionDark`) | `observed: false — inferred (no end-session confirmation visible in references)` |
@@ -345,7 +345,7 @@ BJSColors.surfaceOverlay        // #FFFFFF
 BJSColors.borderSubtle          // #FFFFFF14 (8% white)
 BJSColors.borderOnOverlay       // #D8D8DC
 BJSColors.accentGold            // #E0A436
-BJSColors.actionLabel           // #5C7892
+BJSColors.actionLabel           // #6B8499
 BJSColors.watermarkInk          // #3A5868 (apply at 25% opacity at usage site)
 BJSColors.textPrimary           // #FFFFFF
 BJSColors.textSecondary         // #FFFFFF99 (60% white)
@@ -397,7 +397,7 @@ All previous tokens not listed above are deleted in this phase. No backwards-com
 | UI-07-D6 | Real CC0 SVG card deck replaces SF Symbol cards | IMG_7841 — reference uses real card art. |
 | UI-07-D7 | **REVERSED:** "UNDERSTAND WHY" button IS rendered in the feedback overlay this phase, wired as no-op placeholder | IMG_7843 clearly shows the button; honoring the reference is more important than deferring. The Know-Why behavior remains a later phase, but the button shape lands now. |
 | UI-07-D8 | Destructive end-session confirmation lives on the nav chrome back chevron | Removes End Session button from play area without losing the affordance. |
-| UI-07-D9 | **NEW:** Action button labels and icons use `actionLabel` blue (`#5C7892`), not white-grey | IMG_7841 sampled — clearly cool blue, not neutral. |
+| UI-07-D9 | **NEW:** Action button labels and icons use `actionLabel` blue (`#6B8499`) — same cool-blue lane as IMG_7841 but intentionally differentiated from competitor's exact value | Inspired by IMG_7841; warmer/lighter to avoid palette collision with competitor. |
 | UI-07-D10 | **NEW:** No hand-total numerics are rendered beneath hands in TrainerView | IMG_7841 shows none; previous spec was incorrect. |
 | UI-07-D11 | **NEW:** Top-right nav element is a "SOS" text button, not a book icon | IMG_7841 verbatim. |
 | UI-07-D12 | **NEW:** Action dock cells are 88pt tall, not 56pt | IMG_7841 visual measure — cells are noticeably taller than standard 56pt. |
@@ -413,7 +413,7 @@ All previous tokens not listed above are deleted in this phase. No backwards-com
 |----------|-------------|-------------|
 | n/a — native iOS | none | not applicable (no shadcn / no third-party UI registries; iOS SwiftUI project) |
 
-Asset provenance: Byron Knoll public-domain playing card SVG deck (or equivalent CC0). Provenance and license URL recorded in `BJS/Resources/Cards/ATTRIBUTION.md` during execution. No code dependencies added.
+Asset provenance: Byron Knoll public-domain playing card SVG deck (or equivalent CC0). **License verification is a hard gate:** executor MUST fetch and read the actual license statement at the source before committing assets, record source URL + license URL in `BJS/Resources/Cards/ATTRIBUTION.md`, and abort if public-domain/CC0 status cannot be positively confirmed. No code dependencies added.
 
 ---
 
