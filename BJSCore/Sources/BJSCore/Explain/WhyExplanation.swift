@@ -145,7 +145,7 @@ public enum WhyExplanation {
         case (.pair, .split):
             let rankName = pairRankName(c.pairRank)
             if c.pairRank == .ace {
-                return "Pair of Aces: 12 is a weak total and you can't double-improve from soft 12. Splitting turns one mediocre hand into two hands each starting with an ace — the strongest possible starting card."
+                return "Pair of Aces: soft 12 is a weak total. Splitting turns one mediocre hand into two hands each starting with an ace — the strongest possible starting card."
             }
             if c.pairRank == .eight {
                 return "Pair of 8s: hard 16 is a losing hand against almost any dealer up card. Splitting gives you two hands each starting with 8 — strictly better than stuck on 16."
