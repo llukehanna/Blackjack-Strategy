@@ -471,6 +471,24 @@ public final class StrategyEngine: @unchecked Sendable {
             }
         }
 
+        // MARK: - Build hard 4 (2,2) and soft 12 (A,A) rows for when splitting is not legal
+
+        var hardFour: [Action] = Array(repeating: .hit, count: 10)
+        var softTwelve: [Action] = Array(repeating: .hit, count: 10)
+
+        for dealerCol in 0..<10 {
+            evCache = [:]
+            currentCardProbs = cardProbsByCol[dealerCol]
+            hardFour[dealerCol] = bestNonPairAction(
+                hardTotal: 4, softBonus: 0, effectiveTotal: 4,
+                dealerCol: dealerCol, allowSurrender: true
+            ).0
+            softTwelve[dealerCol] = bestNonPairAction(
+                hardTotal: 2, softBonus: 10, effectiveTotal: 12,
+                dealerCol: dealerCol, allowSurrender: true
+            ).0
+        }
+
         // MARK: - Build pairs
 
         var pairs: [[Action]] = Array(repeating: Array(repeating: Action.stand, count: 10), count: 10)
@@ -553,7 +571,8 @@ public final class StrategyEngine: @unchecked Sendable {
         }
 
         return StrategyTable(hardTotals: hardTotals, softTotals: softTotals, pairs: pairs,
-                             hardHitStand: hardHitStand, softHitStand: softHitStand)
+                             hardHitStand: hardHitStand, softHitStand: softHitStand,
+                             hardFour: hardFour, softTwelve: softTwelve)
     }
 
     // MARK: - Helpers
