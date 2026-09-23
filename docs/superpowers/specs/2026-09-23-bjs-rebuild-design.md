@@ -60,7 +60,7 @@ BJSCore (Swift package, no SwiftUI)          BJS (iOS app)
 - `BJS/Views/**`, `BJS/Design/**`, `BJS/ViewModels/**`, `BJS/Models/**` (the old SwiftData models)
 - `BJS/Resources/Cards/**` (SVG deck and `ATTRIBUTION.md`, replaced by drawn cards)
 - The old app tests in `BJSTests/**` that cover deleted code
-- `BJS/Domain/WhyExplanation.swift` moves to `BJSCore/Explain`; `BJS/Utilities/CasinoPreset.swift` moves to `BJSCore/Rules/RulePresets`
+- `BJS/Domain/WhyExplanation.swift` moves to `BJSCore/Explain`; `BJS/Utilities/CasinoPreset.swift` is replaced by `BJSCore/Rules/RulePreset`. Both happen at the start of Step 0, before the app layer is deleted.
 - `.planning/` (the GSD artifacts; they stay in git history)
 - `design-system/` (untracked; superseded by this spec; the reference screenshots belong to a third-party app and must not be committed)
 - The "GSD Workflow Enforcement" and GSD-managed sections of the project `CLAUDE.md`
@@ -261,7 +261,7 @@ SwiftData models → mappers → plain `Sendable` values (`DecisionSample`, `Cou
 
 - **`ProgressStats`** produces trend series, heat-map cells, and per-module headline numbers.
 - **`WeakSpotWeights`** computes a weight for each (handType, playerValue, upcard) cell:
-  - Error rate is taken over the most recent 500 strategy decisions, with Laplace smoothing: (errors + 1) / (attempts + 2).
+  - Error rate is taken over the most recent 500 strategy decisions, smoothed toward the user's overall error rate p in that window: (errors + 2p) / (attempts + 2). Plain Laplace smoothing ((e+1)/(a+2)) was rejected because it gives every unseen cell 0.5, drowning out real weak spots.
   - The floor weight is 0.05, so every cell remains reachable.
   - With fewer than 50 decisions in history, the weights are uniform.
   - The weights feed `HandGenerator`.
@@ -313,7 +313,7 @@ Each step gets its own writing-plans implementation plan and must be complete an
 | Step | Scope | Done when |
 |---|---|---|
 | **0. Cleanup** | Deletions per §3. Add `.superpowers/` to `.gitignore`. Rewrite the project `CLAUDE.md`: remove GSD, add conventions and the design-freeze rule, point to this spec. Minimal `BJSApp` that compiles with an empty `RootTabView`. | Clean build; `swift test` green; no GSD references remain |
-| **1. Engine completion** | `RoundEngine`, `WhyExplanation` + `RulePresets` moved into `BJSCore`, `HandGenerator`, `CountDrillGenerator`, `EdgeRating`, `ProgressStats`, `WeakSpotWeights`, sample types | All §7 `BJSCore` tests green |
+| **1. Engine completion** | Seeded RNG + injectable `Shoe` shuffling; legal-action-aware `StrategyTable` lookup with hit/stand fallback tables (fixes the old app mapping every illegal double to hit, e.g. soft 18 vs 6 on 3 cards must stand); `RoundEngine`, `WhyExplanation` + `RulePresets` moved into `BJSCore`, `HandGenerator`, `CountDrillGenerator`, `EdgeRating`, `ProgressStats`, `WeakSpotWeights`, sample types | All §7 `BJSCore` tests green |
 | **2. Foundation** | Felt tokens + full component kit, `RootTabView` + hub shell (tiles route to placeholders), Settings (rules + presets + preferences), `ActiveRulesStore`, SwiftData `SchemaV1` + mappers | Design check passes → **design frozen** |
 | **3. Strategy** | Setup, trainer (4 modes), WHY sheet, summary, persistence, Continue wiring | Strategy UI test + STAND regression test green |
 | **4. Counting** | RC drill, TC drill, card values reference, persistence | RC UI test green |
