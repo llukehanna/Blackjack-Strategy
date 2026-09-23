@@ -45,6 +45,9 @@ public struct RoundEngine: Sendable {
         let state = hands[activeHandIndex]
         let hand = state.hand
         var actions: Set<Action> = [.stand]
+        if hand.canSplit(rules: rules, currentSplitCount: hands.count - 1) {
+            actions.insert(.split)
+        }
         if state.isSplitAces && !rules.hitSplitAces { return actions }
         actions.insert(.hit)
         if hand.canDouble(rules: rules) && (!state.isFromSplit || rules.doubleAfterSplit) {
@@ -136,9 +139,40 @@ public struct RoundEngine: Sendable {
         hands[i].hand = hand
     }
 
-    /// Implemented in Task 7.
     private mutating func split(_ i: Int, shoe: inout Shoe) throws {
-        throw RoundError.illegalAction(.split)
+        let original = hands[i].hand.cards
+        guard let first = shoe.deal(), let second = shoe.deal() else {
+            throw RoundError.shoeExhausted
+        }
+        drawnCards.append(first)
+        drawnCards.append(second)
+        let aces = original[0].rank == .ace
+
+        var left = PlayerHandState(hand: BlackjackHand(cards: [original[0], first]))
+        left.isFromSplit = true
+        left.isSplitAces = aces
+        var right = PlayerHandState(hand: BlackjackHand(cards: [original[1], second]))
+        right.isFromSplit = true
+        right.isSplitAces = aces
+
+        hands[i] = left
+        hands.insert(right, at: i + 1)
+        autoFinishIfNeeded(i)
+        autoFinishIfNeeded(i + 1)
+    }
+
+    /// Finishes a hand that has no meaningful decision left:
+    /// 21 or more, or a split-ace hand that may neither hit nor resplit.
+    private mutating func autoFinishIfNeeded(_ i: Int) {
+        let state = hands[i]
+        if state.hand.total >= 21 {
+            hands[i].isFinished = true
+            return
+        }
+        if state.isSplitAces && !rules.hitSplitAces
+            && !state.hand.canSplit(rules: rules, currentSplitCount: hands.count - 1) {
+            hands[i].isFinished = true
+        }
     }
 
     private mutating func advance(shoe: inout Shoe) throws {
