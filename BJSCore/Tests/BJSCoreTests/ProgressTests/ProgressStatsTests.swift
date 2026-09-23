@@ -94,4 +94,10 @@ struct ProgressStatsTests {
         #expect(ProgressStats.currentStreak([s(1, false)]) == 0)
         #expect(ProgressStats.currentStreak([]) == 0)
     }
+
+    @Test("TrendPoint is constructible outside BJSCore (previews, fixtures)")
+    func trendPointInit() {
+        let point = TrendPoint(day: Date(timeIntervalSince1970: 0), attempts: 4, correct: 3)
+        #expect(point.accuracy == 0.75)
+    }
 }

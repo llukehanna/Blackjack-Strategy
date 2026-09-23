@@ -21,6 +21,12 @@ public struct TrendPoint: Sendable, Equatable {
     public let attempts: Int
     public let correct: Int
 
+    public init(day: Date, attempts: Int, correct: Int) {
+        self.day = day
+        self.attempts = attempts
+        self.correct = correct
+    }
+
     public var accuracy: Double { Double(correct) / Double(attempts) }
 }
 

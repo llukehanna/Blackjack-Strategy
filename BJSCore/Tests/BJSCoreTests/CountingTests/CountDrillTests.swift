@@ -25,6 +25,15 @@ struct CountDrillTests {
         #expect(drill.expectedCount(afterGroup: drill.groups.count - 1) == 0)
     }
 
+    @Test("A non-positive card count is clamped to one card")
+    func nonPositiveLengthClamps() {
+        var rng = SeededRandomNumberGenerator(seed: 9)
+        let drill = CountDrillGenerator.runningCountDrill(
+            length: .cards(0), groupSize: 2, deckCount: 6, randomCheckpoints: true, using: &rng)
+        #expect(drill.cardCount == 1)
+        #expect(drill.checkpoints == [0])
+    }
+
     @Test("Expected count matches a HiLoCounter at every group")
     func expectedCountMatchesCounter() {
         var rng = SeededRandomNumberGenerator(seed: 3)
