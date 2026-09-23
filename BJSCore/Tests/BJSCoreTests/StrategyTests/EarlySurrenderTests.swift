@@ -202,3 +202,150 @@ struct ENHCLateSurrenderTests {
         #expect(t.hardTotals[16 - 5][Rank.ten.columnIndex] == .surrender)
     }
 }
+
+// MARK: - ENHC early surrender
+
+// Under European no-hole-card the play EVs are already unconditional, so early
+// surrender is simply -0.5 against them. For hands whose alternative is hit or
+// stand, the decision is then identical to peek-game early surrender (both compare
+// -0.5 with an EV that loses one unit to a dealer natural), so WoO's early-surrender
+// plays carry over. 8,8 vs 10/A is already a surrender under ENHC *late* surrender
+// (WoO ENHC chart), so it must be one under early surrender too.
+@Suite("ENHC early surrender")
+struct ENHCEarlySurrenderTests {
+
+    private func rules(_ soft17: BlackjackRules.DealerSoft17) -> BlackjackRules {
+        var r = esRules(soft17)
+        r.peekRule = .europeanNoPeek
+        return r
+    }
+
+    @Test("ENHC ES: WoO early-surrender plays vs A and 10", arguments: [BlackjackRules.DealerSoft17.stands, .hits])
+    func surrenderCells(soft17: BlackjackRules.DealerSoft17) {
+        let t = StrategyEngine().strategy(for: rules(soft17))
+        for total in [5, 6, 7, 12, 13, 14, 15, 16, 17] {
+            #expect(t.action(for: hardHand(total), dealerUpcard: .ace, legal: allLegal) == .surrender,
+                    "hard \(total) vs A")
+        }
+        for total in [14, 15, 16] {
+            #expect(t.action(for: hardHand(total), dealerUpcard: .ten, legal: allLegal) == .surrender,
+                    "hard \(total) vs 10")
+        }
+        for pair in [Rank.three, .six, .seven, .eight] {
+            #expect(t.action(for: hand([pair, pair]), dealerUpcard: .ace, legal: allLegal) == .surrender,
+                    "\(pair),\(pair) vs A")
+        }
+        for pair in [Rank.seven, .eight] {
+            #expect(t.action(for: hand([pair, pair]), dealerUpcard: .ten, legal: allLegal) == .surrender,
+                    "\(pair),\(pair) vs 10")
+        }
+    }
+
+    @Test("ENHC ES: non-surrender neighbours", arguments: [BlackjackRules.DealerSoft17.stands, .hits])
+    func neighbours(soft17: BlackjackRules.DealerSoft17) {
+        let t = StrategyEngine().strategy(for: rules(soft17))
+        #expect(t.action(for: hardHand(13), dealerUpcard: .ten, legal: allLegal) == .hit)
+        #expect(t.action(for: hardHand(17), dealerUpcard: .ten, legal: allLegal) == .stand)
+        #expect(t.action(for: hardHand(18), dealerUpcard: .ace, legal: allLegal) == .stand)
+        #expect(t.action(for: hardHand(8), dealerUpcard: .ace, legal: allLegal) == .hit)
+        for row in t.softTotals {
+            #expect(row[Rank.ten.columnIndex] != .surrender && row[Rank.ace.columnIndex] != .surrender)
+        }
+    }
+
+    @Test("ENHC ES matches peek ES for hit/stand hands (hard 5-7, 12-17 vs 9, 10, A)",
+          arguments: [BlackjackRules.DealerSoft17.stands, .hits])
+    func matchesPeekForHitStandHands(soft17: BlackjackRules.DealerSoft17) {
+        let enhc = StrategyEngine().strategy(for: rules(soft17))
+        let peek = StrategyEngine().strategy(for: esRules(soft17))
+        for total in [5, 6, 7, 12, 13, 14, 15, 16, 17] {
+            for up in [Rank.nine, .ten, .ace] {
+                let e = enhc.hardTotals[total - 5][up.columnIndex]
+                let p = peek.hardTotals[total - 5][up.columnIndex]
+                #expect((e == .surrender) == (p == .surrender), "hard \(total) vs \(up): ENHC \(e), peek \(p)")
+            }
+        }
+    }
+}
+
+// MARK: - Early surrender at 1 and 2 decks
+
+// Only the cells whose early-surrender play is robust to deck count are asserted:
+// hard 12-17 vs A, hard 15-16 vs 10 (both surrendered even late at every deck count
+// or far past the ES threshold) and 8,8 vs A/10. The single-deck engine does not model
+// the player's own cards, so composition-sensitive cells (e.g. 7,7 vs 10) are left out.
+@Suite("Early surrender at 1 and 2 decks")
+struct FewDeckEarlySurrenderTests {
+
+    static let configs: [(BlackjackRules.DeckCount, BlackjackRules.DealerSoft17)] =
+        [(.one, .stands), (.one, .hits), (.two, .stands), (.two, .hits)]
+
+    private func rules(_ decks: BlackjackRules.DeckCount, _ soft17: BlackjackRules.DealerSoft17) -> BlackjackRules {
+        var r = esRules(soft17)
+        r.deckCount = decks
+        return r
+    }
+
+    @Test("Few-deck ES: robust WoO early-surrender plays", arguments: configs)
+    func surrenderCells(decks: BlackjackRules.DeckCount, soft17: BlackjackRules.DealerSoft17) {
+        let t = StrategyEngine().strategy(for: rules(decks, soft17))
+        for total in 12...17 {
+            #expect(t.action(for: hardHand(total), dealerUpcard: .ace, legal: allLegal) == .surrender,
+                    "hard \(total) vs A")
+        }
+        for total in [15, 16] {
+            #expect(t.action(for: hardHand(total), dealerUpcard: .ten, legal: allLegal) == .surrender,
+                    "hard \(total) vs 10")
+        }
+        for up in [Rank.ten, .ace] {
+            #expect(t.action(for: hand([.eight, .eight]), dealerUpcard: up, legal: allLegal) == .surrender,
+                    "8,8 vs \(up)")
+        }
+    }
+
+    @Test("Few-deck ES: non-surrender neighbours", arguments: configs)
+    func neighbours(decks: BlackjackRules.DeckCount, soft17: BlackjackRules.DealerSoft17) {
+        let t = StrategyEngine().strategy(for: rules(decks, soft17))
+        #expect(t.action(for: hardHand(13), dealerUpcard: .ten, legal: allLegal) == .hit)
+        #expect(t.action(for: hardHand(17), dealerUpcard: .ten, legal: allLegal) == .stand)
+        #expect(t.action(for: hardHand(18), dealerUpcard: .ace, legal: allLegal) == .stand)
+        #expect(t.action(for: hand([.ace, .ace]), dealerUpcard: .ace, legal: allLegal) == .split)
+        for row in t.softTotals {
+            #expect(row[Rank.ten.columnIndex] != .surrender && row[Rank.ace.columnIndex] != .surrender)
+        }
+    }
+}
+
+// MARK: - Early surrender dominates late surrender
+
+// Early surrender is offered in strictly more situations than late surrender and is
+// worth at least as much, so every late-surrender play must also be an early one.
+@Suite("Early surrender dominates late surrender")
+struct EarlyDominatesLateTests {
+
+    @Test("Every late-surrender cell is also an early-surrender cell",
+          arguments: BlackjackRules.DeckCount.allCases)
+    func earlySupersetOfLate(decks: BlackjackRules.DeckCount) {
+        for peek in BlackjackRules.PeekRule.allCases {
+            for soft17 in BlackjackRules.DealerSoft17.allCases {
+                var r = esRules(soft17)
+                r.deckCount = decks
+                r.peekRule = peek
+                let early = StrategyEngine().strategy(for: r)
+                r.surrenderRule = .late
+                let late = StrategyEngine().strategy(for: r)
+                let pairs = [(late.hardTotals, early.hardTotals, "hard"),
+                             (late.softTotals, early.softTotals, "soft"),
+                             (late.pairs, early.pairs, "pair")]
+                for (l, e, name) in pairs {
+                    for row in l.indices {
+                        for col in 0..<10 where l[row][col] == .surrender {
+                            #expect(e[row][col] == .surrender,
+                                    "\(decks) \(peek) \(soft17) \(name) row \(row) col \(col)")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
