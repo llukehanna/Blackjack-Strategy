@@ -2,7 +2,7 @@
 ///
 /// Computes the best non-busting total (counting one ace as 11 when possible),
 /// and provides rule-aware eligibility flags for player decisions.
-public struct BlackjackHand: Sendable {
+public struct BlackjackHand: Sendable, Equatable {
 
     /// The cards currently in this hand.
     public private(set) var cards: [Card]
