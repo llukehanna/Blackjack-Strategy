@@ -240,9 +240,11 @@ This is a fresh `VersionedSchema` with a `SchemaMigrationPlan`, so future change
   - Relationships (cascade delete): `decisions`, `countChecks`.
 - **`DecisionRecord`**
   - The hand: `handNumber`, `handType: String` (hard | soft | pair), `playerValue: Int` (total, or pair rank), `dealerUpcard: Int`.
-  - The decision: `chosenAction: String` (including `timeout`), `correctAction: String`, `isCorrect`, `responseMs: Int?`.
+  - The decision: `chosenAction: String` (including `timeout`), `correctAction: String`, `isCorrect`, `responseMs: Int?`, `decidedAt: Date`.
 - **`CountCheckRecord`**
-  - `kind: String` (running | true), `expected: Double`, `answered: Double`, `isCorrect`, `responseMs`, `cardsSeen`.
+  - `kind: String` (running | true), `expected: Double`, `answered: Double`, `isCorrect`, `responseMs`, `cardsSeen`, `answeredAt: Date`.
+
+Every record carries its own timestamp (`decidedAt`, `answeredAt`), which the mappers copy into `DecisionSample.date` / `CountSample.date`. `ProgressStats.currentStreak` and the `WeakSpotWeights` 500-decision window order samples by that date, so records must not inherit their session's `startedAt`. If they did, all decisions in a session would tie, and the sort would keep them oldest-first, giving wrong streaks and an arbitrary window cut. (Decided 2026-09-23, from the Step 0–1 final review.)
 
 Edge results are not persisted.
 

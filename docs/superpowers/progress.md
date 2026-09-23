@@ -24,7 +24,7 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   training hands never start with a dealer natural (even under ENHC); TrainingCell uses 11 for aces.
 - Open items from the final review (decide before the step named):
   - **Early surrender strategy (before Step 3, Important).** StrategyEngine values surrender at a flat −0.5 against peeked hand values, so under early surrender it answers "hit" where ES basic strategy surrenders (e.g. 14v10, 15vA, 12vA, 7vA). This predates the rebuild, but RoundEngine now makes ES playable. Model ES properly with Wizard of Odds reference tests, or hide early surrender until then.
-  - **Decision ordering (Step 2 schema, Important).** `ProgressStats.currentStreak` and the WeakSpotWeights 500-decision window order by `DecisionSample.date`. `DecisionRecord` in the spec has no per-decision timestamp, and sharing the session start date gives wrong streaks. Add `DecisionRecord.decidedAt` (or an ordering key) to SchemaV1.
+  - **Decision ordering: DECIDED.** Spec §6 now adds `DecisionRecord.decidedAt` and `CountCheckRecord.answeredAt`. Step 2's SchemaV1 must include them, and the mappers must copy them into `DecisionSample.date` / `CountSample.date`, never the session's `startedAt`.
   - Minor: soft 12 (unsplittable A,A) is looked up in the soft 13 row. Hard 4 and soft 12 spots from real play have no TrainingCell/heat-map square. 3+ card hands share a cell with 2-card hands.
   - Minor: split deals both second cards at once (the right-hand card is visible early; relevant to Shoe Sim animations). A deal that runs out mid-action leaves the round half-changed, so Shoe Sim must ensure enough cards before each round.
   - Step 4: exact true-count grading (±0.25) needs a decimal or half-step keypad.
