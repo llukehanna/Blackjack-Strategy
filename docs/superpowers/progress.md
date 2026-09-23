@@ -12,7 +12,7 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
 
 - Commits: 78de121..6a484a2 (branch `main-8v0ds1`; run in a cloud session).
 - BJSCore tests: 173 passing (`cd BJSCore && swift test`, Swift 6.2.4 on Linux). `BJSCore/Sources` has no SwiftUI/SwiftData/UIKit imports.
-- **Not run:** Task 14 Step 3 (`xcodegen generate && xcodebuild test ...`). The cloud container has no Xcode or simulator. Luke: run it locally before starting Step 2.
+- Task 14 Step 3 (app build + tests) runs in GitHub Actions: `.github/workflows/ios.yml` (macos-26, latest Xcode 26, newest available iPhone simulator; BJSCore `swift test`, `xcodegen generate`, `xcodebuild test`). Run 1 on df3d559 passed: `** TEST SUCCEEDED **`, 2 app-shell tests. The cloud dev container is Linux, so check app-level work through this workflow. Locally, CLAUDE.md's `OS=18.4` destination still applies.
 - Added: SeededRandomNumberGenerator; Shoe(orderedCards:), shuffle(using:), standardCards, dealtCount;
   StrategyTable hit/stand fallback + action(for:dealerUpcard:legal:) / action(for: DecisionSpot);
   RoundEngine (naturals, peek/ENHC, early/late surrender, double, splits incl. aces/RSA/max hands);
