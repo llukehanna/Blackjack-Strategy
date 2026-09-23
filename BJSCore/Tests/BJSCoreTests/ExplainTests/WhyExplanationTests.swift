@@ -1,7 +1,6 @@
 import Testing
 import Foundation
-@testable import BJS
-import BJSCore
+@testable import BJSCore
 
 struct WhyExplanationTests {
 

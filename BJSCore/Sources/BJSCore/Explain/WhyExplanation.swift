@@ -1,10 +1,9 @@
 import Foundation
-import BJSCore
 
 /// Categorizes a player's hand for strategy explanation purposes.
 /// BJSCore models pair/soft/hard via flags on `BlackjackHand`; this enum
 /// flattens that into a single tag for switching in `WhyExplanation`.
-public enum HandType: Sendable, Equatable {
+public enum HandType: String, Sendable, Equatable, Hashable, Codable, CaseIterable {
     case hard
     case soft
     case pair
