@@ -17,6 +17,9 @@ targets:
     sources: [BJS]
     dependencies:
       - package: BJSCore
+    scheme:
+      testTargets:
+        - BJSTests
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
