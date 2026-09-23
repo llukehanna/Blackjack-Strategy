@@ -102,6 +102,38 @@ struct WhyExplanationTests {
         #expect(result.count < 400, "Scenario \(scenario.name): too long (\(result.count))")
     }
 
+    // MARK: - Early surrender
+
+    @Test("Early surrender vs Ace/10 explains the pre-peek blackjack risk")
+    func earlySurrenderExplainsBlackjackRisk() {
+        var es = BlackjackRules()
+        es.surrenderRule = .early
+        let cases: [(Int, HandType, Rank?, Rank)] = [
+            (7, .hard, nil, .ace), (14, .hard, nil, .ten), (17, .hard, nil, .ace),
+            (16, .pair, .eight, .ten), (6, .pair, .three, .ace),
+        ]
+        for (total, type, pair, up) in cases {
+            let text = WhyExplanation.explain(WhyContext(
+                handTotal: total, handType: type, pairRank: pair, dealerUpCard: up,
+                userAction: .hit, correctAction: .surrender, rules: es))
+            #expect(text.contains("Early surrender"), "\(text)")
+            #expect(text.contains("blackjack"), "\(text)")
+            #expect(!text.contains("loses more than half the time"), "\(text)")
+            #expect(text.count >= 30 && text.count < 400)
+        }
+    }
+
+    @Test("Late surrender wording is unchanged")
+    func lateSurrenderWordingUnchanged() {
+        var late = BlackjackRules()
+        late.surrenderRule = .late
+        let text = WhyExplanation.explain(WhyContext(
+            handTotal: 16, handType: .hard, dealerUpCard: .ten,
+            userAction: .hit, correctAction: .surrender, rules: late))
+        #expect(text.contains("loses more than half the time"))
+        #expect(!text.contains("Early surrender"))
+    }
+
     // MARK: - Smoke test: every (handType, action) combo returns a bounded non-empty string
 
     @Test

@@ -75,6 +75,19 @@ public enum WhyExplanation {
         let dealerWeak = isDealerWeak(c.dealerUpCard)
         let dealerStrong = isDealerStrong(c.dealerUpCard)
 
+        // Early surrender vs an Ace or 10: the reason is the dealer's unrevealed blackjack,
+        // not that the hand "loses more than half the time" (e.g. hard 7 vs Ace).
+        if c.correctAction == .surrender && c.rules.surrenderRule == .early
+            && canMakeBlackjack(c.dealerUpCard) {
+            let hand: String
+            switch c.handType {
+            case .hard: hand = "Hard \(total)"
+            case .soft: hand = "Soft \(total)"
+            case .pair: hand = "Pair of \(pairRankName(c.pairRank))s"
+            }
+            return "\(hand) vs dealer's \(up): Early surrender lets you give up half your bet before the dealer's blackjack is known. Counting the chance the dealer already has blackjack, playing on loses more than half a bet here."
+        }
+
         switch (c.handType, c.correctAction) {
 
         // MARK: Hard totals
@@ -161,6 +174,13 @@ public enum WhyExplanation {
     private static func isDealerWeak(_ rank: Rank) -> Bool {
         switch rank {
         case .two, .three, .four, .five, .six: return true
+        default: return false
+        }
+    }
+
+    private static func canMakeBlackjack(_ rank: Rank) -> Bool {
+        switch rank {
+        case .ace, .ten, .jack, .queen, .king: return true
         default: return false
         }
     }

@@ -364,6 +364,28 @@ public final class StrategyEngine: @unchecked Sendable {
             return 0.0
         }
 
+        /// Value of surrendering, expressed in the same frame as the other EVs in this column.
+        ///
+        /// - American peek: play EVs are conditioned on "dealer has no blackjack".
+        ///   Late surrender happens after the peek, so it is worth -0.5 in that frame.
+        ///   Early surrender happens before the peek: surrender is -0.5 unconditionally,
+        ///   while any other play is worth P(BJ)·(-1) + (1-P(BJ))·EV_noBJ (a dealer natural
+        ///   takes only the original bet, since no double or split has happened yet).
+        ///   Surrender wins iff EV_noBJ < (P(BJ) - 0.5) / (1 - P(BJ)), so that threshold is
+        ///   the surrender value in the conditioned frame.
+        /// - European no-hole-card: play EVs are unconditional (dealer BJ is already priced in,
+        ///   including lost double/split bets). Early surrender is -0.5 unconditionally.
+        ///   Late surrender still loses the whole bet to a dealer natural (RoundEngine settles
+        ///   it at -1), so it is worth P(BJ)·(-1) + (1-P(BJ))·(-0.5).
+        func surrenderEV(dealerCol: Int) -> Double {
+            let pBJ = dealerBJProb(dealerCol)
+            switch (rules.surrenderRule, isENHC) {
+            case (.early, false): return (pBJ - 0.5) / (1.0 - pBJ)
+            case (.late, true): return -pBJ - 0.5 * (1.0 - pBJ)
+            default: return -0.5
+            }
+        }
+
         /// Select best action for a non-pair hand.
         func bestNonPairAction(hardTotal: Int, softBonus: Int, effectiveTotal: Int,
                                dealerCol: Int, allowSurrender: Bool,
@@ -392,7 +414,7 @@ public final class StrategyEngine: @unchecked Sendable {
             }
 
             if allowSurrender && rules.surrenderRule != .none {
-                let rEV = -0.5
+                let rEV = surrenderEV(dealerCol: dealerCol)
                 if rEV > bestEV {
                     bestAction = .surrender
                     bestEV = rEV
