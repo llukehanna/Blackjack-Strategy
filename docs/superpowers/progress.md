@@ -66,3 +66,40 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   - Continue and `lastLaunch` are still to build.
   - `LaunchConfiguration` gives UI tests a clean store (`BJS_UI_TESTING=1`).
 - Next: once Luke approves the freeze, Step 3 (Strategy).
+
+## Step 3 — Strategy (2026-09-24)
+
+- Commits: ca0c5fd..9b6c451 (branch `main-8v0ds1`; plan `docs/superpowers/plans/2026-09-24-step-3-strategy.md`, review fixes d2f2b57).
+- CI: [run 27](https://github.com/llukehanna/Blackjack-Strategy/actions/runs/36007223918) green on 9b6c451. It ran:
+  - BJSCore: 231 tests.
+  - App unit tests: 97 (Swift Testing), including "STAND always produces feedback before the next hand" for all four modes.
+  - UI tests: 4 (XCTest), including spec §7 "5-hand Strategy session → summary", on iPhone 16 and iPhone SE (3rd generation).
+  - Screenshots: 29 per device.
+- Engine fixes before this step: `cf2ec31`/`37dbf30` corrected hard 16 vs 10 (no surrender, 4–8 decks) and hard 15 vs 10 under H17 to HIT, matching Wizard of Odds. The RS1, RS2 and RS7 reference tests had asserted STAND and were corrected. A leftover hand-tuned stand bias caused it.
+- **Bugs found and fixed during CI (they affected Step 2 too):**
+  - **The app ran letterboxed** in legacy 320×480 mode on every device. `project.yml` used `INFOPLIST_VALUES`, which is not an Xcode setting, so `UILaunchScreen`, `UIDesignRequiresCompatibility` (the Liquid Glass opt-out) and the bundle name never reached the app. Fixed in `ababf5f` with XcodeGen's `info:` block (generated `BJS/Info.plist`, gitignored). **All earlier screenshots, including Step 2's design-check set, were letterboxed.** Run 27's artifact is the first full-screen set.
+  - **Crash on "Next hand":** a Swift 6 main-actor isolation trap in `HandView`'s `ForEach` item closure. SwiftUI called it off the main thread while measuring under `ViewThatFits`. Fixed in `9b6c451`: the hands are built in fixed, eager slots (22 cards, 4 split hands), with no `ForEach` closure. For Step 4+: **don't put `ForEach` under `ViewThatFits`** (or other measuring containers) in Swift 6 mode.
+  - **Trainer layout:** the top bar is pinned to the top, the hands shrink to fit, and the FeedbackCard is part of the layout, so it no longer covers the player's cards on SE (`ec35022`).
+- Design check: I could not look at the screenshots. The artifact host is blocked from the cloud container, and pushing screenshots to a branch needs CI write permission, which was denied. The CI log now carries the element tree, a low-res screen capture and any crash report when a UI test stalls (`logFailureState`, `export_screenshots.py`). **Luke:** download `design-screenshots` from run 27's Summary page and go through checklist rows 1–13 in Task 12 of the Step 3 plan. Please also redo the Step 2 design check (Step 2 plan, Task 13, rows 1–19) on the same artifact, because the earlier Step 2 set was letterboxed.
+- **Design freeze: still PENDING Luke's approval**, now judged on run 27's full-screen screenshots.
+- Added:
+  - BJSCore: `StrategySessionConfig` (`StrategyMode`, `StrategySessionLength`), `DecisionChoice`, `GradedDecision`, `WhyContext(spot:…)`, `StrategySessionSummary`, `StrategySession` (the trainer state machine) and `DecisionFeedback`.
+  - App: `LastLaunch` + `LastLaunchStore`; `StrategySessionSaving` + `SwiftDataStrategySessionSaver` + `DecisionHistory`; `CountdownBar` (a new component built from existing tokens); the `Features/Strategy` setup, trainer, WHY sheet, summary and ViewModel; hub Continue; full-screen sessions from `RootTabView`.
+  - `scripts/dev/linux_app_check.sh`: runs the Linux-safe app files and their Swift Testing suites locally.
+- Decisions for Luke: the plan's "Decisions this plan makes" and "Decisions pending Luke":
+  - Grading happens on tap, and the action plays on NEXT, so every decision needs a NEXT tap (no auto-advance).
+  - After a timeout, NEXT plays the correct action.
+  - Each hand ends on an explicit "Next hand" step.
+  - Continue skips setup.
+  - #6: the leave behaviour.
+  - #15: the new visual pieces (CountdownBar).
+- Still open:
+  - 1–2 deck H17 hard 16 vs 10 still STANDs; this has not been checked against the WoO chart.
+  - The UI-test Speed path waits out the real 3 s timer.
+- Notes for Step 4:
+  - Reuse the ViewModel pattern: a BJSCore state machine plus a thin `@MainActor @Observable` adapter with an injected clock and saver, checked on Linux with `scripts/dev/linux_app_check.sh`.
+  - Continue: add a `counting` setup field to `LastLaunch` and a case in `RootTabView.continueLast`.
+  - Sessions present through `RootTabView.activeSession`: turn `ActiveSession` into an enum, or add a module field.
+  - Avoid `ForEach` under `ViewThatFits`.
+  - CI takes about 20–25 min per push, and pushing again cancels the run in progress.
+- Next: Step 4 (Counting). Step 5 (Edge) can run in parallel.
