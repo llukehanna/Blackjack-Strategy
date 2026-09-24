@@ -94,4 +94,16 @@ struct ProgressStatsTests {
         #expect(ProgressStats.currentStreak([s(1, false)]) == 0)
         #expect(ProgressStats.currentStreak([]) == 0)
     }
+
+    @Test("Current streak breaks ties by input order (chronological), not date alone")
+    func streakTiedDates() {
+        let cell = TrainingCell(handType: .hard, playerValue: 12, dealerUpcard: 4)
+        let sameDate = Date(timeIntervalSince1970: 1_000)
+        func s(_ ok: Bool) -> DecisionSample {
+            DecisionSample(date: sameDate, cell: cell, isCorrect: ok, responseMs: nil)
+        }
+        // Chronological order (as the caller passes it): the last element is newest.
+        #expect(ProgressStats.currentStreak([s(true), s(true), s(false)]) == 0)
+        #expect(ProgressStats.currentStreak([s(false), s(true), s(true)]) == 2)
+    }
 }

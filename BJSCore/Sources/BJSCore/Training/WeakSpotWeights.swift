@@ -26,7 +26,16 @@ public enum WeakSpotWeights {
 
     public static func compute(from samples: [DecisionSample]) -> [TrainingCell: Double]? {
         guard samples.count >= minimumHistory else { return nil }
-        let recent = samples.sorted { $0.date < $1.date }.suffix(historyWindow)
+        // Ties on `date` are broken by input position, not left to sort stability:
+        // the caller passes samples in chronological order, so the window must keep
+        // the newest-by-input samples even when several share a timestamp.
+        let recent = samples.enumerated()
+            .sorted { a, b in
+                if a.element.date != b.element.date { return a.element.date < b.element.date }
+                return a.offset < b.offset
+            }
+            .suffix(historyWindow)
+            .map(\.element)
 
         var attempts: [TrainingCell: Int] = [:]
         var errors: [TrainingCell: Int] = [:]

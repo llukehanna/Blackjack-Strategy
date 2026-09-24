@@ -49,4 +49,18 @@ struct WeakSpotWeightsTests {
         let weights = try #require(WeakSpotWeights.compute(from: samples))
         #expect(weights.values.allSatisfy { $0 >= HandGenerator.minimumWeight })
     }
+
+    @Test("Window edge with tied dates keeps the newest-by-input samples")
+    func windowTiesByInputOrder() throws {
+        let old = TrainingCell(handType: .hard, playerValue: 12, dealerUpcard: 2)
+        // All timestamps tie at 0; the caller still passes them in chronological
+        // (input) order, so the window must keep the *last* 500 by input position,
+        // not an arbitrary tie-broken subset.
+        var samples = (0..<100).map { _ in sample(old, correct: false, at: 0) }
+        samples += (0..<500).map { _ in sample(strong, correct: true, at: 0) }
+        let weights = try #require(WeakSpotWeights.compute(from: samples))
+        // `old` falls entirely outside the 500-window, so it's treated as unseen
+        // (floored to the minimum), not weighted up by its errors.
+        #expect(weights[old]! == HandGenerator.minimumWeight)
+    }
 }

@@ -87,9 +87,17 @@ public enum ProgressStats {
     }
 
     /// Consecutive correct decisions counting back from the newest.
+    ///
+    /// Decisions from a single session often share the same `date`; the caller
+    /// always passes `decisions` in chronological order, so ties are broken by
+    /// input position (later position = more recent), not left to sort stability.
     public static func currentStreak(_ decisions: [DecisionSample]) -> Int {
+        let newestFirst = decisions.enumerated().sorted { a, b in
+            if a.element.date != b.element.date { return a.element.date > b.element.date }
+            return a.offset > b.offset
+        }
         var streak = 0
-        for d in decisions.sorted(by: { $0.date > $1.date }) {
+        for (_, d) in newestFirst {
             guard d.isCorrect else { break }
             streak += 1
         }
