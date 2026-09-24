@@ -44,9 +44,10 @@ final class DesignScreenshotTests: XCTestCase {
         XCTAssertTrue(app.buttons["hub.tile.edge"].exists)
         snapshot("01-hub")
 
-        app.buttons["hub.tile.strategy"].tap()
+        // Strategy now opens its setup screen (StrategySessionUITests); Counting is still a placeholder.
+        app.buttons["hub.tile.counting"].tap()
         XCTAssertTrue(app.staticTexts["placeholder.title"].waitForExistence(timeout: 5))
-        snapshot("02-placeholder-strategy")
+        snapshot("02-placeholder-counting")
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(rulesSummary.waitForExistence(timeout: 5))
 

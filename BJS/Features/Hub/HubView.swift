@@ -2,22 +2,26 @@ import BJSCore
 import SwiftData
 import SwiftUI
 
-/// Train tab (spec §5 Hub): rules summary, stat chips, module tiles.
+/// Train tab (spec §5 Hub): rules summary, stat chips, Continue, module tiles.
 ///
-/// The Continue button arrives with Step 3 (it is hidden until a module has been launched).
-/// `destination` is supplied by the App layer, so the Hub never names another feature.
+/// Continue is hidden until a session has been started (first launch). `onContinue` and
+/// `destination` are supplied by the App layer, so the Hub never names another feature.
 struct HubView<Destination: View>: View {
     @Environment(ActiveRulesStore.self) private var rulesStore
+    @Environment(LastLaunchStore.self) private var lastLaunchStore
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query private var sessions: [Session]
     @Query private var decisions: [DecisionRecord]
     @State private var path: [HubRoute] = []
 
     private let onShowRules: () -> Void
+    private let onContinue: (LastLaunch) -> Void
     private let destination: (HubRoute) -> Destination
 
-    init(onShowRules: @escaping () -> Void, @ViewBuilder destination: @escaping (HubRoute) -> Destination) {
+    init(onShowRules: @escaping () -> Void, onContinue: @escaping (LastLaunch) -> Void,
+         @ViewBuilder destination: @escaping (HubRoute) -> Destination) {
         self.onShowRules = onShowRules
+        self.onContinue = onContinue
         self.destination = destination
     }
 
@@ -33,6 +37,9 @@ struct HubView<Destination: View>: View {
                 VStack(alignment: .leading, spacing: FeltSpacing.xl) {
                     header
                     statChips
+                    if let launch = lastLaunchStore.lastLaunch {
+                        continueButton(launch)
+                    }
                     tiles
                 }
                 .padding(.horizontal, FeltSpacing.l)
@@ -77,6 +84,22 @@ struct HubView<Destination: View>: View {
             StatChip(label: "Strategy 30d", value: HubStats.percentText(current.strategyAccuracy))
             StatChip(label: "Count 30d", value: HubStats.percentText(current.countAccuracy))
             StatChip(label: "Streak", value: "\(current.strategyStreak)")
+        }
+    }
+
+    private func continueButton(_ launch: LastLaunch) -> some View {
+        VStack(alignment: .leading, spacing: FeltSpacing.xs) {
+            PrimaryButton(LastLaunchText.title(launch)) {
+                onContinue(launch)
+            }
+            .accessibilityIdentifier("hub.continue")
+            if let detail = LastLaunchText.detail(launch) {
+                Text(detail)
+                    .feltType(.label)
+                    .foregroundStyle(FeltColor.textSecondary)
+                    .padding(.horizontal, FeltSpacing.xs)
+                    .accessibilityIdentifier("hub.continueDetail")
+            }
         }
     }
 
