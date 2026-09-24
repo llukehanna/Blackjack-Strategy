@@ -118,4 +118,24 @@ struct RoundEngineSplitTests {
         try round.apply(.split, shoe: &shoe)
         #expect(!round.legalActions.contains(.surrender))
     }
+
+    @Test("A waiting split-ace hand is re-checked and auto-finished once a later split exhausts the resplit cap")
+    func autoFinishRecheckAllSplitAceHands() throws {
+        var rules = BlackjackRules()
+        rules.resplitAces = true
+        // split -> A,A / A,A | resplit hand 0 -> A,A / A,7 (A,A carried over still waiting)
+        // | resplit hand 0 again -> A,5 / A,6, hitting maxSplitHands (4): the carried-over
+        // A,A hand can no longer resplit and must be auto-finished too.
+        var shoe = stackedShoe([.ace, .seven, .ace, .ten, .ace, .ace, .ace, .seven, .five, .six])
+        var round = try RoundEngine(rules: rules, shoe: &shoe)
+        try round.apply(.split, shoe: &shoe)
+        try round.apply(.split, shoe: &shoe)
+        try round.apply(.split, shoe: &shoe)
+        #expect(round.hands.count == 4)
+        #expect(round.hands.allSatisfy { $0.isFinished })
+        #expect(round.hands.map { $0.hand.total } == [16, 17, 18, 12])
+        #expect(round.phase == .settled)
+        #expect(round.hands.map(\.outcome) == [.loss, .push, .win, .loss])
+        #expect(round.totalNet == -1)
+    }
 }

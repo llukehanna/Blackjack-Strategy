@@ -157,8 +157,12 @@ public struct RoundEngine: Sendable {
 
         hands[i] = left
         hands.insert(right, at: i + 1)
-        autoFinishIfNeeded(i)
-        autoFinishIfNeeded(i + 1)
+        // A split can raise the total split count enough that an already-waiting
+        // split-ace hand (kept alive earlier because it could still resplit) no
+        // longer can, so every hand is rechecked, not just the two just created.
+        for idx in hands.indices {
+            autoFinishIfNeeded(idx)
+        }
     }
 
     /// Finishes a hand that has no meaningful decision left:
