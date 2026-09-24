@@ -35,7 +35,7 @@ struct RootTabView: View {
                     .feltTabBar()
             }
             Tab(AppTab.settings.rawValue, systemImage: AppTab.settings.systemImage, value: AppTab.settings) {
-                PlaceholderScreen(title: AppTab.settings.rawValue)
+                SettingsView()
                     .feltTabBar()
             }
         }
