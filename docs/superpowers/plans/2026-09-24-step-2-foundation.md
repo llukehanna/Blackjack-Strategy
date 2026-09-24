@@ -29,6 +29,7 @@
 - **Default actor isolation — decision:** remove `OTHER_SWIFT_FLAGS: "-enable-upcoming-feature DefaultIsolationMainActor"` from `project.yml` and do **not** add `SWIFT_DEFAULT_ACTOR_ISOLATION`. Reasons: (1) `DefaultIsolationMainActor` is not an upcoming-feature flag; Swift 6.2's default isolation is SE-0466's `-default-isolation MainActor` / Xcode's `SWIFT_DEFAULT_ACTOR_ISOLATION`, so the flag is a no-op at best (Step 1 open item); (2) spec §3 rule 2 already asks for explicit `@MainActor` on ViewModels and stores, which keeps isolation visible in code review; (3) nonisolated-by-default keeps SwiftData `@Model` classes, `VersionedSchema`/`SchemaMigrationPlan` witnesses, `Shape.path(in:)` and pure value types free of accidental main-actor isolation. Code rules that make the code correct **either way** (verified with `swiftc -swift-version 6` in both modes on the pure files):
   - `@Observable` stores are `@MainActor final class`; their static constants that must be read from anywhere are `nonisolated static let`.
   - Protocol witnesses whose requirements are nonisolated are marked `nonisolated` (`SchemaV1.versionIdentifier`/`models`, `BJSMigrationPlan.schemas`/`stages`, `DiagonalStripes.path(in:)`).
+  - `FeltMotion.dealTransition(reduceMotion:)` and `panelTransition(reduceMotion:)` are marked `@MainActor` (Task 1): they build `AnyTransition`, and callers are always views on the main actor, so isolation stays visible rather than inferred.
   - Test suites that touch `@MainActor` types are `@MainActor`.
 - **SwiftUI initialiser rule:** a struct with a `private` stored property that has a default value (including `@State private var x = …`) gets a *private* memberwise initialiser. Every view that takes parameters and has such a property declares an explicit `init`. The code below already does this; keep it that way.
 - **Architecture:** `Features/Hub` and `Features/Settings` never reference each other or any other feature. `App/RootTabView` is the only place that maps hub routes and tabs to screens. Shared code lives in `Design/`, `Shared/`, `Persistence/` or `BJSCore`. `BJSCore` is not modified in this step.
@@ -45,7 +46,7 @@
 
 ## Decisions this plan makes (spec gaps or ambiguities)
 
-Luke reviews these at the design check (Task 12). None changes a §4 token value.
+Luke reviews these at the design check (Task 13). None changes a §4 token value.
 
 1. **`@AppStorage` vs `@Observable`.** `@AppStorage` only works inside a View and cannot sit inside an `@Observable` class. `ActiveRulesStore` and `Preferences` therefore read and write `UserDefaults` directly, under the spec's key names and with `@AppStorage`-compatible types (`activeRules`: JSON `Data`; `speedTimerSeconds`: Double; `trueCountConvention`: String raw value; `shoeCheckFrequency`: Int; `hapticsEnabled`: Bool). The `UserDefaults` instance is injected, so tests and UI tests use their own suites.
 2. **`Session.countChecks` name clash.** §6 lists `countChecks` both as a cached `Int` and as a relationship. The Int keeps the name (it matches `SessionSample.countChecks`); the relationship is `countCheckRecords`. `decisions` stays as named.
@@ -59,8 +60,10 @@ Luke reviews these at the design check (Task 12). None changes a §4 token value
 10. **Reset confirmation** is an `.alert` with a destructive "Delete all progress" button (spec: "confirmation dialog"); alerts are the most predictable choice on iOS 26 and in UI tests.
 11. **§4 details the spec leaves open** (all built from existing tokens): FeedbackCard WHY = `onCream` outline, NEXT = `onCream` fill with cream text; badge 44 pt disc with a 3 pt cream ring; hint ring 3 pt `brass`; secondary buttons and keys get a 1 pt `textTertiary` outline; row hairlines are `textTertiary` at 30 %, one pixel; toggles tint cream (like the selected ModePicker segment); dimmed/disabled = 40 % opacity; pressed = 85 % opacity and 97 % scale (no scale under Reduce Motion); deal uses ease-out, flip ease-in-out; the felt's radial centre sits at (0.5, 0.35) with radius 0.75 × the longer side; card index = 30 % of width, corner suit 20 %, big suit 45 %.
 12. **Where the contrast maths lives.** `WCAGContrast` and the raw `FeltPalette` values are Foundation-only files in `BJS/Design/Tokens/`, not BJSCore (they are not game logic). Because they are Foundation-only, the contrast numbers are also computed locally with `swiftc` in Task 1; the unit test in `BJSTests` asserts them against the shipped tokens.
-13. **Contrast findings (for Luke).** Every text token passes AA on `feltBase` (lowest: `incorrect` 4.51) and on `surfaceInset` over `feltBase`; `onCream`, `onCreamSecondary` (5.85), `suitRed` (4.54) and `suitBlack` pass on cream. `correct` (1.48), `incorrect` (2.68) and `brass` (1.89) fail on cream, so they are never used as text on cream (badge fills only). At the radial centre (`feltLight`), `textTertiary` (3.51) and `incorrect` (2.89) drop below 4.5:1; the spec only requires `feltBase`, so this is reported, not changed.
+13. **Contrast findings (for Luke).** Every text token passes AA on `feltBase` (lowest: `incorrect` 4.51) and on `surfaceInset` over `feltBase`; `onCream`, `onCreamSecondary` (5.85), `suitRed` (4.54) and `suitBlack` pass on cream. `correct` (1.48), `incorrect` (2.68) and `brass` (1.89) fail on cream, so they are never used as text on cream (badge fills only). At the radial centre (`feltLight`), `textSecondary` (4.33), `textTertiary` (3.51), `incorrect` (2.89) and `brass` (4.08) drop below 4.5:1; the spec only requires AA on `feltBase`, so this is reported, not changed — no token changes follow from it.
 14. **UI tests run on every push.** They double as the design-check screenshot run (~3–5 extra minutes per run).
+15. **iOS 26 Liquid Glass.** Opted out via `UIDesignRequiresCompatibility: true` in the BJS target's `INFOPLIST_VALUES` (Task 8), so iOS 26 renders the classic, non-Liquid-Glass UI and the frozen design (spec §4) matches on both iOS 18 and iOS 26 — including `toolbarBackground(feltDeep, for: .tabBar)`, which Liquid Glass would otherwise override. Controller's call pending Luke; reversible (Apple's opt-out is temporary, so this is worth revisiting later, not a permanent stance).
+16. **Reset progress label colour.** The "Reset progress" row (Task 9) is drawn in `textPrimary`, not `incorrect`. `FeltColor`'s doc comment reserves `correct`/`incorrect` for feedback only; the destructive action still reads as destructive from its `.alert` role, the "Delete all progress" copy and the destructive button in the confirmation, so it does not need to borrow a feedback colour.
 
 ---
 
@@ -104,15 +107,16 @@ Luke reviews these at the design check (Task 12). None changes a §4 token value
 | `BJS/Features/Settings/SettingsView.swift` | Settings tab |
 | `BJS/App/LaunchConfiguration.swift` | UI-testing and gallery launch switches |
 | `BJS/App/PlaceholderScreen.swift` | Stand-in screen |
-| `BJSTests/ContrastTests.swift`, `FeltTokenTests.swift`, `CardTextTests.swift`, `ActionDockTests.swift`, `CountEntryTests.swift`, `TestDefaults.swift`, `ActiveRulesStoreTests.swift`, `PreferencesTests.swift`, `PersistenceTests.swift`, `HubStatsTests.swift` | Unit tests |
+| `BJS/Features/Settings/SettingsPresetOptions.swift` | Pure "Custom" preset-option logic for the preset picker |
+| `BJSTests/ContrastTests.swift`, `FeltTokenTests.swift`, `CardTextTests.swift`, `ActionDockTests.swift`, `CountEntryTests.swift`, `TestDefaults.swift`, `ActiveRulesStoreTests.swift`, `PreferencesTests.swift`, `PersistenceTests.swift`, `HubStatsTests.swift`, `SettingsPresetOptionsTests.swift` | Unit tests |
 | `BJSUITests/DesignScreenshotTests.swift` | UI walk + screenshots |
 | `scripts/ci/ensure_simulator.py` | Find/create the design-check simulators |
 | `scripts/ci/design_screenshots.sh` | Run UI tests on one simulator |
 | `scripts/ci/export_screenshots.py` | Pull PNGs out of an `.xcresult` |
 
-**Modified:** `project.yml` (Task 1: drop the isolation flag; Task 10: `BJSUITests` target), `BJS/App/BJSApp.swift` (Tasks 8, 10), `BJS/App/RootTabView.swift` (Tasks 8, 9), `BJSTests/AppShellTests.swift` (Task 8), `.github/workflows/ios.yml` (Task 11), `docs/superpowers/progress.md` (Task 12).
+**Modified:** `project.yml` (Task 1: drop the isolation flag; Task 8: `UIDesignRequiresCompatibility`; Task 11: `BJSUITests` target), `BJS/App/BJSApp.swift` (Tasks 8, 10), `BJS/App/RootTabView.swift` (Tasks 8, 9), `BJSTests/AppShellTests.swift` (Task 8), `.github/workflows/ios.yml` (Task 11, Task 12), `docs/superpowers/progress.md` (Task 13).
 
-**Task order and CI:** each task is one commit verified by one CI run. Unit-test count after each task (Swift Testing prints `Test run with N tests … passed`): T1 12 · T2 16 · T3 21 · T4 21 · T5 29 · T6 42 · T7 51 · T8 59 · T9 59 · T10+ 59 unit + 2 UI.
+**Task order and CI:** each task is one commit verified by one CI run. Unit-test count after each task (Swift Testing prints `Test run with N tests … passed`): T1 12 · T2 16 · T3 21 · T4 21 · T5 29 · T6 42 · T7 51 · T8 59 · T9 60 · T10 60 · T11+ 60 unit + 2 UI.
 
 ---
 
@@ -584,11 +588,13 @@ enum FeltMotion {
     }
 
     /// Cards arrive from above; under Reduce Motion they fade in.
+    @MainActor
     static func dealTransition(reduceMotion: Bool) -> AnyTransition {
         reduceMotion ? AnyTransition.opacity : AnyTransition.move(edge: .top).combined(with: .opacity)
     }
 
     /// Bottom-anchored panels (FeedbackCard) slide up; under Reduce Motion they fade in.
+    @MainActor
     static func panelTransition(reduceMotion: Bool) -> AnyTransition {
         reduceMotion ? AnyTransition.opacity : AnyTransition.move(edge: .bottom).combined(with: .opacity)
     }
@@ -1394,7 +1400,7 @@ Expected: green; 21 unit tests.
 **Files:**
 - Create: `BJS/Design/Components/StatChip.swift`, `ModuleTile.swift`, `ModePicker.swift`, `SettingsRow.swift`
 
-These are layout-only components with no logic to unit-test; the gallery (Task 10) and the design check (Task 12) verify them visually.
+These are layout-only components with no logic to unit-test; the gallery (Task 10) and the design check (Task 13) verify them visually.
 
 **Interfaces:**
 - Consumes: Task 1 tokens; `FeltPressableStyle` (Task 3)
@@ -3090,7 +3096,7 @@ Expected: green; 51 unit tests. If `schemaShape` fails to compile because `Schem
 
 **Files:**
 - Create: `BJS/App/LaunchConfiguration.swift`, `BJS/App/PlaceholderScreen.swift`, `BJS/Features/Hub/HubRoute.swift`, `HubStats.swift`, `HubView.swift`
-- Modify: `BJS/App/BJSApp.swift`, `BJS/App/RootTabView.swift`, `BJSTests/AppShellTests.swift`
+- Modify: `BJS/App/BJSApp.swift`, `BJS/App/RootTabView.swift`, `BJSTests/AppShellTests.swift`, `project.yml`
 - Test: `BJSTests/HubStatsTests.swift`, `BJSTests/AppShellTests.swift`
 
 **Interfaces:**
@@ -3589,7 +3595,20 @@ struct BJSApp: App {
 }
 ```
 
-- [ ] **Step 5: Local pre-checks — run the hub numbers on Linux**
+- [ ] **Step 5: Opt out of iOS 26 Liquid Glass**
+
+iOS 26's Liquid Glass tab bar would ignore `toolbarBackground(feltDeep, for: .tabBar)` (see `feltTabBar()` above) and drift the frozen design off spec §4 on iOS 26 devices/simulators, so the app asks for the classic, compatible appearance (Decision 15).
+
+In `project.yml`, add one line to the `BJS` target's `INFOPLIST_VALUES`:
+
+```yaml
+        INFOPLIST_VALUES:
+          CFBundleName: BJS
+          UILaunchScreen: {}
+          UIDesignRequiresCompatibility: true
+```
+
+- [ ] **Step 6: Local pre-checks — run the hub numbers on Linux**
 
 `HubStats`, `HubRoute` and `LaunchConfiguration` import only Foundation/BJSCore. Type-check them, then run the `HubStats` fixture by compiling BJSCore's sources together with `HubStats.swift` (its `import BJSCore` stripped, because it becomes the same module):
 
@@ -3614,39 +3633,81 @@ print(HubStats.percentText(stats.strategyAccuracy), HubStats.percentText(stats.c
 SWIFT
 swiftc -o /tmp/bjs-hub/run BJSCore/Sources/BJSCore/*/*.swift /tmp/bjs-hub/*.swift && /tmp/bjs-hub/run
 swiftc -parse BJS/App/*.swift BJS/Features/Hub/*.swift BJSTests/HubStatsTests.swift BJSTests/AppShellTests.swift
+python3 -c "import yaml; d = yaml.safe_load(open('project.yml')); print(d['targets']['BJS']['settings']['base']['INFOPLIST_VALUES'])"
 ```
 
-Expected: the build line, `75% 67% —`, and no other output.
+Expected: the build line, `75% 67% —`, no other output from `swiftc`, then `{'CFBundleName': 'BJS', 'UILaunchScreen': {}, 'UIDesignRequiresCompatibility': True}` (if PyYAML is missing, skip that line).
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add BJS/App BJS/Features/Hub BJSTests/HubStatsTests.swift BJSTests/AppShellTests.swift
+git add BJS/App BJS/Features/Hub BJSTests/HubStatsTests.swift BJSTests/AppShellTests.swift project.yml
 git commit -m "feat(app): hub shell with rules summary, stat chips and module tiles
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01XyqkZzZuQ5xb3XY228sQpi"
 ```
 
-- [ ] **Step 7: CI verification (controller)**
+- [ ] **Step 8: CI verification (controller)**
 
-Expected: green; 59 unit tests.
+Expected: green; 59 unit tests. Also confirm the built app's `Info.plist` carries `UIDesignRequiresCompatibility` (e.g. `grep UIDesignRequiresCompatibility build/DerivedData/Build/Products/Debug-iphonesimulator/BJS.app/Info.plist` on the runner, or check the build log for the key).
 
 ---
 
 ### Task 9: Settings tab
 
 **Files:**
-- Create: `BJS/Features/Settings/SettingsView.swift`
+- Create: `BJS/Features/Settings/SettingsPresetOptions.swift`, `BJS/Features/Settings/SettingsView.swift`
 - Modify: `BJS/App/RootTabView.swift` (Settings tab shows `SettingsView`)
+- Test: `BJSTests/SettingsPresetOptionsTests.swift`
 
 **Interfaces:**
 - Consumes: `ActiveRulesStore`, `Preferences` (environment), `modelContext` (environment), `ProgressReset`, `SettingsSection`/`SettingsRow`, `RulesSummary`, display names
-- Produces: `struct SettingsView: View { init() }` — identifiers `settings.title`, `settings.scroll`, `settings.resetProgress`
+- Produces:
+  - `enum SettingsPresetOptions { static func options(matching: RulePreset?) -> [RulePreset?] }` — pure helper behind the preset picker
+  - `struct SettingsView: View { init() }` — identifiers `settings.title`, `settings.scroll`, `settings.resetProgress`
 
 Behaviour (spec §5 Settings): presets first ("Custom" appears only while the rules match no preset; choosing a preset applies it), then every `BlackjackRules` field, then preferences, then **Reset progress** → alert "Reset progress?" → "Delete all progress" (destructive) deletes every session and record but leaves rules and preferences; a failure shows a non-blocking alert and is logged.
 
-- [ ] **Step 1: Implement**
+- [ ] **Step 1: Write the test**
+
+Create `BJSTests/SettingsPresetOptionsTests.swift`:
+
+```swift
+import BJSCore
+import Testing
+@testable import BJS
+
+@Suite("SettingsPresetOptions")
+struct SettingsPresetOptionsTests {
+
+    @Test("Custom is appended only when the rules match no preset")
+    func customOnlyWhenUnmatched() {
+        #expect(SettingsPresetOptions.options(matching: .vegasStrip) == RulePreset.allCases.map { Optional($0) })
+        #expect(SettingsPresetOptions.options(matching: nil) == RulePreset.allCases.map { Optional($0) } + [nil])
+    }
+}
+```
+
+- [ ] **Step 2: Implement the preset-options helper**
+
+Create `BJS/Features/Settings/SettingsPresetOptions.swift`:
+
+```swift
+import BJSCore
+
+/// The preset picker's options (spec §5 Settings): every named preset, plus "Custom" (`nil`)
+/// only while the active rules match none of them. Pulled out of `SettingsView` so the
+/// "which options does the picker show" question has one pure, tested answer.
+enum SettingsPresetOptions {
+    static func options(matching preset: RulePreset?) -> [RulePreset?] {
+        let presets: [RulePreset?] = RulePreset.allCases.map { Optional($0) }
+        return preset == nil ? presets + [nil] : presets
+    }
+}
+```
+
+- [ ] **Step 3: Implement the view**
 
 Create `BJS/Features/Settings/SettingsView.swift`:
 
@@ -3710,8 +3771,7 @@ struct SettingsView: View {
 
     /// Every preset, plus "Custom" while the rules match none of them.
     private var presetOptions: [RulePreset?] {
-        let presets: [RulePreset?] = RulePreset.allCases.map { Optional($0) }
-        return rulesStore.matchingPreset == nil ? presets + [nil] : presets
+        SettingsPresetOptions.options(matching: rulesStore.matchingPreset)
     }
 
     private var rulesSection: some View {
@@ -3764,7 +3824,7 @@ struct SettingsView: View {
                 Text("Reset progress")
                     .feltType(.body)
                     .fontWeight(.semibold)
-                    .foregroundStyle(FeltColor.incorrect)
+                    .foregroundStyle(FeltColor.textPrimary)
                     .frame(maxWidth: .infinity, minHeight: FeltMetrics.minTapTarget, alignment: .leading)
                     .padding(.horizontal, FeltSpacing.l)
                     .contentShape(Rectangle())
@@ -3787,7 +3847,7 @@ struct SettingsView: View {
 }
 ```
 
-- [ ] **Step 2: Show it in the Settings tab**
+- [ ] **Step 4: Show it in the Settings tab**
 
 In `BJS/App/RootTabView.swift`, replace:
 
@@ -3807,46 +3867,55 @@ with:
             }
 ```
 
-- [ ] **Step 3: Local pre-checks**
+- [ ] **Step 5: Local pre-checks — run the preset options on Linux**
+
+`SettingsPresetOptions` imports only BJSCore. Type-check it, then run the fixture from the test above (its `import BJSCore` stripped, because it becomes the same module):
 
 ```bash
 export PATH=/opt/swiftroot/usr/bin:$PATH
-swiftc -parse BJS/Features/Settings/SettingsView.swift BJS/App/RootTabView.swift
+(cd BJSCore && swift build 2>&1 | tail -1)
+swiftc -typecheck -I BJSCore/.build/debug/Modules BJS/Features/Settings/SettingsPresetOptions.swift
+mkdir -p /tmp/bjs-presets && sed '/^import BJSCore/d' BJS/Features/Settings/SettingsPresetOptions.swift > /tmp/bjs-presets/SettingsPresetOptions.swift
+cat > /tmp/bjs-presets/main.swift <<'SWIFT'
+let matched = SettingsPresetOptions.options(matching: .vegasStrip)
+let unmatched = SettingsPresetOptions.options(matching: nil)
+print(matched.count, unmatched.count, unmatched.last! == nil)
+SWIFT
+swiftc -o /tmp/bjs-presets/run BJSCore/Sources/BJSCore/*/*.swift /tmp/bjs-presets/*.swift && /tmp/bjs-presets/run
+swiftc -parse BJS/Features/Settings/*.swift BJS/App/RootTabView.swift BJSTests/SettingsPresetOptionsTests.swift
 grep -rn "Features/Hub\|HubView\|HubRoute" BJS/Features/Settings || echo "SETTINGS ISOLATED"
 ```
 
-Expected: no output from `swiftc`, then `SETTINGS ISOLATED`.
+Expected: the build line, `5 6 true`, no other output from either `swiftc`, then `SETTINGS ISOLATED`.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add BJS/Features/Settings BJS/App/RootTabView.swift
+git add BJS/Features/Settings BJS/App/RootTabView.swift BJSTests/SettingsPresetOptionsTests.swift
 git commit -m "feat(app): Settings tab with rules, presets, preferences and reset progress
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01XyqkZzZuQ5xb3XY228sQpi"
 ```
 
-- [ ] **Step 5: CI verification (controller)**
+- [ ] **Step 7: CI verification (controller)**
 
-Expected: green; 59 unit tests.
+Expected: green; 60 unit tests.
 
 ---
 
-### Task 10: Component gallery and the UI-test target
+### Task 10: Component gallery
 
 **Files:**
 - Create: `BJS/Design/Gallery/ComponentGallery.swift` (whole file inside `#if DEBUG`)
-- Create: `BJSUITests/DesignScreenshotTests.swift`
-- Modify: `BJS/App/BJSApp.swift` (DEBUG gallery launch), `project.yml` (`BJSUITests` target + scheme)
+- Modify: `BJS/App/BJSApp.swift` (DEBUG gallery launch)
 
 **Interfaces:**
 - Produces:
   - `enum GalleryPage: String, CaseIterable { colors, type, cards, dock, feedback, buttons, tiles, settingsRows, keypad, keypadDecimal }` and `struct ComponentGalleryView: View { init(page:) }` (identifier `gallery.title`), DEBUG only
   - Launching with `BJS_GALLERY_PAGE=<raw value>` shows that page instead of the app (DEBUG only)
-  - `BJSUITests` target (XCTest) with `DesignScreenshotTests`: `testHubPlaceholderAndSettings` (6 screenshots) and `testComponentGalleryPages` (10 screenshots); every screenshot is an `XCTAttachment` with `lifetime = .keepAlways`
 
-Each gallery page is laid out to fit an iPhone SE (3rd generation) screen, so one screenshot per page shows every state. The page list in the UI test must match `GalleryPage` (the UI-test target cannot import the app).
+Each gallery page is laid out to fit an iPhone SE (3rd generation) screen, so one screenshot per page shows every state. This task is verified by unit tests and the CI build only — Task 11 adds the UI-test target that walks these pages and screenshots them.
 
 - [ ] **Step 1: Create the gallery**
 
@@ -4085,9 +4154,6 @@ private struct DockGalleryPage: View {
         GalleryItem("Learn-mode hint on DOUBLE") {
             ActionDock(allowed: all, hint: .double) { _ in }
         }
-        GalleryItem("Hint on STAND, split and surrender dimmed") {
-            ActionDock(allowed: [.hit, .stand, .double], hint: .stand) { _ in }
-        }
     }
 }
 
@@ -4250,7 +4316,43 @@ struct BJSApp: App {
 }
 ```
 
-- [ ] **Step 3: Add the UI-test target**
+- [ ] **Step 3: Local pre-checks**
+
+```bash
+export PATH=/opt/swiftroot/usr/bin:$PATH
+swiftc -parse -D DEBUG BJS/Design/Gallery/ComponentGallery.swift BJS/App/BJSApp.swift
+```
+
+Expected: no output.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add BJS/Design/Gallery BJS/App/BJSApp.swift
+git commit -m "feat(app): DEBUG component gallery for the design check
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01XyqkZzZuQ5xb3XY228sQpi"
+```
+
+- [ ] **Step 5: CI verification (controller)**
+
+Expected: green; 60 unit tests. (The `BJSUITests` target does not exist yet, so this run still ends with `** TEST SUCCEEDED **`, no UI tests.)
+
+---
+
+### Task 11: BJSUITests target, scheme and UI tests
+
+**Files:**
+- Create: `BJSUITests/DesignScreenshotTests.swift`
+- Modify: `project.yml` (`BJSUITests` target + scheme), `.github/workflows/ios.yml` (switch code signing now that UI tests join the scheme)
+
+**Interfaces:**
+- Produces: `BJSUITests` target (XCTest) with `DesignScreenshotTests`: `testHubPlaceholderAndSettings` (6 screenshots) and `testComponentGalleryPages` (10 screenshots); every screenshot is an `XCTAttachment` with `lifetime = .keepAlways`
+
+The page list in the UI test must match `GalleryPage` (the UI-test target cannot import the app). UI tests need a real (ad hoc) code signing identity rather than an unsigned build, so this task sets `CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO` wherever `xcodebuild test`/`build-for-testing` touches a scheme that includes `BJSUITests`, including the existing "Build and test app" step in `.github/workflows/ios.yml` — from this task on, not as a fallback tried after a failed run.
+
+- [ ] **Step 1: Add the UI-test target**
 
 Replace `project.yml` with:
 
@@ -4284,6 +4386,7 @@ targets:
         INFOPLIST_VALUES:
           CFBundleName: BJS
           UILaunchScreen: {}
+          UIDesignRequiresCompatibility: true
   BJSTests:
     type: bundle.unit-test
     platform: iOS
@@ -4308,9 +4411,9 @@ packages:
     path: ./BJSCore
 ```
 
-(`TEST_TARGET_NAME` is set explicitly; XcodeGen would infer it from the dependency, but explicit is safer.)
+(`TEST_TARGET_NAME` is set explicitly; XcodeGen would infer it from the dependency, but explicit is safer. `UIDesignRequiresCompatibility` carries over the `BJS` target's INFOPLIST_VALUES from Task 8 — this is a full-file replace, so it has to be repeated here.)
 
-- [ ] **Step 4: Write the UI test**
+- [ ] **Step 2: Write the UI test**
 
 Create `BJSUITests/DesignScreenshotTests.swift`:
 
@@ -4372,10 +4475,9 @@ final class DesignScreenshotTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["settings.title"].waitForExistence(timeout: 5))
         snapshot("03-settings-top")
 
-        let scrollView = app.scrollViews["settings.scroll"]
-        scrollView.swipeUp()
+        app.swipeUp()
         snapshot("04-settings-middle")
-        scrollView.swipeUp()
+        app.swipeUp()
         snapshot("05-settings-bottom")
 
         let reset = app.buttons["settings.resetProgress"]
@@ -4399,11 +4501,33 @@ final class DesignScreenshotTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 5: Local pre-checks**
+`app.swipeUp()` replaces a swipe scoped to `app.scrollViews["settings.scroll"]`: querying that identifier was flaky across devices, and a whole-window swipe reaches the same content. The `settings.scroll` identifier stays on the view (`SettingsView`, Task 9) for any other use (e.g. scrolling to a specific row in a future test).
+
+- [ ] **Step 3: Switch the workflow to ad hoc code signing**
+
+`BJSUITests` needs to launch the app under test, which needs a code signing identity even in the simulator; `CODE_SIGNING_ALLOWED=NO` (fine for unit-test-only builds) does not provide one. In `.github/workflows/ios.yml`, in the existing "Build and test app" step, replace:
+
+```yaml
+          xcodebuild test -project BJS.xcodeproj -scheme BJS \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            CODE_SIGNING_ALLOWED=NO | tail -200
+```
+
+with:
+
+```yaml
+          xcodebuild test -project BJS.xcodeproj -scheme BJS \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO | tail -200
+```
+
+(Task 12 replaces this whole workflow file with the two-device pipeline; it carries this same setting into every `xcodebuild` invocation there.)
+
+- [ ] **Step 4: Local pre-checks**
 
 ```bash
 export PATH=/opt/swiftroot/usr/bin:$PATH
-swiftc -parse -D DEBUG BJS/Design/Gallery/ComponentGallery.swift BJS/App/BJSApp.swift BJSUITests/DesignScreenshotTests.swift
+swiftc -parse BJSUITests/DesignScreenshotTests.swift
 python3 -c "import yaml; print(sorted(yaml.safe_load(open('project.yml'))['targets']))"
 python3 - <<'PY'
 import re
@@ -4411,27 +4535,28 @@ gallery = re.findall(r"^    case (\w+)$", open("BJS/Design/Gallery/ComponentGall
 ui = re.findall(r'"(\w+)"', open("BJSUITests/DesignScreenshotTests.swift").read().split("galleryPages = [")[1].split("]")[0])
 print("PAGES MATCH" if gallery == ui else f"MISMATCH {gallery} vs {ui}")
 PY
+grep -n "CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO" .github/workflows/ios.yml
 ```
 
-Expected: no output from `swiftc`, `['BJS', 'BJSTests', 'BJSUITests']` (if PyYAML is missing, skip that line), and `PAGES MATCH`.
+Expected: no output from `swiftc`, `['BJS', 'BJSTests', 'BJSUITests']` (if PyYAML is missing, skip that line), `PAGES MATCH`, and the `grep` prints the matching line.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add BJS/Design/Gallery BJS/App/BJSApp.swift BJSUITests project.yml
-git commit -m "test(app): DEBUG component gallery and screenshot UI tests
+git add BJSUITests project.yml .github/workflows/ios.yml
+git commit -m "test(app): BJSUITests target with design-check screenshot walk
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01XyqkZzZuQ5xb3XY228sQpi"
 ```
 
-- [ ] **Step 7: CI verification (controller)**
+- [ ] **Step 6: CI verification (controller)**
 
-The current workflow's `xcodebuild test` runs the whole scheme, so this run executes the UI tests on the auto-picked simulator. Expected: green; 59 unit tests and 2 UI tests (`DesignScreenshotTests`). If the UI-test runner fails to launch because of code signing, change the workflow's `CODE_SIGNING_ALLOWED=NO` to `CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO` in a `fix(ci)` commit (Task 11 then uses the same setting). If an element lookup fails, the log names the identifier; fix the view or the query, not the design.
+The current workflow's `xcodebuild test` runs the whole scheme, so this run executes the UI tests on the auto-picked simulator. Expected: green; 60 unit tests and 2 UI tests (`DesignScreenshotTests`). If an element lookup fails, the log names the identifier; fix the view or the query, not the design.
 
 ---
 
-### Task 11: CI design-check pipeline (two devices, screenshots artifact)
+### Task 12: CI design-check pipeline (two devices, screenshots artifact)
 
 **Files:**
 - Create: `scripts/ci/ensure_simulator.py`, `scripts/ci/design_screenshots.sh`, `scripts/ci/export_screenshots.py` (all executable)
@@ -4633,7 +4758,7 @@ chmod +x scripts/ci/ensure_simulator.py scripts/ci/design_screenshots.sh scripts
 
 - [ ] **Step 2: Replace the workflow**
 
-Replace `.github/workflows/ios.yml` with (if Task 10 had to switch the code-signing setting, use the same setting in "Build for testing"):
+Replace `.github/workflows/ios.yml` with (carries forward the `CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO` setting Task 11 put on "Build and test app", into both "Build for testing" and the UI-test steps below):
 
 ```yaml
 name: iOS
@@ -4693,7 +4818,7 @@ jobs:
           xcodebuild build-for-testing -project BJS.xcodeproj -scheme BJS \
             -destination "id=${{ steps.sim.outputs.udid }}" \
             -derivedDataPath build/DerivedData \
-            CODE_SIGNING_ALLOWED=NO | tail -80
+            CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO | tail -80
 
       - name: Unit tests
         run: |
@@ -4785,7 +4910,7 @@ Expected: green. In the log: "Provision design-check simulators" prints `iphone1
 
 ---
 
-### Task 12: Design check and Step 2 handoff (freeze pending Luke)
+### Task 13: Design check and Step 2 handoff (freeze pending Luke)
 
 **Files:**
 - Modify: `docs/superpowers/progress.md`
@@ -4831,12 +4956,12 @@ Use the real values (commit range from `git log --oneline`, run URL, test counts
 ## Step 2 — Foundation (YYYY-MM-DD)
 
 - Commits: <first-sha>..<last-sha> (branch `main-8v0ds1`).
-- CI: run <url> green. BJSCore 173 tests; app unit tests 59 (Swift Testing); UI tests 2 (XCTest) on <iPhone 16 device> and <iPhone SE device>.
+- CI: run <url> green. BJSCore 173 tests; app unit tests 60 (Swift Testing); UI tests 2 (XCTest) on <iPhone 16 device> and <iPhone SE device>.
 - Design check (spec §7): screenshots in the run's `design-screenshots` artifact (16 per device). Checklist 1–19: <all pass | list deviations and their fix commits>. Contrast test green.
 - **Design freeze: PENDING Luke's approval.** When Luke approves, change this line to "Design freeze: FROZEN on <date> (approved by Luke)". From then on §4 tokens and components change only by Luke's explicit decision in their own commit.
-- For Luke to confirm at the freeze: the "Decisions this plan makes" list in `docs/superpowers/plans/2026-09-24-step-2-foundation.md` (esp. #11 visual details and #13 contrast at the `feltLight` centre).
-- Added: Felt tokens (`FeltPalette`, `FeltColor`, `FeltType`, `FeltSpacing`, `FeltRadius`, `FeltMetrics`, `FeltMotion`) and `WCAGContrast`; components FeltBackground, PlayingCard, HandView, ActionDock, FeedbackCard, StatChip, ModuleTile, PrimaryButton/SecondaryButton (`FeltButtonStyle`), ModePicker, SettingsRow/SettingsSection, CountKeypad (+ `CountEntry`, optional decimal key); DEBUG ComponentGallery; `ActiveRulesStore`, `Preferences`; SwiftData `SchemaV1` + `BJSMigrationPlan`, `ProgressMapper`, `ProgressReset`; hub shell and Settings tab; `BJSUITests`; CI screenshot pipeline.
-- `project.yml`: the no-op `DefaultIsolationMainActor` flag is gone; the app is nonisolated by default with explicit `@MainActor` stores (see the plan's Global Constraints).
+- For Luke to confirm at the freeze: the "Decisions this plan makes" list in `docs/superpowers/plans/2026-09-24-step-2-foundation.md` (esp. #11 visual details, #13 contrast at the `feltLight` centre, and #15 opting out of iOS 26 Liquid Glass).
+- Added: Felt tokens (`FeltPalette`, `FeltColor`, `FeltType`, `FeltSpacing`, `FeltRadius`, `FeltMetrics`, `FeltMotion`) and `WCAGContrast`; components FeltBackground, PlayingCard, HandView, ActionDock, FeedbackCard, StatChip, ModuleTile, PrimaryButton/SecondaryButton (`FeltButtonStyle`), ModePicker, SettingsRow/SettingsSection, CountKeypad (+ `CountEntry`, optional decimal key); DEBUG ComponentGallery; `ActiveRulesStore`, `Preferences`; SwiftData `SchemaV1` + `BJSMigrationPlan`, `ProgressMapper`, `ProgressReset`; hub shell and Settings tab (+ `SettingsPresetOptions`); `BJSUITests`; CI screenshot pipeline.
+- `project.yml`: the no-op `DefaultIsolationMainActor` flag is gone; the app is nonisolated by default with explicit `@MainActor` stores (see the plan's Global Constraints); `UIDesignRequiresCompatibility: true` opts out of iOS 26 Liquid Glass (Decision 15 — Luke's call, reversible).
 - Notes for Step 3: hub tiles route through `RootTabView`'s `destination` closure (replace `PlaceholderScreen` for `.strategy`); records use the typealiases `Session`, `DecisionRecord`, `CountCheckRecord`; write `decidedAt` per decision; "timeout" is a plain `chosenAction` string; Continue + `lastLaunch` are still to build; `LaunchConfiguration` gives UI tests a clean store (`BJS_UI_TESTING=1`).
 - Next: after Luke approves the freeze, Step 3 (Strategy) in a fresh session.
 ```
