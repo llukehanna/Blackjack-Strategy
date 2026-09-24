@@ -93,4 +93,51 @@ struct HandGeneratorTests {
             #expect(hand.total == cell.playerValue)
         }
     }
+
+    /// Deals P1, upcard, P2, hole from a stacked shoe without disturbing the rest.
+    private func dealtHole(from shoe: Shoe) -> Card {
+        var shoe = shoe
+        _ = shoe.deal(); _ = shoe.deal(); _ = shoe.deal()
+        return shoe.deal()!
+    }
+
+    @Test("European no-hole-card lets dealer naturals occur at their natural frequency")
+    func enhcAllowsDealerNaturals() {
+        var rng = SeededRandomNumberGenerator(seed: 42)
+        let cell = TrainingCell(handType: .hard, playerValue: 20, dealerUpcard: 11)
+        var sawNatural = false
+        for _ in 0..<400 {
+            let shoe = HandGenerator.stackedShoe(for: cell, deckCount: 6, peekRule: .europeanNoPeek, using: &rng)
+            if dealtHole(from: shoe).rank.blackjackValue == 10 { sawNatural = true; break }
+        }
+        #expect(sawNatural, "expected at least one dealer natural over 400 ENHC hands vs an ace upcard")
+    }
+
+    @Test("American peek never lets the stacked hole card complete a dealer natural")
+    func americanPeekNeverProducesNatural() {
+        var rng = SeededRandomNumberGenerator(seed: 42)
+        let cell = TrainingCell(handType: .hard, playerValue: 20, dealerUpcard: 11)
+        for _ in 0..<400 {
+            let shoe = HandGenerator.stackedShoe(for: cell, deckCount: 6, using: &rng)
+            #expect(dealtHole(from: shoe).rank.blackjackValue != 10)
+        }
+    }
+
+    @Test("ENHC still reaches a player decision first even for a hand whose hole card is a natural")
+    func enhcReachesPlayerDecisionFirst() throws {
+        var rng = SeededRandomNumberGenerator(seed: 7)
+        var rules = BlackjackRules()
+        rules.peekRule = .europeanNoPeek
+        let cell = TrainingCell(handType: .hard, playerValue: 20, dealerUpcard: 11)
+        var foundNaturalHand = false
+        for _ in 0..<400 {
+            var shoe = HandGenerator.stackedShoe(for: cell, deckCount: 6, peekRule: .europeanNoPeek, using: &rng)
+            guard dealtHole(from: shoe).rank.blackjackValue == 10 else { continue }
+            foundNaturalHand = true
+            let round = try RoundEngine(rules: rules, shoe: &shoe)
+            #expect(round.phase == .playerTurn)
+            break
+        }
+        #expect(foundNaturalHand, "expected to find at least one stacked hand with a natural hole card")
+    }
 }

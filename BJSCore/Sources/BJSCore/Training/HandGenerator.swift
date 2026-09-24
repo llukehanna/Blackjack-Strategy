@@ -46,10 +46,16 @@ public enum HandGenerator {
     }
 
     /// A shoe that deals the cell's hand in `RoundEngine` order (P1, upcard, P2, hole),
-    /// followed by the rest of `deckCount` shuffled decks. The hole card never gives
-    /// the dealer a natural, so every training hand starts with a decision.
+    /// followed by the rest of `deckCount` shuffled decks.
+    ///
+    /// Under American peek the hole card never gives the dealer a natural, so every
+    /// training hand starts with a decision — the round would otherwise end before
+    /// the player acts. Under European no-hole-card the player always decides first
+    /// regardless of the hole card, so the exclusion is skipped and dealer naturals
+    /// occur at their natural frequency, which is the lesson ENHC teaches.
     public static func stackedShoe<G: RandomNumberGenerator>(
-        for cell: TrainingCell, deckCount: Int, using rng: inout G
+        for cell: TrainingCell, deckCount: Int, peekRule: BlackjackRules.PeekRule = .americanPeek,
+        using rng: inout G
     ) -> Shoe {
         let (player, up) = cards(for: cell, using: &rng)
         var rest = Shoe.standardCards(deckCount: deckCount)
@@ -57,7 +63,12 @@ public enum HandGenerator {
             if let index = rest.firstIndex(of: card) { rest.remove(at: index) }
         }
         rest.shuffle(using: &rng)
-        let holeIndex = rest.firstIndex { !completesBlackjack(upcard: up.rank, hole: $0.rank) } ?? 0
+        let holeIndex: Int
+        if peekRule == .europeanNoPeek {
+            holeIndex = 0
+        } else {
+            holeIndex = rest.firstIndex { !completesBlackjack(upcard: up.rank, hole: $0.rank) } ?? 0
+        }
         let hole = rest.remove(at: holeIndex)
         return Shoe(orderedCards: [player[0], up, player[1], hole] + rest)
     }
