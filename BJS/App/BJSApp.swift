@@ -19,7 +19,7 @@ struct BJSApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView()
+            rootView
                 .environment(rulesStore)
                 .environment(preferences)
                 .preferredColorScheme(.dark)
@@ -27,4 +27,19 @@ struct BJSApp: App {
         }
         .modelContainer(modelContainer)
     }
+
+    #if DEBUG
+    @ViewBuilder
+    private var rootView: some View {
+        if let name = launch.galleryPageName, let page = GalleryPage(rawValue: name) {
+            ComponentGalleryView(page: page)
+        } else {
+            RootTabView()
+        }
+    }
+    #else
+    private var rootView: some View {
+        RootTabView()
+    }
+    #endif
 }
