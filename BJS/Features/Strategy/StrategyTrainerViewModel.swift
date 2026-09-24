@@ -169,9 +169,12 @@ final class StrategyTrainerViewModel {
         if session.phase == .decision { startDecision() }
     }
 
-    /// "Discard": nothing is saved; the view closes.
+    /// "Discard": nothing is saved; the view closes. Ends the session so the Speed countdown
+    /// (and any other decision-phase behaviour) can never resume, even if a stray call reaches
+    /// this view model before it deallocates.
     func discard() {
         isConfirmingLeave = false
+        session.finish()
     }
 
     // MARK: - WHY

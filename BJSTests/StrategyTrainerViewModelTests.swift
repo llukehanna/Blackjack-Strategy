@@ -250,6 +250,46 @@ struct StrategyTrainerViewModelTests {
         #expect(saver.saved.isEmpty)
     }
 
+    @Test("Discard finishes the session: the countdown can never resume and nothing is saved")
+    func discardEndsSession() {
+        let vm = makeViewModel(StrategySessionConfig(mode: .speed), shoes: [StrategyFixtures.hard16vs7])
+        vm.choose(.hit)
+        #expect(!vm.requestLeave())
+        vm.discard()
+        #expect(vm.countdownToken == nil)
+        #expect(saver.saved.isEmpty)
+        // Even a stray call after the view starts closing must not resurrect the countdown or save.
+        vm.next()
+        vm.nextHand()
+        #expect(vm.countdownToken == nil)
+        #expect(saver.saved.isEmpty)
+        #expect(vm.isFinished)
+    }
+
+    @Test("A dealer natural under American peek settles hand 1 at init; hand 2 deals normally")
+    func dealerNaturalStart() {
+        let vm = makeViewModel(shoes: [[.ten, .ace, .six, .king], StrategyFixtures.hard16vs7])
+        #expect(vm.phase == .outcome)
+        #expect(vm.allowedActions.isEmpty)
+        #expect(vm.countdownToken == nil)
+        #expect(vm.requestLeave())            // nothing graded yet; closes at once
+        #expect(!vm.isConfirmingLeave)
+
+        vm.nextHand()
+        #expect(vm.phase == .decision)
+        #expect(vm.handNumber == 2)
+
+        vm.endSession()
+        #expect(vm.isFinished)
+        #expect(saver.saved.isEmpty)
+    }
+
+    @Test("Speed and Weak spots modes show no hint")
+    func hintsSpeedAndWeakSpots() {
+        #expect(makeViewModel(StrategySessionConfig(mode: .speed), shoes: [StrategyFixtures.hard16vs7]).hint == nil)
+        #expect(makeViewModel(StrategySessionConfig(mode: .weakSpots), shoes: [StrategyFixtures.hard16vs7]).hint == nil)
+    }
+
     @Test("Weak spots uses weights only with 50+ decisions of history")
     func weakSpots() {
         #expect(makeViewModel(StrategySessionConfig(mode: .weakSpots), history: history(60)).session.weights != nil)
