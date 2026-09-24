@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The three top-level tabs. Tab contents are placeholders until Step 2 (Foundation).
+/// The three top-level tabs (spec §5 Navigation).
 enum AppTab: String, CaseIterable, Identifiable {
     case train = "Train"
     case progress = "Progress"
@@ -17,17 +17,36 @@ enum AppTab: String, CaseIterable, Identifiable {
     }
 }
 
+/// The composition root for navigation: it is the only place that knows which screen
+/// each hub route and tab shows. Module screens arrive in Steps 3–7.
 struct RootTabView: View {
     @State private var selection: AppTab = .train
 
     var body: some View {
         TabView(selection: $selection) {
-            ForEach(AppTab.allCases) { tab in
-                Tab(tab.rawValue, systemImage: tab.systemImage, value: tab) {
-                    Text(tab.rawValue)
-                        .font(.title)
+            Tab(AppTab.train.rawValue, systemImage: AppTab.train.systemImage, value: AppTab.train) {
+                HubView(onShowRules: { selection = .settings }) { route in
+                    PlaceholderScreen(title: route.title)
                 }
+                .feltTabBar()
+            }
+            Tab(AppTab.progress.rawValue, systemImage: AppTab.progress.systemImage, value: AppTab.progress) {
+                PlaceholderScreen(title: AppTab.progress.rawValue)
+                    .feltTabBar()
+            }
+            Tab(AppTab.settings.rawValue, systemImage: AppTab.settings.systemImage, value: AppTab.settings) {
+                PlaceholderScreen(title: AppTab.settings.rawValue)
+                    .feltTabBar()
             }
         }
+        .tint(FeltColor.cream)
+    }
+}
+
+private extension View {
+    /// Tab bar on `feltDeep` (spec §4: "tab bar base").
+    func feltTabBar() -> some View {
+        toolbarBackground(FeltColor.feltDeep, for: .tabBar)
+            .toolbarBackground(.visible, for: .tabBar)
     }
 }

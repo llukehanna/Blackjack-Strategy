@@ -26,6 +26,7 @@ targets:
         INFOPLIST_VALUES:
           CFBundleName: BJS
           UILaunchScreen: {}
+          UIDesignRequiresCompatibility: true
   BJSTests:
     type: bundle.unit-test
     platform: iOS
