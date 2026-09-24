@@ -82,7 +82,7 @@ jobs:
           scripts/ci/design_screenshots.sh "${{ steps.design.outputs.iphone16 }}" iphone-16
 
       - name: UI tests + screenshots (iPhone SE)
-        if: steps.design.outputs.iphonese != ''
+        if: ${{ !cancelled() && steps.design.outputs.iphonese != '' }}
         run: |
           set -o pipefail
           echo "Device: ${{ steps.design.outputs.iphonese_name }}"
