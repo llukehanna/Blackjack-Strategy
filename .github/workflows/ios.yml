@@ -98,6 +98,18 @@ jobs:
             fi
           done
 
+      - name: Print screenshots into the log (low-res, for the cloud dev container)
+        if: ${{ !cancelled() }}
+        run: |
+          # Artifacts can't be downloaded from the cloud dev container, so each screenshot is
+          # also printed as a small base64 JPEG line: "BJS-SHOT <device>/<name> <base64>".
+          shopt -s nullglob
+          for f in build/screenshots/*/*.png; do
+            out="$RUNNER_TEMP/shot.jpg"
+            sips -Z 900 -s format jpeg -s formatOptions 55 "$f" --out "$out" >/dev/null
+            echo "BJS-SHOT $(basename "$(dirname "$f")")/$(basename "$f" .png) $(base64 -i "$out" | tr -d '\n')"
+          done
+
       - name: Upload design screenshots
         if: always()
         uses: actions/upload-artifact@v4
