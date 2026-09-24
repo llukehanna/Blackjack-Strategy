@@ -13,7 +13,7 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: macos-26
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
 
@@ -49,9 +49,69 @@ jobs:
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
           xcrun simctl list devices available | grep "$UDID"
 
-      - name: Build and test app
+      - name: Build for testing
         run: |
           set -o pipefail
-          xcodebuild test -project BJS.xcodeproj -scheme BJS \
+          xcodebuild build-for-testing -project BJS.xcodeproj -scheme BJS \
             -destination "id=${{ steps.sim.outputs.udid }}" \
-            CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO | tail -200
+            -derivedDataPath build/DerivedData \
+            CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO | tail -80
+
+      - name: Unit tests
+        run: |
+          set -o pipefail
+          xcodebuild test-without-building -project BJS.xcodeproj -scheme BJS \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath build/DerivedData \
+            -only-testing:BJSTests \
+            -resultBundlePath build/results/unit.xcresult 2>&1 | tail -150
+
+      - name: Provision design-check simulators
+        id: design
+        run: |
+          python3 scripts/ci/ensure_simulator.py --key iphone16 --name "iPhone 16" \
+            --fallback "iPhone 16e" --fallback "iPhone 17"
+          python3 scripts/ci/ensure_simulator.py --key iphonese --name "iPhone SE (3rd generation)" \
+            --fallback "iPhone SE (2nd generation)"
+
+      - name: UI tests + screenshots (iPhone 16)
+        if: steps.design.outputs.iphone16 != ''
+        run: |
+          set -o pipefail
+          echo "Device: ${{ steps.design.outputs.iphone16_name }}"
+          scripts/ci/design_screenshots.sh "${{ steps.design.outputs.iphone16 }}" iphone-16
+
+      - name: UI tests + screenshots (iPhone SE)
+        if: steps.design.outputs.iphonese != ''
+        run: |
+          set -o pipefail
+          echo "Device: ${{ steps.design.outputs.iphonese_name }}"
+          scripts/ci/design_screenshots.sh "${{ steps.design.outputs.iphonese }}" iphone-se
+
+      - name: Export screenshots
+        if: always()
+        run: |
+          for LABEL in iphone-16 iphone-se; do
+            if [ -d "build/results/$LABEL.xcresult" ]; then
+              python3 scripts/ci/export_screenshots.py "build/results/$LABEL.xcresult" "build/screenshots/$LABEL" \
+                || echo "::warning::Could not export screenshots for $LABEL"
+            fi
+          done
+
+      - name: Upload design screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: design-screenshots
+          path: build/screenshots
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcresults
+          path: build/results
+          if-no-files-found: ignore
+          retention-days: 7
