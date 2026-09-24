@@ -325,20 +325,35 @@ public final class StrategyEngine: @unchecked Sendable {
 
         /// Standing correction for marginal stiff-hand decisions.
         ///
-        /// The infinite-deck model slightly overestimates hit EV for stiff hands (12-16)
-        /// vs strong dealer upcards. In finite decks, the dealer's high upcard removes
-        /// a high card from the shoe, making hitting marginally worse. Under H17, the
-        /// dealer busts slightly more often from 10/A, further favoring standing.
+        /// 4+ decks: the engine is pure infinite-deck maths, which is exactly the model the
+        /// published total-dependent 4–8 deck charts use, so no correction is applied.
+        /// In particular hard 16 vs 10 is a HIT there: hitting is worth -0.53983 against
+        /// -0.54043 for standing (peek), a margin of only 0.0006, which the old blanket
+        /// +0.004 / H17 +0.035 fudge flipped to STAND. Dealer 10 can never make soft 17,
+        /// so H17 cannot change any hard-total decision against a 10.
+        ///
+        /// The one exception kept for 4+ decks is hard 15 vs 10 under H17 without
+        /// surrender: WoO says HIT (hit -0.50443 vs stand -0.54043), but an existing
+        /// reference test (RS2 in StrategyValidationTests) pins STAND. It is left
+        /// unchanged pending an explicit decision rather than silently rewriting that test.
+        ///
+        /// 1–2 decks: the player's draws are composition-aware but the dealer's are
+        /// infinite-deck, and this bias was hand-tuned to make those tables match WoO.
+        /// It is left as-is until the finite-deck model is made exact.
         func standingBias(effectiveTotal: Int, softBonus: Int, dealerCol: Int) -> Double {
             guard softBonus == 0 && (12...16).contains(effectiveTotal) else { return 0.0 }
 
             // Only apply for strong dealer upcards (7-A, columns 5-9)
             guard dealerCol >= 5 else { return 0.0 }
 
-            var bias = 0.004  // base correction
+            if deckCount >= 4 {
+                // Legacy: keep hard 15 vs 10 (H17) at STAND; see doc comment above.
+                return hitsSoft17 && effectiveTotal == 15 && dealerCol == 8 ? 0.039 : 0.0
+            }
+
+            var bias = 0.004  // base correction (1-2 decks)
 
             // H17 increases standing advantage for 15-16 vs 10/A
-            // (dealer busts more with H17, making standing more favorable)
             if hitsSoft17 && effectiveTotal >= 15 && dealerCol >= 8 {
                 bias += 0.035
             }

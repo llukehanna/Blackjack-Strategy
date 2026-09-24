@@ -96,7 +96,7 @@ private func makeRS10() -> BlackjackRules {
 
 let wooStrategyTestCases: [StrategyTestCase] = [
     // Rule Set 1: 6D S17 DAS standard
-    StrategyTestCase(ruleSetLabel: "RS1-6D-S17-DAS", rules: makeRS1(), playerTotal: 16, isSoft: false, isPair: false, dealerUpcard: .ten, expectedAction: .stand),
+    StrategyTestCase(ruleSetLabel: "RS1-6D-S17-DAS", rules: makeRS1(), playerTotal: 16, isSoft: false, isPair: false, dealerUpcard: .ten, expectedAction: .hit),
     StrategyTestCase(ruleSetLabel: "RS1-6D-S17-DAS", rules: makeRS1(), playerTotal: 12, isSoft: false, isPair: false, dealerUpcard: .four, expectedAction: .stand),
     StrategyTestCase(ruleSetLabel: "RS1-6D-S17-DAS", rules: makeRS1(), playerTotal: 11, isSoft: false, isPair: false, dealerUpcard: .ace, expectedAction: .hit),
     StrategyTestCase(ruleSetLabel: "RS1-6D-S17-DAS", rules: makeRS1(), playerTotal: 18, isSoft: true, isPair: false, dealerUpcard: .nine, expectedAction: .hit),
@@ -134,7 +134,7 @@ let wooStrategyTestCases: [StrategyTestCase] = [
     StrategyTestCase(ruleSetLabel: "RS6-8D-S17-DAS", rules: makeRS6(), playerTotal: 18, isSoft: false, isPair: true, dealerUpcard: .seven, expectedAction: .stand),
 
     // Rule Set 7: 6D S17 DAS 6:5 (strategy same as 3:2)
-    StrategyTestCase(ruleSetLabel: "RS7-6D-S17-DAS-6:5", rules: makeRS7(), playerTotal: 16, isSoft: false, isPair: false, dealerUpcard: .ten, expectedAction: .stand),
+    StrategyTestCase(ruleSetLabel: "RS7-6D-S17-DAS-6:5", rules: makeRS7(), playerTotal: 16, isSoft: false, isPair: false, dealerUpcard: .ten, expectedAction: .hit),
     StrategyTestCase(ruleSetLabel: "RS7-6D-S17-DAS-6:5", rules: makeRS7(), playerTotal: 11, isSoft: false, isPair: false, dealerUpcard: .ten, expectedAction: .double),
 
     // Rule Set 8: 6D S17 NDAS
@@ -228,5 +228,28 @@ struct StrategyValidationTests {
         let h17Action = h17Table.softTotals[18 - 13][Rank.two.columnIndex]
         #expect(s17Action != h17Action,
                 "S17 and H17 should produce different actions for soft 18 vs dealer 2")
+    }
+
+    // Hard 16 vs 10 is the famous marginal cell. WoO's total-dependent 4-8 deck charts say
+    // HIT without surrender (infinite deck, peek: hit -0.53983 vs stand -0.54043) for both
+    // S17 and H17 (a dealer 10 can never make soft 17). Surrender still wins when offered.
+    @Test("Hard 16 vs 10 is HIT without surrender (6D S17 and H17)",
+          arguments: [BlackjackRules.DealerSoft17.stands, .hits])
+    func hard16VsTenHitsWithoutSurrender(soft17: BlackjackRules.DealerSoft17) {
+        var rules = BlackjackRules()
+        rules.dealerSoft17 = soft17
+        let table = StrategyEngine().strategy(for: rules)
+        #expect(table.hardTotals[16 - 5][Rank.ten.columnIndex] == .hit)
+        #expect(table.hardHitStand[16 - 5][Rank.ten.columnIndex] == .hit)
+    }
+
+    @Test("Hard 16 vs 10 is SURRENDER with late surrender (6D S17 and H17)",
+          arguments: [BlackjackRules.DealerSoft17.stands, .hits])
+    func hard16VsTenSurrendersWithLateSurrender(soft17: BlackjackRules.DealerSoft17) {
+        var rules = BlackjackRules()
+        rules.dealerSoft17 = soft17
+        rules.surrenderRule = .late
+        let table = StrategyEngine().strategy(for: rules)
+        #expect(table.hardTotals[16 - 5][Rank.ten.columnIndex] == .surrender)
     }
 }
