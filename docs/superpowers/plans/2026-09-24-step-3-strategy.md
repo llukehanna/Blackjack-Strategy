@@ -30,7 +30,7 @@ A new dev script, `scripts/dev/linux_app_check.sh`, runs the app's Foundation-on
 
   Tasks 1–4 change only BJSCore or add a dev script. They are verified locally, and one CI run after Task 4 covers all four.
 - **Local pre-checks** (from the repo root, after `export PATH=/opt/swiftroot/usr/bin:$PATH`):
-  - **Engine:** `(cd BJSCore && swift build 2>&1 | tail -1 && swift test 2>&1 | tail -1)` should print the build line and then `Test run with N tests in M suites passed`. N is the running BJSCore count: 195 now, 208 after Task 1, 223 after Task 2, and 228 from Task 3 on.
+  - **Engine:** `(cd BJSCore && swift build 2>&1 | tail -1 && swift test 2>&1 | tail -1)` should print the build line and then `Test run with N tests in M suites passed`. N is the running BJSCore count: 198 now, 211 after Task 1, 226 after Task 2, and 231 from Task 3 on.
   - **App logic on Linux (from Task 4):** `scripts/dev/linux_app_check.sh <files>` builds the listed Foundation/Observation/BJSCore-only app files as a throwaway package named `BJS`, so `@testable import BJS` works unchanged, and runs the listed `BJSTests` files. `AppLog` is replaced by a shim. Each task gives the exact file list and the expected `Test run with …` line. The first run also builds BJSCore (about 30 s).
   - **Syntax of every touched Swift file:** `swiftc -parse <files>` should print nothing. It needs no SDK, so it works on SwiftUI files too.
   - **Type-check** files that import only Foundation/BJSCore: `swiftc -swift-version 6 -typecheck -I BJSCore/.build/debug/Modules <files>` should print nothing. Run `swift build` in BJSCore first.
@@ -55,7 +55,7 @@ A new dev script, `scripts/dev/linux_app_check.sh`, runs the app's Foundation-on
   - Tests never touch `UserDefaults.standard`; use `TestDefaults.make()`.
   - Tests never touch an on-disk store; use `PersistenceController.makeContainer(inMemory: true)`, and create the container before any `@Model` object.
   - Randomness is seeded: `SeededRandomNumberGenerator`, or a scripted shoe.
-- **Maths:** this step changes no strategy or EV maths. The engine's table is the grader. See Decision 1 about hard 16 vs 10.
+- **Maths:** this step changes no strategy or EV maths of its own. `cf2ec31`/`37dbf30` already corrected hard 16 vs 10 and hard 15 vs 10 before these tasks start (Decision 1); the engine's table is the grader throughout.
 - **YAGNI:** nothing from Steps 4+. No Counting, Shoe Sim, Edge or Progress screens. Continue handles only `module == .strategy`.
 - **Commits:** one per task (plus fix-forward commits), with a conventional prefix and scope. Every message ends with a blank line and then these two lines (use the model actually doing the work in the first line):
   ```
@@ -68,11 +68,13 @@ A new dev script, `scripts/dev/linux_app_check.sh`, runs the app's Foundation-on
 
 Luke reviews these at the Step 3 design check (Task 12). None changes a §4 token or an existing component.
 
-1. **For Luke: hard 16 vs 10 is graded STAND** (6 decks, S17, no surrender; also under H17). The trainer grades against `StrategyEngine`, and the engine returns *stand* here.
-   - The existing `StrategyValidationTests` assert this as "WoO validated" (RS1 and RS7).
-   - The Wizard of Odds 4–8-deck charts show *hit* (or surrender when allowed) for two-card 16 vs 10. The cause looks like `StrategyEngine.standingBias` (+0.004 toward standing for hard 12–16 vs 7–A).
-   - This plan does not change the maths (the step is scope-frozen, and CLAUDE.md requires WoO-referenced tests for strategy changes). The tests here avoid that spot and use hard 16 vs **7**.
-   - **Luke should decide whether a `fix(core)` with WoO reference values lands before Step 3 ships.** Otherwise Learn mode will teach standing on 16 vs 10.
+**Decisions pending Luke.** Decision 1 is already resolved (see above). The plan keeps its current choices below unchanged at this review, but these are the ones most worth Luke's eyes before Step 3 ships, since they shape how the trainer feels to use:
+- **#2/#3/#4 — grade on tap, play on NEXT.** Every decision is graded the instant it's tapped, but nothing about the round advances until NEXT — including a *correct* decision. There is no auto-advance: the player always sees the FeedbackCard and always taps NEXT, win or lose. After a Speed timeout, NEXT plays the **correct** action (not a forced stand or forced loss), so the hand still continues on the right line. Settling a hand is likewise its own explicit step — a "Next hand" (or "See summary") tap, never automatic.
+- **#10 — Continue skips setup.** Tapping Continue on the hub starts the trainer immediately with the last-used config; the setup screen is not shown on that path.
+- **#6 — leaving mid-session** (Save partial / Discard / Keep playing, and when the ✕ just closes with nothing to save).
+- **#15 — the new visual pieces**, built only from existing Felt tokens (CountdownBar, the outcome panel, the mistake rows, the WHY sheet layout).
+
+1. **Hard 16 vs 10 and hard 15 vs 10 are now graded correctly.** They used to be graded STAND (6 decks, S17, no surrender; hard 15 also under H17), which disagreed with the Wizard of Odds 4–8-deck charts (hit, or surrender when allowed). `fix(core)` commits `cf2ec31` ("hit hard 16 vs 10 without surrender") and `37dbf30` ("hit hard 15 vs 10 under H17") landed on `main-8v0ds1` after this plan was first written, correcting `StrategyValidationTests` RS1, RS2 and RS7 against WoO reference values. The engine now returns *hit* for both spots, so Learn mode teaches the right play, and the `makeDecision` test fixture in Task 1 (`GradedDecisionTests.swift`) uses hard 16 vs 10 with `correctAction: .hit`.
 2. **Grade first, apply on NEXT.** A tapped action is graded at once (session phase `feedback`), but the round does not play it until NEXT. Nothing is drawn and the hole card stays down while the FeedbackCard shows. This guarantees "feedback before the outcome" for every action, including STAND (the Phase 7 bug).
 3. **Wrong actions are played as chosen.** The user lives with the choice. **After a timeout, NEXT plays the correct action**, so the hand continues on the right line.
 4. **Explicit outcome step.** When a hand settles, the outcome panel shows "Dealer has 19" / "Dealer busts", each hand's result ("Win +1", "Bust −2") and a **Next hand** button. On the last hand of a limited session the button reads **See summary**. There is no auto-advance, which keeps the ViewModel deterministic and testable.
@@ -172,15 +174,15 @@ Luke reviews these at the Step 3 design check (Task 12). None changes a §4 toke
 
 | After task | BJSCore tests (local + CI) | App unit tests (CI) | UI tests (CI) | Screenshots per device |
 |---|---|---|---|---|
-| now | 195 | 60 | 2 | 16 |
-| 1 | 208 | 60 | 2 | 16 |
-| 2 | 223 | 60 | 2 | 16 |
-| 3–4 | 228 | 60 | 2 | 16 |
-| 5 | 228 | 67 | 2 | 16 |
-| 6 | 228 | 71 | 2 | 16 |
-| 7 | 228 | 90 | 2 | 16 |
-| 8–10 | 228 | 91 | 2 | 17 |
-| 11 | 228 | 91 | 4 | 29 |
+| now | 198 | 60 | 2 | 16 |
+| 1 | 211 | 60 | 2 | 16 |
+| 2 | 226 | 60 | 2 | 16 |
+| 3–4 | 231 | 60 | 2 | 16 |
+| 5 | 231 | 67 | 2 | 16 |
+| 6 | 231 | 71 | 2 | 16 |
+| 7 | 231 | 92 | 2 | 16 |
+| 8, 9a–9b, 10 | 231 | 93 | 2 | 17 |
+| 11 | 231 | 93 | 4 | 29 |
 
 Swift Testing counts each `@Test` function once; parameterised tests are one test each.
 
@@ -240,9 +242,9 @@ func makeSpot(_ ranks: [Rank], up: Rank, legal: Set<Action> = [.hit, .stand, .do
 func makeDecision(_ sequence: Int, correct: Bool, responseMs: Int? = 1_000,
                   choice: DecisionChoice? = nil) -> GradedDecision {
     let spot = makeSpot([.ten, .six], up: .ten)
-    let made = choice ?? .action(correct ? .surrender : .stand)
+    let made = choice ?? .action(correct ? .hit : .stand)
     return GradedDecision(sequence: sequence, handNumber: sequence, spot: spot, choice: made,
-                          correctAction: .surrender, responseMs: responseMs,
+                          correctAction: .hit, responseMs: responseMs,
                           decidedAt: Date(timeIntervalSinceReferenceDate: 800_000_000 + Double(sequence)))
 }
 
@@ -581,7 +583,7 @@ public struct StrategySessionSummary: Sendable, Equatable {
 grep -rE "import (SwiftUI|SwiftData|UIKit)" BJSCore/Sources || echo "no UI imports"
 ```
 
-Expected: `Build complete!`, then `Test run with 208 tests in 29 suites passed …` (195 + 13), then `no UI imports`.
+Expected: `Build complete!`, then `Test run with 211 tests in 29 suites passed …` (198 + 13), then `no UI imports`.
 
 - [ ] **Step 5: Commit**
 
@@ -876,7 +878,7 @@ struct StrategySessionTests {
 }
 ```
 
-Note on the fixtures: the tests use hard 16 vs **7** (basic strategy hits, clear-cut). They avoid 16 vs 10, where the engine currently says stand (Decision 1).
+Note on the fixtures: the tests use hard 16 vs **7** (basic strategy hits, clear-cut). Hard 16 vs 10 is graded correctly since `cf2ec31` (Decision 1), so these tests no longer need to avoid it; 16 vs 7 is kept simply because it's the fixture already established across this file.
 
 - [ ] **Step 2: Run the tests to see them fail**
 
@@ -1089,7 +1091,7 @@ public struct StrategySession: Sendable {
 (cd BJSCore && swift build 2>&1 | tail -1 && swift test 2>&1 | tail -1)
 ```
 
-Expected: `Build complete!`, then `Test run with 223 tests in 30 suites passed …` (208 + 15).
+Expected: `Build complete!`, then `Test run with 226 tests in 30 suites passed …` (211 + 15).
 
 - [ ] **Step 5: Commit**
 
@@ -1302,7 +1304,7 @@ public enum DecisionFeedback {
 (cd BJSCore && swift build 2>&1 | tail -1 && swift test 2>&1 | tail -1)
 ```
 
-Expected: `Build complete!`, then `Test run with 228 tests in 31 suites passed …` (223 + 5).
+Expected: `Build complete!`, then `Test run with 231 tests in 31 suites passed …` (226 + 5).
 
 - [ ] **Step 5: Commit**
 
@@ -1442,7 +1444,7 @@ Report the SHA to the controller.
 
 - [ ] **Step 4: CI verification (controller), covering Tasks 1–4**
 
-Expected: green. "Engine tests (BJSCore)" reports `Test run with 228 tests … passed`, and the app is unchanged: 60 unit tests, 2 UI tests, 16 screenshots per device.
+Expected: green. "Engine tests (BJSCore)" reports `Test run with 231 tests … passed`, and the app is unchanged: 60 unit tests, 2 UI tests, 16 screenshots per device.
 
 ---
 
@@ -2265,6 +2267,26 @@ struct StrategyTrainerViewModelTests {
         #expect(vm.handNumber == 2)
     }
 
+    @Test("Splitting eights vs 6: STAND on hand 1 gives feedback with the hole card still down, then hand 2")
+    func splitStandHand1ThenHand2() {
+        let vm = makeViewModel(shoes: [StrategyFixtures.eightsVs6])
+        vm.choose(.split)
+        vm.next()                              // past the split's own feedback: hand 1's decision
+        #expect(vm.phase == .decision)
+        #expect(vm.activeHandIndex == 0)
+
+        vm.choose(.stand)
+        #expect(vm.phase == .feedback)
+        #expect(!vm.isDealerRevealed)           // the round has not been applied yet
+        #expect(vm.playerHands[0].outcome == nil)
+
+        vm.next()
+        #expect(vm.phase == .decision)
+        #expect(vm.activeHandIndex == 1)        // hand 2, still the same dealt hand
+        #expect(vm.handNumber == 1)
+        #expect(!vm.isDealerRevealed)
+    }
+
     @Test("A double tap grades only one decision")
     func doubleTap() {
         let vm = makeViewModel(shoes: [StrategyFixtures.hard16vs7])
@@ -2369,6 +2391,17 @@ struct StrategyTrainerViewModelTests {
         #expect(vm.isShowingSaveError)
         #expect(!vm.isSaved)
         #expect(vm.summary.decisionCount == 1)
+    }
+
+    @Test("Ending a session with no graded decisions still finishes, but saves nothing")
+    func endEmptySession() {
+        let vm = makeViewModel(StrategySessionConfig(mode: .test, length: .endless), shoes: [StrategyFixtures.hard16vs7])
+        vm.endSession()
+        #expect(vm.isFinished)
+        #expect(vm.summary.decisionCount == 0)
+        #expect(saver.saved.isEmpty)
+        #expect(!vm.isSaved)
+        #expect(!vm.isShowingSaveError)
     }
 
     @Test("Leaving before any graded decision closes at once and saves nothing")
@@ -2724,6 +2757,9 @@ final class StrategyTrainerViewModel {
     private func completeSession() {
         guard !hasCompleted else { return }
         hasCompleted = true
+        // Nothing was graded (e.g. Endless End tapped immediately): the summary still shows
+        // (all zeros), but there is nothing worth writing to the store.
+        guard !session.decisions.isEmpty else { return }
         let snapshot = StrategySessionSnapshot(id: sessionID, config: config, rules: rules, startedAt: startedAt,
                                                endedAt: now(), summary: session.summary,
                                                decisions: session.decisions)
@@ -2749,7 +2785,7 @@ scripts/dev/linux_app_check.sh BJS/Shared/LastLaunch.swift BJS/Shared/LastLaunch
   BJSTests/StrategyTextTests.swift BJSTests/StrategyTrainerViewModelTests.swift
 ```
 
-Expected: no output from `swiftc`; no `error:`/`warning:` lines from the build; `✔ Test run with 26 tests in 5 suites passed …` (7 from Task 5 + 4 text + 15 ViewModel).
+Expected: no output from `swiftc`; no `error:`/`warning:` lines from the build; `✔ Test run with 28 tests in 5 suites passed …` (7 from Task 5 + 4 text + 17 ViewModel).
 
 - [ ] **Step 5: Commit**
 
@@ -2766,7 +2802,7 @@ Report the SHA to the controller.
 
 - [ ] **Step 6: CI verification (controller)**
 
-Expected: green; 90 unit tests (71 + 19). In the unit-test log, find `STAND always produces feedback before the next hand` passing, once for each of the four mode arguments.
+Expected: green; 92 unit tests (71 + 21). In the unit-test log, find `STAND always produces feedback before the next hand` passing, once for each of the four mode arguments.
 
 ---
 
@@ -2917,30 +2953,23 @@ Report the SHA to the controller.
 
 - [ ] **Step 5: CI verification (controller)**
 
-Expected: green; 91 unit tests (90 + 1); 2 UI tests; `Exported 17 screenshots` per device (the new `20-gallery-countdown`).
+Expected: green; 93 unit tests (92 + 1); 2 UI tests; `Exported 17 screenshots` per device (the new `20-gallery-countdown`).
 
 ---
 
-### Task 9: Setup, trainer, WHY sheet, summary and session screens
+### Task 9a: Strategy setup, WHY sheet and summary screens
 
 **Files:**
-- Create: `BJS/Features/Strategy/StrategySetupView.swift`, `StrategyTrainerView.swift`, `WhySheet.swift`, `StrategySummaryView.swift`, `StrategySessionScreen.swift`
+- Create: `BJS/Features/Strategy/StrategySetupView.swift`, `WhySheet.swift`, `StrategySummaryView.swift`
 
 **Interfaces:**
-- Consumes: Tasks 5–8; the existing components `ModePicker`, `PrimaryButton`, `HandView`, `ActionDock`, `FeedbackCard`, `StatChip`, `SettingsSection`, `FeltPressableStyle`, `.feltBackground()`, `.feltType(_:)`, `FeltMotion.panelTransition(reduceMotion:)`; `ActiveRulesStore`, `Preferences`, `RulesSummary.short(_:)`; `DecisionHistory`, `SwiftDataStrategySessionSaver`; `WhyExplanation.explain(_:)`
+- Consumes: Tasks 5–7; the existing components `ModePicker`, `PrimaryButton`, `StatChip`, `SettingsSection`, `FeltPressableStyle`, `.feltBackground()`, `.feltType(_:)`; `ActiveRulesStore`, `Preferences`, `RulesSummary.short(_:)`; `WhyExplanation.explain(_:)`
 - Produces (accessibility identifiers are what the UI test uses):
   - `StrategySetupView(initial: StrategySessionConfig?, onStart: (StrategySessionConfig) -> Void)`: `strategy.setup.title`, `strategy.modeDescription`, `strategy.start`; picker segments are buttons labelled "Learn" … "Weak spots", "25" … "Endless", "All" … "Pairs"
-  - `StrategyTrainerView(viewModel:onClose:)`:
-    - top bar: `trainer.close`, `trainer.progress`, `trainer.end` (Endless) or `trainer.score`
-    - `trainer.countdown`, `trainer.dealer`, `trainer.player`, `trainer.handOutcome.<i>`, `trainer.outcome`, `trainer.nextHand`
-    - the dock's `action.<name>`, and the FeedbackCard's `feedback.card`, `feedback.why`, `feedback.next`
-    - alerts "Leave this session?" (Save partial / Discard / Keep playing) and "Couldn't save this session"
-    - the Speed countdown runs as `.task(id: viewModel.countdownToken)`
   - `WhySheet(context:)`: `why.done`, `why.title`, `why.play`, `why.explanation`
   - `StrategySummaryView(viewModel:onDone:)`: `summary.title`, `summary.accuracy`, `summary.mistakes`, `summary.bestStreak`, `summary.hands`, `summary.meanTime` (Speed only), `summary.mistake.<sequence>`, `summary.done`
-  - `StrategySessionScreen(config:seed:onClose:)`: builds the ViewModel on appear from the active rules, `Preferences.speedTimerSeconds`, Weak-spots history and a SwiftData saver
 
-These views are not reachable until Task 10 wires them. This task's CI run proves they compile.
+None of these views is reachable until Task 10 wires them. This task's CI run proves they compile. Task 9b (the trainer) references `WhySheet` and `StrategySummaryView` directly, so it comes after this one.
 
 - [ ] **Step 1: Create the setup screen**
 
@@ -3043,241 +3072,7 @@ private struct SetupSection<Content: View>: View {
 }
 ```
 
-- [ ] **Step 2: Create the trainer**
-
-Create `BJS/Features/Strategy/StrategyTrainerView.swift`:
-
-```swift
-import BJSCore
-import SwiftUI
-
-/// The Strategy trainer table (spec §5): dealer and player hands, the ActionDock, the
-/// FeedbackCard after every decision (before the outcome), the outcome, and — once the
-/// session ends — the summary. Presented full-screen over the tabs.
-struct StrategyTrainerView: View {
-    @Bindable private var viewModel: StrategyTrainerViewModel
-    private let onClose: () -> Void
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    init(viewModel: StrategyTrainerViewModel, onClose: @escaping () -> Void) {
-        self._viewModel = Bindable(wrappedValue: viewModel)
-        self.onClose = onClose
-    }
-
-    var body: some View {
-        Group {
-            if viewModel.isFinished {
-                StrategySummaryView(viewModel: viewModel, onDone: onClose)
-            } else {
-                table
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .feltBackground()
-        .sheet(item: $viewModel.presentedWhy) { context in
-            WhySheet(context: context)
-        }
-        .alert("Leave this session?", isPresented: $viewModel.isConfirmingLeave) {
-            Button("Save partial") { viewModel.savePartial() }
-            Button("Discard", role: .destructive) {
-                viewModel.discard()
-                onClose()
-            }
-            Button("Keep playing", role: .cancel) { viewModel.keepPlaying() }
-        } message: {
-            Text("Save the decisions so far and see the summary, or discard this session.")
-        }
-        .alert("Couldn't save this session", isPresented: $viewModel.isShowingSaveError) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Your summary is shown, but this session won't count toward your progress.")
-        }
-        .task(id: viewModel.countdownToken) {
-            // Speed mode: one countdown per decision. A new token (next decision) or a
-            // nil token (feedback, prompt) cancels this task before it fires.
-            guard let token = viewModel.countdownToken else { return }
-            try? await Task.sleep(for: .seconds(viewModel.speedTimerSeconds))
-            guard !Task.isCancelled else { return }
-            viewModel.timeExpired(token: token)
-        }
-    }
-
-    // MARK: - Table
-
-    private var table: some View {
-        VStack(spacing: FeltSpacing.m) {
-            topBar
-            if viewModel.config.mode.isTimed {
-                countdown
-            }
-            Spacer(minLength: 0)
-            dealerArea
-            Spacer(minLength: 0)
-            playerArea
-            Spacer(minLength: 0)
-            bottomArea
-        }
-        .padding(.horizontal, FeltSpacing.l)
-        .padding(.bottom, FeltSpacing.l)
-        .animation(reduceMotion ? FeltMotion.crossFade(duration: FeltMotion.uiDuration) : FeltMotion.ui,
-                   value: viewModel.phase)
-    }
-
-    private var topBar: some View {
-        HStack(spacing: FeltSpacing.s) {
-            Button {
-                if viewModel.requestLeave() { onClose() }
-            } label: {
-                Image(systemName: "xmark")
-                    .feltType(.title)
-                    .foregroundStyle(FeltColor.textPrimary)
-                    .frame(width: FeltMetrics.minTapTarget, height: FeltMetrics.minTapTarget)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(FeltPressableStyle())
-            .accessibilityLabel("Close")
-            .accessibilityIdentifier("trainer.close")
-
-            Spacer(minLength: 0)
-            VStack(spacing: 0) {
-                Text(StrategyText.progress(handNumber: viewModel.handNumber, limit: viewModel.config.length.handLimit))
-                    .feltType(.label)
-                    .foregroundStyle(FeltColor.textPrimary)
-                    .accessibilityIdentifier("trainer.progress")
-                Text(viewModel.config.mode.displayName)
-                    .feltType(.label)
-                    .foregroundStyle(FeltColor.textTertiary)
-            }
-            Spacer(minLength: 0)
-
-            if viewModel.config.length == .endless {
-                Button("End") { viewModel.endSession() }
-                    .feltType(.body)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(FeltColor.textPrimary)
-                    .frame(minWidth: FeltMetrics.minTapTarget, minHeight: FeltMetrics.minTapTarget)
-                    .buttonStyle(FeltPressableStyle())
-                    .accessibilityHint("Ends the session and shows the summary")
-                    .accessibilityIdentifier("trainer.end")
-            } else {
-                Text("\(viewModel.summary.correctDecisions)/\(viewModel.summary.decisionCount)")
-                    .feltType(.label)
-                    .foregroundStyle(FeltColor.textSecondary)
-                    .frame(minWidth: FeltMetrics.minTapTarget, minHeight: FeltMetrics.minTapTarget)
-                    .accessibilityLabel("\(viewModel.summary.correctDecisions) of \(viewModel.summary.decisionCount) correct")
-                    .accessibilityIdentifier("trainer.score")
-            }
-        }
-    }
-
-    private var countdown: some View {
-        TimelineView(.animation(minimumInterval: reduceMotion ? 0.25 : nil, paused: viewModel.countdownToken == nil)) { context in
-            CountdownBar(fraction: CountdownBar.remainingFraction(startedAt: viewModel.decisionStartedAt,
-                                                                   now: context.date,
-                                                                   duration: viewModel.speedTimerSeconds))
-        }
-        .opacity(viewModel.countdownToken == nil ? 0 : 1)
-        .accessibilityIdentifier("trainer.countdown")
-    }
-
-    // MARK: - Hands
-
-    private var dealerArea: some View {
-        VStack(spacing: FeltSpacing.s) {
-            Text("Dealer")
-                .feltType(.label)
-                .foregroundStyle(FeltColor.textTertiary)
-            HandView(cards: viewModel.dealerHand.cards,
-                     faceDownIndices: viewModel.isDealerRevealed ? [] : [1],
-                     cardWidth: 64, overlap: 0.35,
-                     totalLabel: viewModel.isDealerRevealed ? StrategyText.total(viewModel.dealerHand) : nil)
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("trainer.dealer")
-    }
-
-    private var playerArea: some View {
-        VStack(spacing: FeltSpacing.s) {
-            ViewThatFits(in: .horizontal) {
-                playerHands
-                ScrollView(.horizontal, showsIndicators: false) {
-                    playerHands
-                }
-            }
-            Text("You")
-                .feltType(.label)
-                .foregroundStyle(FeltColor.textTertiary)
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("trainer.player")
-    }
-
-    private var playerHands: some View {
-        let hands = viewModel.playerHands
-        let cardWidth: CGFloat = hands.count > 1 ? 52 : 72
-        return HStack(alignment: .top, spacing: FeltSpacing.l) {
-            ForEach(Array(hands.enumerated()), id: \.offset) { index, state in
-                VStack(spacing: FeltSpacing.xs) {
-                    HandView(cards: state.hand.cards, cardWidth: cardWidth, overlap: 0.35,
-                             totalLabel: StrategyText.total(state.hand))
-                    if viewModel.phase == .outcome {
-                        Text(StrategyText.outcome(state))
-                            .feltType(.label)
-                            .foregroundStyle(FeltColor.textPrimary)
-                            .accessibilityIdentifier("trainer.handOutcome.\(index)")
-                    }
-                }
-                .opacity(isDimmed(index, handCount: hands.count) ? 0.4 : 1)
-            }
-        }
-    }
-
-    /// With split hands, the hands not being played are dimmed while decisions are made.
-    private func isDimmed(_ index: Int, handCount: Int) -> Bool {
-        handCount > 1 && index != viewModel.activeHandIndex
-            && (viewModel.phase == .decision || viewModel.phase == .feedback)
-    }
-
-    // MARK: - Bottom: dock + feedback, or the outcome
-
-    @ViewBuilder
-    private var bottomArea: some View {
-        switch viewModel.phase {
-        case .decision, .feedback:
-            ActionDock(allowed: viewModel.allowedActions, hint: viewModel.hint) { action in
-                viewModel.choose(action)
-            }
-            .overlay(alignment: .bottom) {
-                if let decision = viewModel.feedback {
-                    FeedbackCard(isCorrect: decision.isCorrect,
-                                 headline: DecisionFeedback.headline(for: decision),
-                                 reason: DecisionFeedback.reason(for: decision),
-                                 onWhy: { viewModel.showWhy(for: decision) },
-                                 onNext: { viewModel.next() })
-                        .transition(FeltMotion.panelTransition(reduceMotion: reduceMotion))
-                }
-            }
-        case .outcome:
-            VStack(spacing: FeltSpacing.m) {
-                Text(StrategyText.dealerResult(viewModel.dealerHand))
-                    .feltType(.title)
-                    .foregroundStyle(FeltColor.textPrimary)
-                    .accessibilityIdentifier("trainer.outcome")
-                PrimaryButton(viewModel.session.isLastHand ? "See summary" : "Next hand") {
-                    viewModel.nextHand()
-                }
-                .accessibilityIdentifier("trainer.nextHand")
-            }
-            .transition(FeltMotion.panelTransition(reduceMotion: reduceMotion))
-        case .finished:
-            EmptyView()
-        }
-    }
-}
-```
-
-- [ ] **Step 3: Create the WHY sheet and the summary**
+- [ ] **Step 2: Create the WHY sheet and the summary**
 
 Create `BJS/Features/Strategy/WhySheet.swift`:
 
@@ -3464,7 +3259,301 @@ struct StrategySummaryView: View {
 }
 ```
 
-- [ ] **Step 4: Create the session container**
+- [ ] **Step 3: Local pre-checks**
+
+```bash
+export PATH=/opt/swiftroot/usr/bin:$PATH
+swiftc -parse BJS/Features/Strategy/StrategySetupView.swift BJS/Features/Strategy/WhySheet.swift \
+  BJS/Features/Strategy/StrategySummaryView.swift
+grep -rn "Hub" BJS/Features/Strategy || echo "no hub references"
+grep -rn "FeltColor\.\(brass\|correct\|incorrect\)" BJS/Features/Strategy || echo "no accent/feedback colours"
+grep -rn "\.font(" BJS/Features/Strategy || echo "type via FeltType only"
+```
+
+Expected: no output from `swiftc`, then `no hub references`, `no accent/feedback colours` (brass reaches the screen only through `ActionDock`'s hint ring, and correct/incorrect only through the `FeedbackCard` badge), and `type via FeltType only`.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add BJS/Features/Strategy/StrategySetupView.swift BJS/Features/Strategy/WhySheet.swift \
+        BJS/Features/Strategy/StrategySummaryView.swift
+git commit -m "feat(strategy): setup, WHY sheet and summary screens
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01XyqkZzZuQ5xb3XY228sQpi"
+```
+
+Report the SHA to the controller.
+
+- [ ] **Step 5: CI verification (controller)**
+
+Expected: green; 93 unit tests; 2 UI tests; 17 screenshots per device (nothing new is reachable yet — `StrategySetupView`, `WhySheet` and `StrategySummaryView` are unused until Task 9b's trainer references them, and Task 10 wires the whole feature in).
+
+---
+
+### Task 9b: Strategy trainer and session screens
+
+**Files:**
+- Create: `BJS/Features/Strategy/StrategyTrainerView.swift`, `StrategySessionScreen.swift`
+
+**Interfaces:**
+- Consumes: Task 9a (`WhySheet`, `StrategySummaryView`); Tasks 6–8 (`HandView`, `ActionDock`, `FeedbackCard`, `FeltMotion.panelTransition(reduceMotion:)`, `DecisionHistory`, `SwiftDataStrategySessionSaver`, `StrategyTrainerViewModel`, `CountdownBar`); `ActiveRulesStore`, `Preferences`
+- Produces (accessibility identifiers are what the UI test uses):
+  - `StrategyTrainerView(viewModel:onClose:)`:
+    - top bar: `trainer.close`, `trainer.progress`, `trainer.end` (Endless) or `trainer.score`
+    - `trainer.countdown`, `trainer.dealer`, `trainer.player`, `trainer.handOutcome.<i>`, `trainer.outcome`, `trainer.nextHand`
+    - the dock's `action.<name>`, and the FeedbackCard's `feedback.card`, `feedback.why`, `feedback.next`
+    - alerts "Leave this session?" (Save partial / Discard / Keep playing) and "Couldn't save this session"
+    - the Speed countdown runs as `.task(id:)`, keyed on the decision token **and** `scenePhase`, and only fires while `scenePhase == .active`
+  - `StrategySessionScreen(config:seed:onClose:)`: builds the ViewModel on appear from the active rules, `Preferences.speedTimerSeconds`, Weak-spots history and a SwiftData saver
+
+Neither view is reachable until Task 10 wires them. This task's CI run proves they compile.
+
+- [ ] **Step 1: Create the trainer**
+
+Create `BJS/Features/Strategy/StrategyTrainerView.swift`:
+
+```swift
+import BJSCore
+import SwiftUI
+
+/// The Strategy trainer table (spec §5): dealer and player hands, the ActionDock, the
+/// FeedbackCard after every decision (before the outcome), the outcome, and — once the
+/// session ends — the summary. Presented full-screen over the tabs.
+struct StrategyTrainerView: View {
+    @Bindable private var viewModel: StrategyTrainerViewModel
+    private let onClose: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
+
+    init(viewModel: StrategyTrainerViewModel, onClose: @escaping () -> Void) {
+        self._viewModel = Bindable(wrappedValue: viewModel)
+        self.onClose = onClose
+    }
+
+    var body: some View {
+        Group {
+            if viewModel.isFinished {
+                StrategySummaryView(viewModel: viewModel, onDone: onClose)
+            } else {
+                table
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .feltBackground()
+        .sheet(item: $viewModel.presentedWhy) { context in
+            WhySheet(context: context)
+        }
+        .alert("Leave this session?", isPresented: $viewModel.isConfirmingLeave) {
+            Button("Save partial") { viewModel.savePartial() }
+            Button("Discard", role: .destructive) {
+                viewModel.discard()
+                onClose()
+            }
+            Button("Keep playing", role: .cancel) { viewModel.keepPlaying() }
+        } message: {
+            Text("Save the decisions so far and see the summary, or discard this session.")
+        }
+        .alert("Couldn't save this session", isPresented: $viewModel.isShowingSaveError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Your summary is shown, but this session won't count toward your progress.")
+        }
+        .task(id: CountdownTaskID(token: viewModel.countdownToken, phase: scenePhase)) {
+            // Speed mode: one countdown per decision. A new token (next decision), a nil
+            // token (feedback, prompt) or a scenePhase change (backgrounding, foregrounding)
+            // cancels this task before it fires and starts a fresh one, so the countdown
+            // never runs — and no timeout is ever recorded — while the app is not active.
+            guard let token = viewModel.countdownToken, scenePhase == .active else { return }
+            try? await Task.sleep(for: .seconds(viewModel.speedTimerSeconds))
+            guard !Task.isCancelled else { return }
+            viewModel.timeExpired(token: token)
+        }
+    }
+
+    /// Identifies one countdown attempt. Either half changing (a new decision, or the app
+    /// leaving/returning to the foreground) cancels the running `.task` and starts a clean one.
+    private struct CountdownTaskID: Equatable {
+        let token: Int?
+        let phase: ScenePhase
+    }
+
+    // MARK: - Table
+
+    private var table: some View {
+        VStack(spacing: FeltSpacing.m) {
+            topBar
+            if viewModel.config.mode.isTimed {
+                countdown
+            }
+            Spacer(minLength: 0)
+            dealerArea
+            Spacer(minLength: 0)
+            playerArea
+            Spacer(minLength: 0)
+            bottomArea
+        }
+        .padding(.horizontal, FeltSpacing.l)
+        .padding(.bottom, FeltSpacing.l)
+        .animation(reduceMotion ? FeltMotion.crossFade(duration: FeltMotion.uiDuration) : FeltMotion.ui,
+                   value: viewModel.phase)
+    }
+
+    private var topBar: some View {
+        HStack(spacing: FeltSpacing.s) {
+            Button {
+                if viewModel.requestLeave() { onClose() }
+            } label: {
+                Image(systemName: "xmark")
+                    .feltType(.title)
+                    .foregroundStyle(FeltColor.textPrimary)
+                    .frame(width: FeltMetrics.minTapTarget, height: FeltMetrics.minTapTarget)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(FeltPressableStyle())
+            .accessibilityLabel("Close")
+            .accessibilityIdentifier("trainer.close")
+
+            Spacer(minLength: 0)
+            VStack(spacing: 0) {
+                Text(StrategyText.progress(handNumber: viewModel.handNumber, limit: viewModel.config.length.handLimit))
+                    .feltType(.label)
+                    .foregroundStyle(FeltColor.textPrimary)
+                    .accessibilityIdentifier("trainer.progress")
+                Text(viewModel.config.mode.displayName)
+                    .feltType(.label)
+                    .foregroundStyle(FeltColor.textTertiary)
+            }
+            Spacer(minLength: 0)
+
+            if viewModel.config.length == .endless {
+                Button("End") { viewModel.endSession() }
+                    .feltType(.body)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(FeltColor.textPrimary)
+                    .frame(minWidth: FeltMetrics.minTapTarget, minHeight: FeltMetrics.minTapTarget)
+                    .buttonStyle(FeltPressableStyle())
+                    .accessibilityHint("Ends the session and shows the summary")
+                    .accessibilityIdentifier("trainer.end")
+            } else {
+                Text("\(viewModel.summary.correctDecisions)/\(viewModel.summary.decisionCount)")
+                    .feltType(.label)
+                    .foregroundStyle(FeltColor.textSecondary)
+                    .frame(minWidth: FeltMetrics.minTapTarget, minHeight: FeltMetrics.minTapTarget)
+                    .accessibilityLabel("\(viewModel.summary.correctDecisions) of \(viewModel.summary.decisionCount) correct")
+                    .accessibilityIdentifier("trainer.score")
+            }
+        }
+    }
+
+    private var countdown: some View {
+        TimelineView(.animation(minimumInterval: reduceMotion ? 0.25 : nil, paused: viewModel.countdownToken == nil)) { context in
+            CountdownBar(fraction: CountdownBar.remainingFraction(startedAt: viewModel.decisionStartedAt,
+                                                                   now: context.date,
+                                                                   duration: viewModel.speedTimerSeconds))
+        }
+        .opacity(viewModel.countdownToken == nil ? 0 : 1)
+        .accessibilityIdentifier("trainer.countdown")
+    }
+
+    // MARK: - Hands
+
+    private var dealerArea: some View {
+        VStack(spacing: FeltSpacing.s) {
+            Text("Dealer")
+                .feltType(.label)
+                .foregroundStyle(FeltColor.textTertiary)
+            HandView(cards: viewModel.dealerHand.cards,
+                     faceDownIndices: viewModel.isDealerRevealed ? [] : [1],
+                     cardWidth: 64, overlap: 0.35,
+                     totalLabel: viewModel.isDealerRevealed ? StrategyText.total(viewModel.dealerHand) : nil)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("trainer.dealer")
+    }
+
+    private var playerArea: some View {
+        VStack(spacing: FeltSpacing.s) {
+            ViewThatFits(in: .horizontal) {
+                playerHands
+                ScrollView(.horizontal, showsIndicators: false) {
+                    playerHands
+                }
+            }
+            Text("You")
+                .feltType(.label)
+                .foregroundStyle(FeltColor.textTertiary)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("trainer.player")
+    }
+
+    private var playerHands: some View {
+        let hands = viewModel.playerHands
+        let cardWidth: CGFloat = hands.count > 1 ? 52 : 72
+        return HStack(alignment: .top, spacing: FeltSpacing.l) {
+            ForEach(Array(hands.enumerated()), id: \.offset) { index, state in
+                VStack(spacing: FeltSpacing.xs) {
+                    HandView(cards: state.hand.cards, cardWidth: cardWidth, overlap: 0.35,
+                             totalLabel: StrategyText.total(state.hand))
+                    if viewModel.phase == .outcome {
+                        Text(StrategyText.outcome(state))
+                            .feltType(.label)
+                            .foregroundStyle(FeltColor.textPrimary)
+                            .accessibilityIdentifier("trainer.handOutcome.\(index)")
+                    }
+                }
+                .opacity(isDimmed(index, handCount: hands.count) ? 0.4 : 1)
+            }
+        }
+    }
+
+    /// With split hands, the hands not being played are dimmed while decisions are made.
+    private func isDimmed(_ index: Int, handCount: Int) -> Bool {
+        handCount > 1 && index != viewModel.activeHandIndex
+            && (viewModel.phase == .decision || viewModel.phase == .feedback)
+    }
+
+    // MARK: - Bottom: dock + feedback, or the outcome
+
+    @ViewBuilder
+    private var bottomArea: some View {
+        switch viewModel.phase {
+        case .decision, .feedback:
+            ActionDock(allowed: viewModel.allowedActions, hint: viewModel.hint) { action in
+                viewModel.choose(action)
+            }
+            .overlay(alignment: .bottom) {
+                if let decision = viewModel.feedback {
+                    FeedbackCard(isCorrect: decision.isCorrect,
+                                 headline: DecisionFeedback.headline(for: decision),
+                                 reason: DecisionFeedback.reason(for: decision),
+                                 onWhy: { viewModel.showWhy(for: decision) },
+                                 onNext: { viewModel.next() })
+                        .transition(FeltMotion.panelTransition(reduceMotion: reduceMotion))
+                }
+            }
+        case .outcome:
+            VStack(spacing: FeltSpacing.m) {
+                Text(StrategyText.dealerResult(viewModel.dealerHand))
+                    .feltType(.title)
+                    .foregroundStyle(FeltColor.textPrimary)
+                    .accessibilityIdentifier("trainer.outcome")
+                PrimaryButton(viewModel.session.isLastHand ? "See summary" : "Next hand") {
+                    viewModel.nextHand()
+                }
+                .accessibilityIdentifier("trainer.nextHand")
+            }
+            .transition(FeltMotion.panelTransition(reduceMotion: reduceMotion))
+        case .finished:
+            EmptyView()
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Create the session container**
 
 Create `BJS/Features/Strategy/StrategySessionScreen.swift`:
 
@@ -3519,7 +3608,7 @@ struct StrategySessionScreen: View {
 }
 ```
 
-- [ ] **Step 5: Local pre-checks**
+- [ ] **Step 3: Local pre-checks**
 
 ```bash
 export PATH=/opt/swiftroot/usr/bin:$PATH
@@ -3531,13 +3620,11 @@ grep -rn "\.font(" BJS/Features/Strategy || echo "type via FeltType only"
 
 Expected: no output from `swiftc`, then `no hub references`, `no accent/feedback colours` (brass reaches the screen only through `ActionDock`'s hint ring, and correct/incorrect only through the `FeedbackCard` badge), and `type via FeltType only`.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add BJS/Features/Strategy/StrategySetupView.swift BJS/Features/Strategy/StrategyTrainerView.swift \
-        BJS/Features/Strategy/WhySheet.swift BJS/Features/Strategy/StrategySummaryView.swift \
-        BJS/Features/Strategy/StrategySessionScreen.swift
-git commit -m "feat(strategy): setup, trainer, WHY sheet and summary screens
+git add BJS/Features/Strategy/StrategyTrainerView.swift BJS/Features/Strategy/StrategySessionScreen.swift
+git commit -m "feat(strategy): trainer and session container, with a scene-aware Speed countdown
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01XyqkZzZuQ5xb3XY228sQpi"
@@ -3545,9 +3632,9 @@ Claude-Session: https://claude.ai/code/session_01XyqkZzZuQ5xb3XY228sQpi"
 
 Report the SHA to the controller.
 
-- [ ] **Step 7: CI verification (controller)**
+- [ ] **Step 5: CI verification (controller)**
 
-Expected: green; 91 unit tests; 2 UI tests; 17 screenshots per device (nothing new is reachable yet).
+Expected: green; 93 unit tests; 2 UI tests; 17 screenshots per device (nothing new is reachable yet).
 
 These SwiftUI APIs are the ones most likely to need a `fix(strategy)`. Each has a same-look fallback:
 - `TimelineView(.animation(minimumInterval:paused:))`: fall back to `.periodic(from: .now, by: 0.05)`.
@@ -3563,7 +3650,7 @@ These SwiftUI APIs are the ones most likely to need a `fix(strategy)`. Each has 
 - Modify: `BJS/Features/Hub/HubView.swift`, `BJS/App/RootTabView.swift`, `BJS/App/BJSApp.swift`, `BJSUITests/DesignScreenshotTests.swift`
 
 **Interfaces:**
-- Consumes: Tasks 5 and 9 (`LastLaunchStore`, `LastLaunchText`, `LaunchConfiguration.strategySeed`, `StrategySetupView`, `StrategySessionScreen`)
+- Consumes: Task 5 (`LastLaunchStore`, `LastLaunchText`, `LaunchConfiguration.strategySeed`); Task 9a (`StrategySetupView`); Task 9b (`StrategySessionScreen`)
 - Produces:
   - `HubView(onShowRules:onContinue:destination:)`: shows `hub.continue` (+ `hub.continueDetail`) between the stat chips and the tiles once `lastLaunch` exists
   - `struct ActiveSession: Identifiable, Equatable { id; strategy: StrategySessionConfig }`
@@ -3917,7 +4004,7 @@ Report the SHA to the controller.
 
 - [ ] **Step 6: CI verification (controller)**
 
-Expected: green; 91 unit tests; both UI tests pass (the design walk now opens the Counting placeholder); `Exported 17 screenshots` per device, with `02-placeholder-counting` in place of `02-placeholder-strategy`.
+Expected: green; 93 unit tests; both UI tests pass (the design walk now opens the Counting placeholder); `Exported 17 screenshots` per device, with `02-placeholder-counting` in place of `02-placeholder-strategy`.
 
 ---
 
@@ -3927,7 +4014,7 @@ Expected: green; 91 unit tests; both UI tests pass (the design walk now opens th
 - Create: `BJSUITests/StrategySessionUITests.swift`
 
 **Interfaces:**
-- Consumes: Task 10's wiring and the identifiers listed in Task 9; `BJS_UI_TESTING`, `BJS_STRATEGY_SEED`
+- Consumes: Task 10's wiring and the identifiers listed in Tasks 9a and 9b; `BJS_UI_TESTING`, `BJS_STRATEGY_SEED`
 - Produces:
   - `testFiveHandStrategySession` (spec §7): launch → hub (no Continue) → Strategy setup → Endless → Start → 5 hands in Learn mode → End → summary shows 5 hands → Done → back to the hub, where Continue now shows → Continue starts the trainer → ✕ closes at once (nothing graded)
   - `testSpeedTimeoutSavePartialAndMistakeWhy`: Speed → no input → the 3 s timeout gives "Time's up" feedback → ✕ → alert → Save partial → summary with Avg decision → mistake row → WHY
@@ -4176,7 +4263,7 @@ Report the SHA to the controller.
 
 - [ ] **Step 4: CI verification (controller)**
 
-Expected: green; 91 unit tests; **4 UI tests** passing on both iPhone 16 and iPhone SE; `Exported 29 screenshots` per device. This run meets the §8 "done when" for Step 3: the Strategy UI test and the STAND regression test (Task 7) are green.
+Expected: green; 93 unit tests; **4 UI tests** passing on both iPhone 16 and iPhone SE; `Exported 29 screenshots` per device. This run meets the §8 "done when" for Step 3: the Strategy UI test and the STAND regression test (Task 7) are green.
 
 If a UI test fails, fetch the `xcresults` artifact. The usual causes, with their fixes:
 - An element is found but not hittable. Add `waitUntilGone`/`waitForExistence` around the transition.
@@ -4206,7 +4293,7 @@ This is a conformance check, not a redesign. A mismatch is fixed only when the c
 |---|---|---|
 | 1 | Setup: rules label, "Strategy" in `display`, three ModePickers (Mode: 4 segments, "Weak spots" readable on SE), mode description line, cream Start button | 30 |
 | 2 | Trainer (Learn): top bar ✕ / "Hand 1" over "Learn" / End; dealer upcard + card back; player hand + total; dock rows STAND HIT / SPLIT DOUBLE SURRENDER; **brass ring on exactly one button**; dimmed buttons at 40% | 31 |
-| 3 | Feedback: cream card over the dock, badge straddling the top edge (✓ `correct` / ✕ `incorrect`), headline + one-line reason, WHY + NEXT; **the dealer's hole card is still face down** | 32, 38 |
+| 3 | Feedback: cream card over the dock, badge straddling the top edge (✓ `correct` / ✕ `incorrect`), headline + one-line reason, WHY + NEXT; **the dealer's hole card is still face down**; **on iPhone SE the card must not hide the player's cards/total** | 32, 38 |
 | 4 | WHY sheet: `feltBase`, radius 16, "Why" + Done, spot title in `display`, rules line, "Basic strategy" chip, explanation text | 33, 41 |
 | 5 | Outcome: hole card face up, dealer total, per-hand result under the hand, "Dealer has N" / "Dealer busts" in `title`, cream "Next hand" | 34 |
 | 6 | Summary: "Summary" in `display`, four StatChips (plus "Avg decision" spanning both columns in Speed only), Mistakes panel (rows with hairlines, "Why ›"), Done | 35, 40 |
@@ -4218,6 +4305,8 @@ This is a conformance check, not a redesign. A mismatch is fixed only when the c
 | 12 | Step 2 screens unchanged apart from `02-placeholder-counting` | 01–19 |
 | 13 | `ContrastTests` passed in the same run | CI log |
 
+**Note on screenshot 37:** it is captured right after Start, meant to show the live Speed countdown bar. `CountdownBar` is driven by `TimelineView(.animation)`, and XCUITest's `screenshot()` waits for the app to report idle first; on a slow CI runner that wait can outlast the 3 s countdown, so screenshot 37 sometimes shows the "Time's up" FeedbackCard (screenshot 38's content) instead of the bar. That is not a row 8 failure — if 37 shows the timeout card, check row 8 against 38 instead (both come from the same Speed screen) and move on.
+
 - [ ] **Step 3: Append the Step 3 handoff to `docs/superpowers/progress.md`**
 
 Use the real values (the commit range from `git log --oneline`, the run URL, test counts and device names):
@@ -4228,8 +4317,8 @@ Use the real values (the commit range from `git log --oneline`, the run URL, tes
 
 - Commits: <first-sha>..<last-sha> (branch `main-8v0ds1`; plan `docs/superpowers/plans/2026-09-24-step-3-strategy.md`).
 - CI: run <url> green. It ran:
-  - BJSCore: 228 tests;
-  - app unit tests: 91 (Swift Testing), including "STAND always produces feedback before the next hand" for all four modes;
+  - BJSCore: 231 tests;
+  - app unit tests: 93 (Swift Testing), including "STAND always produces feedback before the next hand" for all four modes;
   - UI tests: 4 (XCTest), including the spec §7 "5-hand Strategy session → summary", on <iPhone 16 device> and <iPhone SE device>;
   - screenshots: 29 per device.
 - Design check: checklist 1–13 in Task 12 of the plan: <all pass | deviations and their fix commits>. Contrast test green.
@@ -4238,7 +4327,7 @@ Use the real values (the commit range from `git log --oneline`, the run URL, tes
   - App: `LastLaunch` + `LastLaunchStore` (the `lastLaunch` key); `StrategySessionSaving` + `SwiftDataStrategySessionSaver` + `DecisionHistory`; `CountdownBar` (a new component, existing tokens); the `Features/Strategy` setup, trainer, WHY sheet, summary and ViewModel; hub Continue; full-screen sessions from `RootTabView`.
   - `scripts/dev/linux_app_check.sh`: runs Linux-safe app files and their Swift Testing suites locally.
 - Decisions for Luke: the plan's "Decisions this plan makes", especially:
-  - #1: the engine grades hard 16 vs 10 (6D S17, no surrender) as STAND, which disagrees with the WoO chart (hit). A `fix(core)` needs his decision.
+  - #1: fixed before this step — `cf2ec31`/`37dbf30` corrected hard 16 vs 10 and hard 15 vs 10 (RS1, RS2, RS7) against WoO. No action needed.
   - #2/#4: the feedback → outcome → next-hand flow.
   - #6: the leave behaviour.
   - #15: the new visual pieces.
@@ -4262,4 +4351,4 @@ git push origin main-8v0ds1
 
 - [ ] **Step 5: Report to Luke**
 
-Send the run link, the `design-screenshots` artifact, the checklist result, and Decision 1 (hard 16 vs 10) with a recommendation to open a `fix(core)` task that re-validates the stiff-hand rows against Wizard of Odds.
+Send the run link, the `design-screenshots` artifact, and the checklist result. Decision 1 (hard 16 vs 10, hard 15 vs 10) needs no follow-up: `cf2ec31`/`37dbf30` already corrected RS1, RS2 and RS7 against Wizard of Odds before this step began.
