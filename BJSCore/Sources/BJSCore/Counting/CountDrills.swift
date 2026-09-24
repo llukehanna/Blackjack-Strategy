@@ -75,7 +75,8 @@ public enum CountDrillGenerator {
         let cards: [Card]
         switch length {
         case .cards(let n):
-            let decks = max(1, Int((Double(n) / 52).rounded(.up)))
+            let neededDecks = max(1, Int((Double(n) / 52).rounded(.up)))
+            let decks = max(deckCount, neededDecks)
             cards = Array(Shoe.standardCards(deckCount: decks).shuffled(using: &rng).prefix(n))
         case .fullShoe:
             cards = Shoe.standardCards(deckCount: deckCount).shuffled(using: &rng)

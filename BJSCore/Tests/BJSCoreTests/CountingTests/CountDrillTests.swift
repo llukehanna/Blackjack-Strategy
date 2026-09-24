@@ -25,6 +25,21 @@ struct CountDrillTests {
         #expect(drill.expectedCount(afterGroup: drill.groups.count - 1) == 0)
     }
 
+    @Test("Partial-length drills draw from the configured deck count, not a minimal pool")
+    func partialLengthUsesConfiguredDeckCount() {
+        var sawNonZero = false
+        for seed in UInt64(1)...20 {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            let drill = CountDrillGenerator.runningCountDrill(
+                length: .cards(52), groupSize: 52, deckCount: 6,
+                randomCheckpoints: false, using: &rng)
+            if drill.expectedCount(afterGroup: drill.groups.count - 1) != 0 {
+                sawNonZero = true
+            }
+        }
+        #expect(sawNonZero)
+    }
+
     @Test("Expected count matches a HiLoCounter at every group")
     func expectedCountMatchesCounter() {
         var rng = SeededRandomNumberGenerator(seed: 3)
