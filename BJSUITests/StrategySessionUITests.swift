@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 
 /// Spec §7 UI test: launch → hub → 5-hand Strategy session → summary visible. The walk also
@@ -82,6 +83,7 @@ final class StrategySessionUITests: XCTestCase {
 
         for _ in 0..<150 {
             guard let element = firstExisting([next, nextHand, stand], timeout: 10) else {
+                logFailureState(app, "stalled after \(completed) completed hands")
                 XCTFail("Neither feedback, an outcome nor the dock appeared")
                 return
             }
@@ -205,4 +207,19 @@ final class StrategySessionUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["strategy.setup.title"].waitForExistence(timeout: 5))
     }
 
+    /// CI logs are the only view into a failed UI run here (artifacts can't be fetched), so on a
+    /// stall print the element tree and a small JPEG of the screen (base64, tagged BJS-SHOT).
+    @MainActor
+    private func logFailureState(_ app: XCUIApplication, _ tag: String) {
+        print("BJS-TREE \(tag):\n\(app.debugDescription)")
+        let image = XCUIScreen.main.screenshot().image
+        let width: CGFloat = 240
+        let size = CGSize(width: width, height: image.size.height * width / image.size.width)
+        let small = UIGraphicsImageRenderer(size: size).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }
+        if let data = small.jpegData(compressionQuality: 0.6) {
+            print("BJS-SHOT \(tag.replacingOccurrences(of: " ", with: "-")) \(data.base64EncodedString())")
+        }
+    }
 }
