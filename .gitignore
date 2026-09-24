@@ -26,3 +26,4 @@ Packages/
 
 # Superpowers brainstorming companion
 .superpowers/
+__pycache__/
