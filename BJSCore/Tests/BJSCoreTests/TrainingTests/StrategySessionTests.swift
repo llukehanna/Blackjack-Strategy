@@ -67,6 +67,7 @@ struct StrategySessionTests {
             try session.choose(.action(.stand), responseMs: nil, at: Self.date)
             #expect(session.phase == .feedback)
             #expect(session.lastDecision?.handNumber == hand)
+            #expect(session.round.phase == .playerTurn)
             try session.continueAfterFeedback()
             #expect(session.phase == .outcome)
             try session.nextHand(using: &rng)
