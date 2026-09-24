@@ -10,6 +10,7 @@ struct StrategyTrainerView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
+    @State private var isDiscarding = false
 
     init(viewModel: StrategyTrainerViewModel, onClose: @escaping () -> Void) {
         self._viewModel = Bindable(wrappedValue: viewModel)
@@ -18,7 +19,7 @@ struct StrategyTrainerView: View {
 
     var body: some View {
         Group {
-            if viewModel.isFinished {
+            if viewModel.isFinished && !isDiscarding {
                 StrategySummaryView(viewModel: viewModel, onDone: onClose)
             } else {
                 table
@@ -32,6 +33,7 @@ struct StrategyTrainerView: View {
         .alert("Leave this session?", isPresented: $viewModel.isConfirmingLeave) {
             Button("Save partial") { viewModel.savePartial() }
             Button("Discard", role: .destructive) {
+                isDiscarding = true
                 viewModel.discard()
                 onClose()
             }
@@ -43,6 +45,9 @@ struct StrategyTrainerView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Your summary is shown, but this session won't count toward your progress.")
+        }
+        .onChange(of: scenePhase) { _, new in
+            if new == .active { viewModel.resumeCountdown() }
         }
         .task(id: CountdownTaskID(token: viewModel.countdownToken, phase: scenePhase)) {
             // Speed mode: one countdown per decision. A new token (next decision), a nil

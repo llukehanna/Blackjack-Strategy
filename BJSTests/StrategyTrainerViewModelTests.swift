@@ -250,6 +250,41 @@ struct StrategyTrainerViewModelTests {
         #expect(saver.saved.isEmpty)
     }
 
+    @Test("Returning to the foreground mid-decision restarts the Speed countdown; a no-op elsewhere")
+    func resumeCountdown() {
+        let vm = makeViewModel(StrategySessionConfig(mode: .speed), shoes: [StrategyFixtures.hard16vs7])
+        let token = vm.decisionToken
+        let startedAt = vm.decisionStartedAt
+
+        clock.advance(1.5)
+        vm.resumeCountdown()
+        #expect(vm.decisionStartedAt == startedAt.addingTimeInterval(1.5))
+        #expect(vm.decisionToken == token + 1)
+
+        // Outside `.decision` (feedback showing) resumeCountdown does nothing.
+        vm.choose(.hit)                        // 16 + 5 = 21 → feedback
+        #expect(vm.phase == .feedback)
+        let feedbackToken = vm.decisionToken
+        let feedbackStartedAt = vm.decisionStartedAt
+        clock.advance(1)
+        vm.resumeCountdown()
+        #expect(vm.decisionToken == feedbackToken)
+        #expect(vm.decisionStartedAt == feedbackStartedAt)
+
+        // While the leave prompt is open (even with phase == .decision), it also does nothing.
+        vm.next()                              // outcome
+        vm.nextHand()                          // hand 2, back to .decision
+        #expect(vm.phase == .decision)
+        #expect(!vm.requestLeave())
+        #expect(vm.isConfirmingLeave)
+        let promptToken = vm.decisionToken
+        let promptStartedAt = vm.decisionStartedAt
+        clock.advance(1)
+        vm.resumeCountdown()
+        #expect(vm.decisionToken == promptToken)
+        #expect(vm.decisionStartedAt == promptStartedAt)
+    }
+
     @Test("Discard finishes the session: the countdown can never resume and nothing is saved")
     func discardEndsSession() {
         let vm = makeViewModel(StrategySessionConfig(mode: .speed), shoes: [StrategyFixtures.hard16vs7])

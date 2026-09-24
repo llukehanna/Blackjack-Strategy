@@ -169,6 +169,14 @@ final class StrategyTrainerViewModel {
         if session.phase == .decision { startDecision() }
     }
 
+    /// The app returned to the foreground mid-decision (Speed mode). Restarts the decision
+    /// clock from now, so `CountdownBar` and the reaction time don't keep counting from the
+    /// stale `decisionStartedAt` that predates however long the app was backgrounded.
+    func resumeCountdown() {
+        guard session.phase == .decision, !isConfirmingLeave else { return }
+        startDecision()
+    }
+
     /// "Discard": nothing is saved; the view closes. Ends the session so the Speed countdown
     /// (and any other decision-phase behaviour) can never resume, even if a stray call reaches
     /// this view model before it deallocates.
