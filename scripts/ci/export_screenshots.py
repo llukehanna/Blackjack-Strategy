@@ -51,7 +51,9 @@ def print_crash_report(path):
         images = report.get("usedImages", [])
         threads = report.get("threads", [])
         crashed = next((t for t in threads if t.get("triggered")), threads[0] if threads else {})
-        for frame in crashed.get("frames", [])[:40]:
+        print("crashed thread:", json.dumps({k: crashed.get(k) for k in ("id", "name", "queue")}))
+        print("threads:", json.dumps([{k: t.get(k) for k in ("name", "queue", "triggered")} for t in threads])[:3000])
+        for frame in crashed.get("frames", [])[:90]:
             image = images[frame.get("imageIndex", 0)].get("name", "?") if images else "?"
             print(f"  {image}  {frame.get('symbol', '?')}  +{frame.get('symbolLocation', '')}  "
                   f"{frame.get('sourceFile', '')}:{frame.get('sourceLine', '')}")

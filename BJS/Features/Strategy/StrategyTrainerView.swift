@@ -214,22 +214,34 @@ struct StrategyTrainerView: View {
         .accessibilityIdentifier("trainer.player")
     }
 
+    /// Split hands, built eagerly in fixed slots rather than with `ForEach`: SwiftUI can call a
+    /// ForEach item closure off the main thread while measuring (here under ViewThatFits), which
+    /// traps Swift 6's main-actor isolation check. The rules allow at most 4 hands.
     private func playerHands(cardWidth: CGFloat) -> some View {
         let hands = viewModel.playerHands
         return HStack(alignment: .top, spacing: FeltSpacing.l) {
-            ForEach(Array(hands.enumerated()), id: \.offset) { index, state in
-                VStack(spacing: FeltSpacing.xs) {
-                    HandView(cards: state.hand.cards, cardWidth: cardWidth, overlap: 0.35,
-                             totalLabel: StrategyText.total(state.hand))
-                    if viewModel.phase == .outcome {
-                        Text(StrategyText.outcome(state))
-                            .feltType(.label)
-                            .foregroundStyle(FeltColor.textPrimary)
-                            .accessibilityIdentifier("trainer.handOutcome.\(index)")
-                    }
+            playerHand(at: 0, of: hands, cardWidth: cardWidth)
+            playerHand(at: 1, of: hands, cardWidth: cardWidth)
+            playerHand(at: 2, of: hands, cardWidth: cardWidth)
+            playerHand(at: 3, of: hands, cardWidth: cardWidth)
+        }
+    }
+
+    @ViewBuilder
+    private func playerHand(at index: Int, of hands: [PlayerHandState], cardWidth: CGFloat) -> some View {
+        if index < hands.count {
+            let state = hands[index]
+            VStack(spacing: FeltSpacing.xs) {
+                HandView(cards: state.hand.cards, cardWidth: cardWidth, overlap: 0.35,
+                         totalLabel: StrategyText.total(state.hand))
+                if viewModel.phase == .outcome {
+                    Text(StrategyText.outcome(state))
+                        .feltType(.label)
+                        .foregroundStyle(FeltColor.textPrimary)
+                        .accessibilityIdentifier("trainer.handOutcome.\(index)")
                 }
-                .opacity(isDimmed(index, handCount: hands.count) ? 0.4 : 1)
             }
+            .opacity(isDimmed(index, handCount: hands.count) ? 0.4 : 1)
         }
     }
 
