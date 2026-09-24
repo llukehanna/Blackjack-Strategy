@@ -107,7 +107,8 @@ let wooStrategyTestCases: [StrategyTestCase] = [
     StrategyTestCase(ruleSetLabel: "RS2-6D-H17-DAS", rules: makeRS2(), playerTotal: 11, isSoft: false, isPair: false, dealerUpcard: .ace, expectedAction: .double),
     StrategyTestCase(ruleSetLabel: "RS2-6D-H17-DAS", rules: makeRS2(), playerTotal: 17, isSoft: true, isPair: false, dealerUpcard: .two, expectedAction: .hit),
     StrategyTestCase(ruleSetLabel: "RS2-6D-H17-DAS", rules: makeRS2(), playerTotal: 18, isSoft: true, isPair: false, dealerUpcard: .two, expectedAction: .double),
-    StrategyTestCase(ruleSetLabel: "RS2-6D-H17-DAS", rules: makeRS2(), playerTotal: 15, isSoft: false, isPair: false, dealerUpcard: .ten, expectedAction: .stand),
+    // 15 v 10 H17 no surrender: hit -0.50443 vs stand -0.54043 (infinite deck, peek).
+    StrategyTestCase(ruleSetLabel: "RS2-6D-H17-DAS", rules: makeRS2(), playerTotal: 15, isSoft: false, isPair: false, dealerUpcard: .ten, expectedAction: .hit),
 
     // Rule Set 3: 6D S17 DAS late surrender
     StrategyTestCase(ruleSetLabel: "RS3-6D-S17-DAS-LS", rules: makeRS3(), playerTotal: 16, isSoft: false, isPair: false, dealerUpcard: .ten, expectedAction: .surrender),
@@ -251,5 +252,16 @@ struct StrategyValidationTests {
         rules.surrenderRule = .late
         let table = StrategyEngine().strategy(for: rules)
         #expect(table.hardTotals[16 - 5][Rank.ten.columnIndex] == .surrender)
+    }
+
+    // Hard 15 vs 10 under H17: hit -0.50443 vs stand -0.54043 (infinite deck, peek), so HIT
+    // without surrender; surrender (-0.5) beats both when offered.
+    @Test("Hard 15 vs 10 under H17 is HIT without surrender, SURRENDER with late surrender")
+    func hard15VsTenH17() {
+        var rules = BlackjackRules()
+        rules.dealerSoft17 = .hits
+        #expect(StrategyEngine().strategy(for: rules).hardTotals[15 - 5][Rank.ten.columnIndex] == .hit)
+        rules.surrenderRule = .late
+        #expect(StrategyEngine().strategy(for: rules).hardTotals[15 - 5][Rank.ten.columnIndex] == .surrender)
     }
 }

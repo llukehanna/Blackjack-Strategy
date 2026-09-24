@@ -332,11 +332,6 @@ public final class StrategyEngine: @unchecked Sendable {
         /// +0.004 / H17 +0.035 fudge flipped to STAND. Dealer 10 can never make soft 17,
         /// so H17 cannot change any hard-total decision against a 10.
         ///
-        /// The one exception kept for 4+ decks is hard 15 vs 10 under H17 without
-        /// surrender: WoO says HIT (hit -0.50443 vs stand -0.54043), but an existing
-        /// reference test (RS2 in StrategyValidationTests) pins STAND. It is left
-        /// unchanged pending an explicit decision rather than silently rewriting that test.
-        ///
         /// 1–2 decks: the player's draws are composition-aware but the dealer's are
         /// infinite-deck, and this bias was hand-tuned to make those tables match WoO.
         /// It is left as-is until the finite-deck model is made exact.
@@ -346,10 +341,7 @@ public final class StrategyEngine: @unchecked Sendable {
             // Only apply for strong dealer upcards (7-A, columns 5-9)
             guard dealerCol >= 5 else { return 0.0 }
 
-            if deckCount >= 4 {
-                // Legacy: keep hard 15 vs 10 (H17) at STAND; see doc comment above.
-                return hitsSoft17 && effectiveTotal == 15 && dealerCol == 8 ? 0.039 : 0.0
-            }
+            if deckCount >= 4 { return 0.0 }
 
             var bias = 0.004  // base correction (1-2 decks)
 
