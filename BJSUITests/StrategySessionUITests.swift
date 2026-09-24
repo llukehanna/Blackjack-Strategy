@@ -1,5 +1,4 @@
 import XCTest
-import UIKit
 
 /// Spec §7 UI test: launch → hub → 5-hand Strategy session → summary visible. The walk also
 /// attaches the Strategy design-check screenshots (setup, trainer with hint, FeedbackCard,
@@ -80,7 +79,6 @@ final class StrategySessionUITests: XCTestCase {
         var completed = 0
         var tookDecision = !snapshots
         var tookFeedback = !snapshots
-        var printedDiagnostic = false
 
         for _ in 0..<150 {
             guard let element = firstExisting([next, nextHand, stand], timeout: 10) else {
@@ -90,10 +88,6 @@ final class StrategySessionUITests: XCTestCase {
             switch element.identifier {
             case "feedback.next":
                 // The top bar stays on screen, and usable, while feedback shows.
-                if !printedDiagnostic {
-                    printedDiagnostic = true
-                    logScreen("test-feedback")
-                }
                 XCTAssertTrue(app.buttons["trainer.close"].isHittable, "✕ is hittable during feedback")
                 if !tookFeedback {
                     tookFeedback = true
@@ -189,7 +183,6 @@ final class StrategySessionUITests: XCTestCase {
         // Leaving with a graded decision asks first. The ✕ must be on screen with the card up.
         let close = app.buttons["trainer.close"]
         // Diagnostic (temporary): dump the element tree with frames so CI logs show the layout.
-        logScreen("speed-feedback")
         XCTAssertTrue(close.isHittable, "✕ is hittable while the timeout FeedbackCard shows")
         close.tap()
         let alert = app.alerts.firstMatch
@@ -212,16 +205,4 @@ final class StrategySessionUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["strategy.setup.title"].waitForExistence(timeout: 5))
     }
 
-    /// Diagnostic (temporary): prints a small JPEG of the screen as base64 so CI logs carry it.
-    @MainActor
-    private func logScreen(_ tag: String) {
-        let image = XCUIScreen.main.screenshot().image
-        let width: CGFloat = 240
-        let size = CGSize(width: width, height: image.size.height * width / image.size.width)
-        let renderer = UIGraphicsImageRenderer(size: size)
-        let small = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
-        if let data = small.jpegData(compressionQuality: 0.6) {
-            print("BJS-SHOT \(tag) \(data.base64EncodedString())")
-        }
-    }
 }

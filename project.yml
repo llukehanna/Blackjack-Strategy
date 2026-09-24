@@ -20,14 +20,20 @@ targets:
       testTargets:
         - BJSTests
         - BJSUITests
+    info:
+      # XcodeGen writes this plist on `xcodegen generate` (gitignored); Xcode merges it with
+      # the generated keys. UILaunchScreen is what stops iOS running the app letterboxed in
+      # legacy 320x480 mode; UIDesignRequiresCompatibility opts out of Liquid Glass (Step 2
+      # Decision 15). "INFOPLIST_VALUES" used before is not an Xcode setting and did nothing.
+      path: BJS/Info.plist
+      properties:
+        CFBundleDisplayName: BJS
+        UILaunchScreen: {}
+        UIDesignRequiresCompatibility: true
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.bjs.app
-        INFOPLIST_VALUES:
-          CFBundleName: BJS
-          UILaunchScreen: {}
-          UIDesignRequiresCompatibility: true
   BJSTests:
     type: bundle.unit-test
     platform: iOS

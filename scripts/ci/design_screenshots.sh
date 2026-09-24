@@ -18,4 +18,4 @@ xcodebuild test-without-building -project BJS.xcodeproj -scheme BJS \
   -destination "id=$UDID" \
   -derivedDataPath build/DerivedData \
   -only-testing:BJSUITests \
-  -resultBundlePath "build/results/$LABEL.xcresult" 2>&1 | tail -400
+  -resultBundlePath "build/results/$LABEL.xcresult" 2>&1 | tail -150
