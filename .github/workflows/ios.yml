@@ -54,4 +54,4 @@ jobs:
           set -o pipefail
           xcodebuild test -project BJS.xcodeproj -scheme BJS \
             -destination "id=${{ steps.sim.outputs.udid }}" \
-            CODE_SIGNING_ALLOWED=NO | tail -200
+            CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO | tail -200

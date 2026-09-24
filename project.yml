@@ -19,6 +19,7 @@ targets:
     scheme:
       testTargets:
         - BJSTests
+        - BJSUITests
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
@@ -34,6 +35,16 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: BJS
+  BJSUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [BJSUITests]
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: BJS
     dependencies:
       - target: BJS
 packages:
