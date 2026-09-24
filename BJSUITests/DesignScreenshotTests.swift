@@ -8,7 +8,7 @@ final class DesignScreenshotTests: XCTestCase {
     /// Must match `GalleryPage` raw values in `BJS/Design/Gallery/ComponentGallery.swift`.
     private static let galleryPages = [
         "colors", "type", "cards", "dock", "feedback",
-        "buttons", "tiles", "settingsRows", "keypad", "keypadDecimal",
+        "buttons", "tiles", "settingsRows", "keypad", "keypadDecimal", "countdown",
     ]
 
     override func setUpWithError() throws {

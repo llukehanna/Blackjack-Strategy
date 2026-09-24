@@ -16,6 +16,7 @@ enum GalleryPage: String, CaseIterable, Identifiable {
     case settingsRows
     case keypad
     case keypadDecimal
+    case countdown
 
     var id: String { rawValue }
 
@@ -31,6 +32,7 @@ enum GalleryPage: String, CaseIterable, Identifiable {
         case .settingsRows: return "Settings rows"
         case .keypad: return "Count keypad"
         case .keypadDecimal: return "Keypad (decimal)"
+        case .countdown: return "Countdown bar"
         }
     }
 }
@@ -70,6 +72,7 @@ struct ComponentGalleryView: View {
         case .settingsRows: SettingsRowsGalleryPage()
         case .keypad: KeypadGalleryPage(allowsDecimal: false)
         case .keypadDecimal: KeypadGalleryPage(allowsDecimal: true)
+        case .countdown: CountdownGalleryPage()
         }
     }
 }
@@ -330,6 +333,15 @@ private struct KeypadGalleryPage: View {
 
     var body: some View {
         CountKeypad(entry: $entry, allowsDecimal: allowsDecimal) { _ in }
+    }
+}
+
+private struct CountdownGalleryPage: View {
+    var body: some View {
+        GalleryItem("Full") { CountdownBar(fraction: 1) }
+        GalleryItem("Half") { CountdownBar(fraction: 0.5) }
+        GalleryItem("Nearly out") { CountdownBar(fraction: 0.1) }
+        GalleryItem("Empty (timeout)") { CountdownBar(fraction: 0) }
     }
 }
 
