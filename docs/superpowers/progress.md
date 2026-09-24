@@ -36,3 +36,33 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   - The HandGenerator weighted-convergence test takes ~7s in debug. Optional speed-up later.
   - EdgeCalculator gives single-deck 6:5 (H17, no DAS) ≈1.43%. Verify against the WoO calculator in Step 5.
 - Next: Step 2 (Foundation). Brainstorm and plan it in a fresh session from spec §4 and §8.
+
+## Step 2 — Foundation (2026-09-24)
+
+- Commits: a5edfac..HEAD on `main-8v0ds1` (plan a5edfac + review fixes fa39b7c; code 452e3c7..f0e6771).
+- CI: [run 8](https://github.com/llukehanna/Blackjack-Strategy/actions/runs/35955268409) green on 1a14c8c. It ran BJSCore (195 tests), app unit tests (Swift Testing; the plan expects 60), and UI tests (XCTest; 2) on iPhone 16 and iPhone SE, with the screenshots exported and uploaded. Earlier green runs: 5 (Task 1), 6 (Tasks 2–6), 7 (Tasks 7–9). Test counts are from the plan; I didn't read them from the CI log.
+- Design check (spec §7): the screenshots are in run 8's `design-screenshots` artifact (16 per device). **Not yet inspected:** the artifact host (blob.core.windows.net) is blocked from the cloud container. A step that would have pushed the screenshots to a git branch needed CI write permission, and that was denied. Luke: download the artifact from the run's Summary page and go through checklist rows 1–19 in Task 13 of `docs/superpowers/plans/2026-09-24-step-2-foundation.md`. Row 7 is out of date: the Reset label is now `textPrimary` (Decision 16), so `incorrect` appears only on feedback. The contrast test is green in the same run.
+- **Design freeze: PENDING Luke's approval.** When Luke approves, change this line to "Design freeze: FROZEN on <date> (approved by Luke)". From then on, §4 tokens and components change only by Luke's explicit decision, in their own commit.
+- For Luke to confirm at the freeze: the "Decisions this plan makes" list in the Step 2 plan, especially:
+  - #11: visual details the spec left open.
+  - #13: contrast at the `feltLight` centre. textSecondary is 4.33:1, textTertiary 3.51:1, brass 4.08:1 and incorrect 2.89:1 there. All pass on `feltBase`, which is what the spec requires.
+  - #15: opting out of iOS 26 Liquid Glass via `UIDesignRequiresCompatibility`. This was the controller's call, and it's reversible.
+  - #16: Reset label in `textPrimary`.
+- Added:
+  - Felt tokens (`FeltPalette`, `FeltColor`, `FeltType`, `FeltSpacing`, `FeltRadius`, `FeltMetrics`, `FeltMotion`) and `WCAGContrast`.
+  - Components: FeltBackground, PlayingCard, HandView, ActionDock, FeedbackCard, StatChip, ModuleTile, PrimaryButton/SecondaryButton (`FeltButtonStyle`), ModePicker, SettingsRow/SettingsSection, CountKeypad (+ `CountEntry`, optional decimal key).
+  - DEBUG ComponentGallery.
+  - `ActiveRulesStore` and `Preferences`, which write UserDefaults directly with the spec's keys.
+  - SwiftData `SchemaV1` + `BJSMigrationPlan`, `ProgressMapper`, `ProgressReset`.
+  - Hub shell and Settings tab (+ `SettingsPresetOptions`).
+  - `BJSUITests`.
+  - CI screenshot pipeline (`scripts/ci/*`, `.github/workflows/ios.yml`).
+- `project.yml`: the no-op `DefaultIsolationMainActor` flag is gone. The app is nonisolated by default, with explicit `@MainActor` stores. `UIDesignRequiresCompatibility: true` is set.
+- CI now takes ~20 minutes per push (UI tests on two devices, ~10 min of that on the SE). It's free, because the repo is public.
+- Notes for Step 3:
+  - Hub tiles route through `RootTabView`'s `destination` closure; replace `PlaceholderScreen` for `.strategy`.
+  - Records use the typealiases `Session`, `DecisionRecord` and `CountCheckRecord`, and the Session relationship is `countCheckRecords`.
+  - Write `decidedAt` per decision. "timeout" is a plain `chosenAction` string.
+  - Continue and `lastLaunch` are still to build.
+  - `LaunchConfiguration` gives UI tests a clean store (`BJS_UI_TESTING=1`).
+- Next: once Luke approves the freeze, Step 3 (Strategy).
