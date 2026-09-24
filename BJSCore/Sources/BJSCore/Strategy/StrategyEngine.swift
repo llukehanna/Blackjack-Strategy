@@ -366,7 +366,8 @@ public final class StrategyEngine: @unchecked Sendable {
 
         /// Select best action for a non-pair hand.
         func bestNonPairAction(hardTotal: Int, softBonus: Int, effectiveTotal: Int,
-                               dealerCol: Int, allowSurrender: Bool) -> (Action, Double) {
+                               dealerCol: Int, allowSurrender: Bool,
+                               allowDouble: Bool = true) -> (Action, Double) {
             let sEV = evStand(playerTotal: effectiveTotal, dealerCol: dealerCol)
             let hEV = evHit(hardTotal: hardTotal, softBonus: softBonus, dealerCol: dealerCol)
 
@@ -380,7 +381,7 @@ public final class StrategyEngine: @unchecked Sendable {
                 bestEV = hEV
             }
 
-            if canDoubleCheck(total: effectiveTotal) {
+            if allowDouble && canDoubleCheck(total: effectiveTotal) {
                 let rawDEV = evDouble(hardTotal: hardTotal, softBonus: softBonus, dealerCol: dealerCol)
                 let dBonus = doublingBonus(effectiveTotal: effectiveTotal, isSoft: softBonus > 0, dealerCol: dealerCol)
                 let dEV = rawDEV + dBonus
@@ -404,6 +405,7 @@ public final class StrategyEngine: @unchecked Sendable {
         // MARK: - Build hard totals
 
         var hardTotals: [[Action]] = Array(repeating: Array(repeating: Action.stand, count: 10), count: 17)
+        var hardHitStand: [[Action]] = Array(repeating: Array(repeating: Action.stand, count: 10), count: 17)
 
         for dealerCol in 0..<10 {
             evCache = [:]
@@ -415,12 +417,18 @@ public final class StrategyEngine: @unchecked Sendable {
                     dealerCol: dealerCol, allowSurrender: true
                 )
                 hardTotals[row][dealerCol] = action
+                let (fallback, _) = bestNonPairAction(
+                    hardTotal: playerTotal, softBonus: 0, effectiveTotal: playerTotal,
+                    dealerCol: dealerCol, allowSurrender: false, allowDouble: false
+                )
+                hardHitStand[row][dealerCol] = fallback
             }
         }
 
         // MARK: - Build soft totals
 
         var softTotals: [[Action]] = Array(repeating: Array(repeating: Action.stand, count: 10), count: 9)
+        var softHitStand: [[Action]] = Array(repeating: Array(repeating: Action.stand, count: 10), count: 9)
 
         for dealerCol in 0..<10 {
             evCache = [:]
@@ -433,6 +441,11 @@ public final class StrategyEngine: @unchecked Sendable {
                     dealerCol: dealerCol, allowSurrender: true
                 )
                 softTotals[row][dealerCol] = action
+                let (fallback, _) = bestNonPairAction(
+                    hardTotal: hardTotal, softBonus: 10, effectiveTotal: playerTotal,
+                    dealerCol: dealerCol, allowSurrender: false, allowDouble: false
+                )
+                softHitStand[row][dealerCol] = fallback
             }
         }
 
@@ -517,7 +530,8 @@ public final class StrategyEngine: @unchecked Sendable {
             }
         }
 
-        return StrategyTable(hardTotals: hardTotals, softTotals: softTotals, pairs: pairs)
+        return StrategyTable(hardTotals: hardTotals, softTotals: softTotals, pairs: pairs,
+                             hardHitStand: hardHitStand, softHitStand: softHitStand)
     }
 
     // MARK: - Helpers
