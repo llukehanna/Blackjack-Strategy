@@ -23,7 +23,7 @@
   2. **the implementer commits and reports the SHA — it does not push**;
   3. **the controller pushes and checks the CI run** (Step "CI verification (controller)"). If CI fails, the controller hands the failing log lines back to the implementer, who fixes forward in a new commit (`fix(app): …`) until the run is green. Do not start the next task on a red run.
 - **Local pre-checks** (run from the repo root; `export PATH=/opt/swiftroot/usr/bin:$PATH` first):
-  - Engine still green: `(cd BJSCore && swift build 2>&1 | tail -1 && swift test 2>&1 | tail -1)` → the build line and `Test run with 173 tests … passed`. BJSCore is not changed in this step, so the count stays 173.
+  - Engine still green: `(cd BJSCore && swift build 2>&1 | tail -1 && swift test 2>&1 | tail -1)` → the build line and `Test run with 195 tests … passed`. BJSCore is not changed in this step, so the count stays 195.
   - Syntax of every Swift file you touched: `swiftc -parse <files>` → no output. (`-parse` needs no SDK, so it works on SwiftUI files.)
   - Type-check files that import only Foundation/BJSCore: `swiftc -typecheck -I BJSCore/.build/debug/Modules <files>` → no output. The task says which files qualify.
 - **Default actor isolation — decision:** remove `OTHER_SWIFT_FLAGS: "-enable-upcoming-feature DefaultIsolationMainActor"` from `project.yml` and do **not** add `SWIFT_DEFAULT_ACTOR_ISOLATION`. Reasons: (1) `DefaultIsolationMainActor` is not an upcoming-feature flag; Swift 6.2's default isolation is SE-0466's `-default-isolation MainActor` / Xcode's `SWIFT_DEFAULT_ACTOR_ISOLATION`, so the flag is a no-op at best (Step 1 open item); (2) spec §3 rule 2 already asks for explicit `@MainActor` on ViewModels and stores, which keeps isolation visible in code review; (3) nonisolated-by-default keeps SwiftData `@Model` classes, `VersionedSchema`/`SchemaMigrationPlan` witnesses, `Shape.path(in:)` and pure value types free of accidental main-actor isolation. Code rules that make the code correct **either way** (verified with `swiftc -swift-version 6` in both modes on the pure files):
@@ -126,7 +126,7 @@ Referenced below as **"CI verification"**. The controller (not the implementer) 
 
 1. `git push origin main-8v0ds1`
 2. Find the run for the pushed SHA: GitHub MCP `actions_list` (workflow `ios.yml`, branch `main-8v0ds1`), or `gh run list --branch main-8v0ds1 --limit 1` where `gh` is installed. Wait for it to finish (~6–10 min).
-3. Expected: the run is green. "Engine tests (BJSCore)" ends with `Test run with 173 tests … passed`. The app test step ends with `** TEST SUCCEEDED **` (Tasks 1–10) or `** TEST EXECUTE SUCCEEDED **` (Task 11 onwards) and reports the task's unit-test count from the table above.
+3. Expected: the run is green. "Engine tests (BJSCore)" ends with `Test run with 195 tests … passed`. The app test step ends with `** TEST SUCCEEDED **` (Tasks 1–10) or `** TEST EXECUTE SUCCEEDED **` (Task 11 onwards) and reports the task's unit-test count from the table above.
 4. If red: fetch the failing job log (GitHub MCP `get_job_logs`, or `gh run view --log-failed`), give the error lines to the implementer, and repeat from 1 after their fix commit.
 
 ---
@@ -645,7 +645,7 @@ onCream/incorrect 4.51 OK
 CONTRAST OK
 ```
 
-then no output from `swiftc -parse`, then `Test run with 173 tests … passed`.
+then no output from `swiftc -parse`, then `Test run with 195 tests … passed`.
 
 - [ ] **Step 5: Commit**
 
@@ -4956,7 +4956,7 @@ Use the real values (commit range from `git log --oneline`, run URL, test counts
 ## Step 2 — Foundation (YYYY-MM-DD)
 
 - Commits: <first-sha>..<last-sha> (branch `main-8v0ds1`).
-- CI: run <url> green. BJSCore 173 tests; app unit tests 60 (Swift Testing); UI tests 2 (XCTest) on <iPhone 16 device> and <iPhone SE device>.
+- CI: run <url> green. BJSCore 195 tests; app unit tests 60 (Swift Testing); UI tests 2 (XCTest) on <iPhone 16 device> and <iPhone SE device>.
 - Design check (spec §7): screenshots in the run's `design-screenshots` artifact (16 per device). Checklist 1–19: <all pass | list deviations and their fix commits>. Contrast test green.
 - **Design freeze: PENDING Luke's approval.** When Luke approves, change this line to "Design freeze: FROZEN on <date> (approved by Luke)". From then on §4 tokens and components change only by Luke's explicit decision in their own commit.
 - For Luke to confirm at the freeze: the "Decisions this plan makes" list in `docs/superpowers/plans/2026-09-24-step-2-foundation.md` (esp. #11 visual details, #13 contrast at the `feltLight` centre, and #15 opting out of iOS 26 Liquid Glass).
