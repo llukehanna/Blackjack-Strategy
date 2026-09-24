@@ -79,6 +79,7 @@ final class StrategySessionUITests: XCTestCase {
         var completed = 0
         var tookDecision = !snapshots
         var tookFeedback = !snapshots
+        var printedDiagnostic = false
 
         for _ in 0..<150 {
             guard let element = firstExisting([next, nextHand, stand], timeout: 10) else {
@@ -88,6 +89,10 @@ final class StrategySessionUITests: XCTestCase {
             switch element.identifier {
             case "feedback.next":
                 // The top bar stays on screen, and usable, while feedback shows.
+                if !printedDiagnostic {
+                    printedDiagnostic = true
+                    print("BJS-DIAG test-feedback tree:\n\(app.debugDescription)")
+                }
                 XCTAssertTrue(app.buttons["trainer.close"].isHittable, "✕ is hittable during feedback")
                 if !tookFeedback {
                     tookFeedback = true
@@ -182,6 +187,8 @@ final class StrategySessionUITests: XCTestCase {
 
         // Leaving with a graded decision asks first. The ✕ must be on screen with the card up.
         let close = app.buttons["trainer.close"]
+        // Diagnostic (temporary): dump the element tree with frames so CI logs show the layout.
+        print("BJS-DIAG speed-feedback tree:\n\(app.debugDescription)")
         XCTAssertTrue(close.isHittable, "✕ is hittable while the timeout FeedbackCard shows")
         close.tap()
         let alert = app.alerts.firstMatch
