@@ -7,14 +7,19 @@ struct LaunchConfiguration: Equatable, Sendable {
     static let uiTestingKey = "BJS_UI_TESTING"
     /// A `GalleryPage` raw value → DEBUG builds show that component-gallery page instead of the app.
     static let galleryPageKey = "BJS_GALLERY_PAGE"
+    /// A decimal UInt64 → Strategy sessions deal from this seed, so UI tests see the same hands.
+    static let strategySeedKey = "BJS_STRATEGY_SEED"
     static let uiTestingDefaultsSuite = "com.bjs.app.uitesting"
 
     let isUITesting: Bool
     let galleryPageName: String?
+    /// nil (the normal case) → every session picks a random seed.
+    let strategySeed: UInt64?
 
     init(environment: [String: String]) {
         isUITesting = environment[Self.uiTestingKey] == "1"
         galleryPageName = environment[Self.galleryPageKey]
+        strategySeed = environment[Self.strategySeedKey].flatMap { UInt64($0) }
     }
 
     static var current: LaunchConfiguration {
