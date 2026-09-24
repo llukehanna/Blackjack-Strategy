@@ -87,6 +87,8 @@ final class StrategySessionUITests: XCTestCase {
             }
             switch element.identifier {
             case "feedback.next":
+                // The top bar stays on screen, and usable, while feedback shows.
+                XCTAssertTrue(app.buttons["trainer.close"].isHittable, "✕ is hittable during feedback")
                 if !tookFeedback {
                     tookFeedback = true
                     snapshot("32-strategy-feedback")
@@ -178,8 +180,10 @@ final class StrategySessionUITests: XCTestCase {
         XCTAssertTrue(timeUp.exists)
         snapshot("38-strategy-timeout")
 
-        // Leaving with a graded decision asks first.
-        app.buttons["trainer.close"].tap()
+        // Leaving with a graded decision asks first. The ✕ must be on screen with the card up.
+        let close = app.buttons["trainer.close"]
+        XCTAssertTrue(close.isHittable, "✕ is hittable while the timeout FeedbackCard shows")
+        close.tap()
         let alert = app.alerts.firstMatch
         XCTAssertTrue(alert.waitForExistence(timeout: 5))
         snapshot("39-strategy-leave")

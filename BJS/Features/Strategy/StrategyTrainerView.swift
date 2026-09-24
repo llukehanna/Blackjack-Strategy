@@ -70,21 +70,27 @@ struct StrategyTrainerView: View {
 
     // MARK: - Table
 
+    /// Top-anchored: the top bar (and Speed's countdown) sit at the top of the safe area,
+    /// the bottom area (dock, FeedbackCard or outcome) at the bottom, and the hands take
+    /// whatever is left, shrinking their cards when it is short (iPhone SE, large text).
+    /// Nothing is vertically centred, so an over-tall table can never push the top bar
+    /// above the screen; if it is still too tall, only the bottom edge can overflow.
     private var table: some View {
         VStack(spacing: FeltSpacing.m) {
             topBar
             if viewModel.config.mode.isTimed {
                 countdown
             }
-            Spacer(minLength: 0)
-            dealerArea
-            Spacer(minLength: 0)
-            playerArea
-            Spacer(minLength: 0)
+            handsArea
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Should the smallest cards still not fit (the largest text sizes), they
+                // draw under the top bar and the bottom area, never over them.
+                .zIndex(-1)
             bottomArea
         }
         .padding(.horizontal, FeltSpacing.l)
         .padding(.bottom, FeltSpacing.l)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(reduceMotion ? FeltMotion.crossFade(duration: FeltMotion.uiDuration) : FeltMotion.ui,
                    value: viewModel.phase)
     }
@@ -148,26 +154,56 @@ struct StrategyTrainerView: View {
 
     // MARK: - Hands
 
-    private var dealerArea: some View {
+    /// Card widths for the hands. The table uses the largest set whose hands fit the height
+    /// left between the top bar and the bottom area.
+    private struct CardSizes {
+        let dealer: CGFloat
+        let player: CGFloat
+        let splitPlayer: CGFloat
+
+        static let regular = CardSizes(dealer: 64, player: 72, splitPlayer: 52)
+        static let compact = CardSizes(dealer: 52, player: 58, splitPlayer: 44)
+        static let tight = CardSizes(dealer: 40, player: 44, splitPlayer: 36)
+    }
+
+    private var handsArea: some View {
+        ViewThatFits(in: .vertical) {
+            hands(.regular)
+            hands(.compact)
+            hands(.tight)
+        }
+    }
+
+    private func hands(_ sizes: CardSizes) -> some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 0)
+            dealerArea(cardWidth: sizes.dealer)
+            Spacer(minLength: FeltSpacing.m)
+            playerArea(cardWidth: viewModel.playerHands.count > 1 ? sizes.splitPlayer : sizes.player)
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func dealerArea(cardWidth: CGFloat) -> some View {
         VStack(spacing: FeltSpacing.s) {
             Text("Dealer")
                 .feltType(.label)
                 .foregroundStyle(FeltColor.textTertiary)
             HandView(cards: viewModel.dealerHand.cards,
                      faceDownIndices: viewModel.isDealerRevealed ? [] : [1],
-                     cardWidth: 64, overlap: 0.35,
+                     cardWidth: cardWidth, overlap: 0.35,
                      totalLabel: viewModel.isDealerRevealed ? StrategyText.total(viewModel.dealerHand) : nil)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("trainer.dealer")
     }
 
-    private var playerArea: some View {
+    private func playerArea(cardWidth: CGFloat) -> some View {
         VStack(spacing: FeltSpacing.s) {
             ViewThatFits(in: .horizontal) {
-                playerHands
+                playerHands(cardWidth: cardWidth)
                 ScrollView(.horizontal, showsIndicators: false) {
-                    playerHands
+                    playerHands(cardWidth: cardWidth)
                 }
             }
             Text("You")
@@ -178,9 +214,8 @@ struct StrategyTrainerView: View {
         .accessibilityIdentifier("trainer.player")
     }
 
-    private var playerHands: some View {
+    private func playerHands(cardWidth: CGFloat) -> some View {
         let hands = viewModel.playerHands
-        let cardWidth: CGFloat = hands.count > 1 ? 52 : 72
         return HStack(alignment: .top, spacing: FeltSpacing.l) {
             ForEach(Array(hands.enumerated()), id: \.offset) { index, state in
                 VStack(spacing: FeltSpacing.xs) {
@@ -210,16 +245,21 @@ struct StrategyTrainerView: View {
     private var bottomArea: some View {
         switch viewModel.phase {
         case .decision, .feedback:
-            ActionDock(allowed: viewModel.allowedActions, hint: viewModel.hint) { action in
-                viewModel.choose(action)
-            }
-            .overlay(alignment: .bottom) {
+            // The FeedbackCard sits over the dock, bottom-anchored. It is part of the layout
+            // (not an overlay), so its height, badge included, is taken from the hands'
+            // space: the card never covers the player's cards or total, and never pushes
+            // the table past the screen.
+            ZStack(alignment: .bottom) {
+                ActionDock(allowed: viewModel.allowedActions, hint: viewModel.hint) { action in
+                    viewModel.choose(action)
+                }
                 if let decision = viewModel.feedback {
                     FeedbackCard(isCorrect: decision.isCorrect,
                                  headline: DecisionFeedback.headline(for: decision),
                                  reason: DecisionFeedback.reason(for: decision),
                                  onWhy: { viewModel.showWhy(for: decision) },
                                  onNext: { viewModel.next() })
+                        .padding(.top, FeedbackCard.badgeSize / 2)
                         .transition(FeltMotion.panelTransition(reduceMotion: reduceMotion))
                 }
             }
