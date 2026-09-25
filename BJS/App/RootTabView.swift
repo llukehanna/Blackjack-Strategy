@@ -32,7 +32,7 @@ struct RootTabView: View {
                 ComingSoonView(title: "Progress", message: "Coming in Step 6")
             }
             Tab(AppTab.settings.rawValue, systemImage: AppTab.settings.systemImage, value: AppTab.settings) {
-                SettingsPlaceholder()
+                SettingsView()
             }
         }
         .tint(FeltColor.cream)
@@ -43,9 +43,4 @@ struct RootTabView: View {
         }
         #endif
     }
-}
-
-/// Replaced by `SettingsView` in Task 14.
-private struct SettingsPlaceholder: View {
-    var body: some View { ComingSoonView(title: "Settings", message: "Settings arrive in Task 14") }
 }
