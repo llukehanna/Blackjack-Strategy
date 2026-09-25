@@ -1,4 +1,5 @@
 import CoreGraphics
+import SwiftUI
 
 /// Felt spacing scale (parent spec §4).
 enum FeltSpacing {
@@ -24,4 +25,13 @@ enum FeltRadius {
 /// The minimum tap target for every control.
 enum FeltTapTarget {
     static let minimum: CGFloat = 44
+}
+
+/// The layout decision shared by every component that reflows at accessibility Dynamic Type sizes.
+enum FeltAdaptiveLayout {
+    /// Components stack vertically (full width) instead of side by side once the user is on an
+    /// accessibility Dynamic Type size (AX1–AX5), where a side-by-side layout would overflow or truncate.
+    static func stacksVertically(_ size: DynamicTypeSize) -> Bool {
+        size.isAccessibilitySize
+    }
 }

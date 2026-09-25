@@ -1,4 +1,5 @@
 import Testing
+import SwiftUI
 @testable import BJS
 
 @MainActor
@@ -41,5 +42,16 @@ struct FeltLayoutTokenTests {
             #expect(!role.isUppercase)
             #expect(role.tracking == 0)
         }
+    }
+
+    @Test("Adaptive layout stacks vertically only at accessibility Dynamic Type sizes",
+          arguments: [
+            (DynamicTypeSize.large, false),
+            (.xxxLarge, false),
+            (.accessibility1, true),
+            (.accessibility5, true),
+          ])
+    func adaptiveLayoutStacksVertically(size: DynamicTypeSize, expected: Bool) {
+        #expect(FeltAdaptiveLayout.stacksVertically(size) == expected)
     }
 }

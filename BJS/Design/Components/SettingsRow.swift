@@ -30,18 +30,31 @@ struct SettingsSection<Content: View>: View {
 }
 
 /// Label on the left, a value/toggle/picker accessory on the right, optional footnote below.
+///
+/// At accessibility Dynamic Type sizes the label and accessory no longer fit side by side, so the
+/// row switches to a vertical layout: the label on its own line, the accessory below it, both
+/// leading-aligned. `AnyLayout` keeps the label's and accessory's view identity stable across that
+/// switch.
 struct SettingsRow<Accessory: View>: View {
     let label: String
     var footnote: String? = nil
     @ViewBuilder let accessory: Accessory
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
+        let stacksVertically = FeltAdaptiveLayout.stacksVertically(dynamicTypeSize)
+        let rowLayout: AnyLayout = stacksVertically
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: FeltSpacing.xs))
+            : AnyLayout(HStackLayout(spacing: FeltSpacing.m))
         VStack(alignment: .leading, spacing: FeltSpacing.xs) {
-            HStack(spacing: FeltSpacing.m) {
+            rowLayout {
                 Text(label)
                     .feltText(.body)
                     .foregroundStyle(FeltColor.textPrimary)
-                Spacer(minLength: FeltSpacing.s)
+                if !stacksVertically {
+                    Spacer(minLength: FeltSpacing.s)
+                }
                 accessory
                     .foregroundStyle(FeltColor.textSecondary)
                     .tint(FeltColor.textSecondary)
