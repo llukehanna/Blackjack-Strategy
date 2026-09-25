@@ -115,7 +115,7 @@ All roles are built on Dynamic Type text styles so they scale.
 
 | Component | Notes |
 |---|---|
-| `FeltBackground` | Radial `feltLight` → `feltBase` → `feltDeep` |
+| `FeltBackground` | Radial `feltLight` (at 45% over `feltBase`; see Step 2 spec §1) → `feltBase` → `feltDeep` |
 | `PlayingCard` | Drawn in SwiftUI. Large rank + suit index top-left, large suit bottom-right, cream face. Back = cream border + diagonal felt stripes. Takes an explicit width; height = width × 1.4. VoiceOver label e.g. "Eight of clubs". |
 | `HandView` | Overlapping cards with a caller-provided overlap ratio; optional total label |
 | `ActionDock` | Row 1: STAND, HIT (cream). Row 2: SPLIT, DOUBLE, SURRENDER (inset). States: enabled, dimmed (not allowed by rules), `hint` (brass ring, Learn mode). Minimum 44 pt tap targets. |
