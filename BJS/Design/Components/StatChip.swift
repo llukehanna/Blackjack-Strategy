@@ -10,6 +10,8 @@ struct StatChip: View {
             Text(label)
                 .feltText(.label)
                 .foregroundStyle(FeltColor.textTertiary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
             Text(value)
                 .feltText(.stat)
                 .foregroundStyle(FeltColor.textPrimary)
