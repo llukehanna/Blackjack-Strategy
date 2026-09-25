@@ -20,6 +20,7 @@ enum AppTab: String, CaseIterable, Identifiable {
 struct RootTabView: View {
     var showsCatalogueAtLaunch = false
     @Environment(AppRouter.self) private var router
+    @State private var showsCatalogue = false
 
     var body: some View {
         @Bindable var router = router
@@ -35,6 +36,12 @@ struct RootTabView: View {
             }
         }
         .tint(FeltColor.cream)
+        #if DEBUG
+        .onAppear { showsCatalogue = showsCatalogueAtLaunch }
+        .fullScreenCover(isPresented: $showsCatalogue) {
+            FeltCatalogue { showsCatalogue = false }
+        }
+        #endif
     }
 }
 
