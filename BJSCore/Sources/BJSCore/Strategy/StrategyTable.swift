@@ -13,7 +13,7 @@ public struct StrategyTable: Sendable, Equatable {
     public let softCells: [[[Action]]]
     public let pairCells: [[[Action]]]
 
-    public init(hardCells: [[[Action]]], softCells: [[[Action]]], pairCells: [[[Action]]]) {
+    init(hardCells: [[[Action]]], softCells: [[[Action]]], pairCells: [[[Action]]]) {
         self.hardCells = hardCells
         self.softCells = softCells
         self.pairCells = pairCells
@@ -30,13 +30,20 @@ public struct StrategyTable: Sendable, Equatable {
 
     /// Returns the best action among `legal`.
     ///
-    /// A two-card pair uses its pair row first. Otherwise, or when nothing in the pair row
-    /// is legal (e.g. split at max hands), the hand's hard or soft row is used. Returns
-    /// `.stand` if no preference is legal.
+    /// A two-card pair uses its pair row first, but only while splitting is itself legal
+    /// (e.g. not after a split without resplit aces); otherwise the pair row is skipped
+    /// entirely, even if some other action in it is legal. Failing that, the hand's hard
+    /// or soft row is used, with one exception: an unsplittable soft 12 (always A,A, once
+    /// split is not legal) is graded `.hit` rather than the clamped soft-13 row, since hit
+    /// beats double against every upcard once the pair can't be split. Returns `.stand` if
+    /// no preference is legal.
     public func action(for hand: BlackjackHand, dealerUpcard: Rank, legal: Set<Action>) -> Action {
         let col = dealerUpcard.columnIndex
-        if hand.isPair, let action = pairCells[hand.pairIndex][col].first(where: legal.contains) {
+        if hand.isPair, legal.contains(.split), let action = pairCells[hand.pairIndex][col].first(where: legal.contains) {
             return action
+        }
+        if hand.isSoft && hand.total == 12 {
+            return legal.contains(.hit) ? .hit : .stand
         }
         let row = hand.isSoft ? softCells[hand.softIndex][col] : hardCells[hand.hardIndex][col]
         return row.first(where: legal.contains) ?? .stand

@@ -57,6 +57,65 @@ struct StrategyRulesTests {
         #expect(table.action(for: hand([.ten, .four]), dealerUpcard: .ten, legal: legal) == .hit)
     }
 
+    @Test("1D S17 DAS: 7,7 vs 10 hits like hard 14 vs 10 once split is not legal")
+    func pairRowIgnoredWhenSplitNotLegal() {
+        let table = StrategyEngine().strategy(for: rules(decks: .one))
+        let legal: Set<Action> = [.hit, .stand, .double]
+        #expect(table.action(for: hand([.seven, .seven]), dealerUpcard: .ten, legal: legal) == .hit)
+    }
+
+    @Test("1D S17 DAS: every two-card pair uses the pair row only while split is legal")
+    func pairRowAppliesOnlyWhenSplitLegal() {
+        let table = StrategyEngine().strategy(for: rules(decks: .one))
+        let ranks: [Rank] = [.two, .three, .four, .five, .six, .seven, .eight, .nine, .ten, .ace]
+        let legalSets: [Set<Action>] = [[.hit, .stand, .double], [.hit, .stand, .double, .split]]
+        for rank in ranks {
+            for upcard in ranks {
+                let pairHand = hand([rank, rank])
+                let col = upcard.columnIndex
+                for legal in legalSets {
+                    let spot = DecisionSpot(hand: pairHand, dealerUpcard: upcard, legalActions: legal)
+                    let actual = table.action(for: spot)
+                    let expected: Action
+                    if legal.contains(.split) {
+                        expected = table.pairCells[pairHand.pairIndex][col].first(where: legal.contains) ?? .stand
+                    } else if pairHand.isSoft && pairHand.total == 12 {
+                        expected = legal.contains(.hit) ? .hit : .stand
+                    } else {
+                        let row = pairHand.isSoft ? table.softCells[pairHand.softIndex][col] : table.hardCells[pairHand.hardIndex][col]
+                        expected = row.first(where: legal.contains) ?? .stand
+                    }
+                    #expect(actual == expected, "\(rank) pair vs \(upcard), legal=\(legal)")
+                }
+            }
+        }
+    }
+
+    // MARK: Soft 12 (unsplittable A,A)
+
+    @Test("6D: A,A (soft 12) hits vs 5 when hit is legal, not the clamped soft-13 double row")
+    func softTwelveHitsSixDeck() {
+        let table = StrategyEngine().strategy(for: rules(decks: .six))
+        let legal: Set<Action> = [.hit, .stand, .double]
+        #expect(table.action(for: hand([.ace, .ace]), dealerUpcard: .five, legal: legal) == .hit)
+    }
+
+    @Test("1D: A,A (soft 12) hits vs 4 when hit is legal, not the clamped soft-13 double row")
+    func softTwelveHitsOneDeck() {
+        let table = StrategyEngine().strategy(for: rules(decks: .one))
+        let legal: Set<Action> = [.hit, .stand, .double]
+        #expect(table.action(for: hand([.ace, .ace]), dealerUpcard: .four, legal: legal) == .hit)
+    }
+
+    @Test("A,A (soft 12) falls back to stand, which is legal, when hit is not legal")
+    func softTwelveFallsBackToStandWhenHitIllegal() {
+        let table = StrategyEngine().strategy(for: rules(decks: .six))
+        let legal: Set<Action> = [.stand, .double]
+        let action = table.action(for: hand([.ace, .ace]), dealerUpcard: .five, legal: legal)
+        #expect(action == .stand)
+        #expect(legal.contains(action))
+    }
+
     // MARK: Rules-view lookup
 
     @Test("Two-card lookup offers surrender only when the rules allow it")
@@ -170,5 +229,43 @@ struct StrategyRulesTests {
         let restricted = rules(double: .tenToEleven)
         #expect(StrategyEngine().strategy(for: restricted)
             .action(for: hand([.ace, .seven]), dealerUpcard: .three, rules: restricted) == .stand)
+    }
+
+    // MARK: Decoded table shape invariant
+
+    @Test("Decoded tables always have complete, non-empty grids whose hard/soft lists end in hit or stand")
+    func decodedTableShapeInvariant() {
+        let engine = StrategyEngine()
+        var rulesToCheck: [BlackjackRules] = RulePreset.allCases.map { $0.rules }
+        var extra = BlackjackRules()
+        extra.surrenderRule = .early
+        extra.doubleRestriction = .tenToEleven
+        rulesToCheck.append(extra)
+
+        for r in rulesToCheck {
+            let table = engine.strategy(for: r)
+
+            #expect(table.hardCells.count == 17)
+            #expect(table.hardCells.allSatisfy { $0.count == 10 })
+            #expect(table.softCells.count == 9)
+            #expect(table.softCells.allSatisfy { $0.count == 10 })
+            #expect(table.pairCells.count == 10)
+            #expect(table.pairCells.allSatisfy { $0.count == 10 })
+
+            #expect(table.hardCells.allSatisfy { row in row.allSatisfy { !$0.isEmpty } })
+            #expect(table.softCells.allSatisfy { row in row.allSatisfy { !$0.isEmpty } })
+            #expect(table.pairCells.allSatisfy { row in row.allSatisfy { !$0.isEmpty } })
+
+            #expect(table.hardCells.allSatisfy { row in row.allSatisfy { $0.last == .hit || $0.last == .stand } })
+            #expect(table.softCells.allSatisfy { row in row.allSatisfy { $0.last == .hit || $0.last == .stand } })
+        }
+    }
+
+    @Test("StrategyTable.init is internal, not a public API")
+    func initIsInternal() {
+        // Compiles only because this test target has @testable import BJSCore access
+        // to StrategyTable's memberwise init, which is `internal`, not `public`.
+        let table = StrategyTable(hardCells: [], softCells: [], pairCells: [])
+        #expect(table.hardCells.isEmpty)
     }
 }
