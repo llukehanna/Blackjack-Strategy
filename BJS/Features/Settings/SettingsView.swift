@@ -99,7 +99,12 @@ struct SettingsView: View {
     }
 
     private var aboutSection: some View {
-        SettingsSection(title: "About") {
+        // See RulesForm's "Max split hands" for why this is conditional: unconditionally, this
+        // Text would be just as flexible as SettingsRow's own Spacer at default size, and the two
+        // would split the row's slack instead of the Text hugging the trailing edge like every
+        // other row's accessory.
+        let stacksVertically = FeltAdaptiveLayout.stacksVertically(dynamicTypeSize)
+        return SettingsSection(title: "About") {
             SettingsRow(label: "Version") { Text(Self.versionText).feltText(.body) }
             SettingsRow(label: "Strategy") {
                 // A plain `Link` sizes to its label's natural width regardless of what's
@@ -113,9 +118,10 @@ struct SettingsView: View {
                     Text("WizardOfOdds.com")
                         .feltText(.body)
                         .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: stacksVertically ? .infinity : nil, alignment: .leading)
                 }
                 .buttonStyle(.plain)
+                .accessibilityRemoveTraits(.isButton)
                 .accessibilityAddTraits(.isLink)
             }
         }
