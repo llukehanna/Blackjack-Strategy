@@ -6,6 +6,8 @@ struct SettingsView: View {
     @Environment(ActiveRulesStore.self) private var rulesStore
     @Environment(PreferencesStore.self) private var preferences
     @Environment(SessionStore.self) private var sessionStore
+    @Environment(\.openURL) private var openURL
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var model = SettingsViewModel()
     @State private var confirmingReset = false
 
@@ -16,6 +18,9 @@ struct SettingsView: View {
                 FeltBackground()
                 ScrollView {
                     VStack(alignment: .leading, spacing: FeltSpacing.xl) {
+                        // Leading-aligned and capped to the scroll view's width: a row whose
+                        // accessory refuses to shrink (see SettingsRow) must not widen and
+                        // center/clip this whole column.
                         Text("Settings")
                             .feltText(.display)
                             .foregroundStyle(FeltColor.textPrimary)
@@ -42,6 +47,7 @@ struct SettingsView: View {
                         }
                         #endif
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(FeltSpacing.l)
                 }
             }
@@ -61,13 +67,15 @@ struct SettingsView: View {
 
     private func preferencesSection(_ preferences: PreferencesStore) -> some View {
         @Bindable var preferences = preferences
+        // See RulesForm's "Max split hands" for why `.fixedSize()` is conditional.
+        let stacksVertically = FeltAdaptiveLayout.stacksVertically(dynamicTypeSize)
         return SettingsSection(title: "Preferences") {
             SettingsRow(label: "Speed timer") {
                 Stepper(value: $preferences.speedTimerSeconds, in: PreferencesStore.speedTimerRange,
                         step: PreferencesStore.speedTimerStep) {
                     Text(PreferenceLabels.speedTimer(preferences.speedTimerSeconds)).feltText(.body)
                 }
-                .fixedSize()
+                .fixedSize(horizontal: !stacksVertically, vertical: true)
                 .accessibilityLabel("Speed timer")
             }
             SettingsRow(label: "True count") {
@@ -81,7 +89,7 @@ struct SettingsView: View {
                 Stepper(value: $preferences.shoeCheckFrequency, in: PreferencesStore.shoeCheckRange) {
                     Text(PreferenceLabels.shoeCheck(preferences.shoeCheckFrequency)).feltText(.body)
                 }
-                .fixedSize()
+                .fixedSize(horizontal: !stacksVertically, vertical: true)
                 .accessibilityLabel("Shoe Sim count check")
             }
             SettingsRow(label: "Haptics") {
@@ -94,9 +102,21 @@ struct SettingsView: View {
         SettingsSection(title: "About") {
             SettingsRow(label: "Version") { Text(Self.versionText).feltText(.body) }
             SettingsRow(label: "Strategy") {
-                Link("WizardOfOdds.com",
-                     destination: URL(string: "https://wizardofodds.com/games/blackjack/strategy/calculator/")!)
-                    .feltText(.body)
+                // A plain `Link` sizes to its label's natural width regardless of what's
+                // proposed (it won't wrap or scale down), which at accessibility sizes can push
+                // this whole screen wider than the device and clip every row. A `Button` with a
+                // `Text` label participates in normal SwiftUI layout instead, so it wraps/scales
+                // like every other row's content (see ActionDock for the same pattern).
+                Button {
+                    openURL(URL(string: "https://wizardofodds.com/games/blackjack/strategy/calculator/")!)
+                } label: {
+                    Text("WizardOfOdds.com")
+                        .feltText(.body)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(.isLink)
             }
         }
     }

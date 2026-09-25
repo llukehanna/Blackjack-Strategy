@@ -52,12 +52,22 @@ struct SettingsRow<Accessory: View>: View {
                 Text(label)
                     .feltText(.body)
                     .foregroundStyle(FeltColor.textPrimary)
+                    .frame(maxWidth: stacksVertically ? .infinity : nil, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
                 if !stacksVertically {
                     Spacer(minLength: FeltSpacing.s)
                 }
+                // At accessibility sizes a system control (Picker(.menu), Link, Menu) can report
+                // an intrinsic width wider than the screen and refuse to shrink on its own, which
+                // would blow up this row — and every sibling row sharing its section's background —
+                // past the screen edges. Cap it: propose the full leading-aligned row width, and let
+                // it wrap up to 2 lines or scale down rather than impose its own width.
                 accessory
                     .foregroundStyle(FeltColor.textSecondary)
                     .tint(FeltColor.textSecondary)
+                    .frame(maxWidth: stacksVertically ? .infinity : nil, alignment: .leading)
+                    .lineLimit(stacksVertically ? 2 : nil)
+                    .minimumScaleFactor(stacksVertically ? 0.5 : 1)
             }
             .frame(minHeight: FeltTapTarget.minimum)
             if let footnote {
@@ -67,6 +77,7 @@ struct SettingsRow<Accessory: View>: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+        .frame(maxWidth: stacksVertically ? .infinity : nil, alignment: .leading)
         .padding(.horizontal, FeltSpacing.l)
         .padding(.vertical, FeltSpacing.xs)
     }

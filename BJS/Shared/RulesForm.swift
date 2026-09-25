@@ -6,6 +6,8 @@ import BJSCore
 struct RulesForm: View {
     @Binding var rules: BlackjackRules
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     static func surrenderFootnote(for rules: BlackjackRules) -> String? {
         rules.peekRule == .europeanNoPeek
             ? "With no hole card, late and early surrender play the same."
@@ -13,6 +15,10 @@ struct RulesForm: View {
     }
 
     var body: some View {
+        // `.fixedSize()` below keeps the Stepper compact at default sizes; at accessibility sizes
+        // it must accept the row's proposed (narrower) width instead, or it reports its own,
+        // wider-than-proposed, ideal width and can overflow the screen.
+        let stacksVertically = FeltAdaptiveLayout.stacksVertically(dynamicTypeSize)
         VStack(spacing: FeltSpacing.xl) {
             SettingsSection(title: "Preset") {
                 SettingsRow(label: "Rule set") {
@@ -53,7 +59,7 @@ struct RulesForm: View {
                     Stepper(value: $rules.maxSplitHands, in: ActiveRulesStore.maxSplitHandsRange) {
                         Text("\(rules.maxSplitHands)").feltText(.body)
                     }
-                    .fixedSize()
+                    .fixedSize(horizontal: !stacksVertically, vertical: true)
                     .accessibilityLabel("Max split hands")
                 }
                 SettingsRow(label: "Resplit aces") {
