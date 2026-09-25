@@ -1,44 +1,58 @@
-/// A lookup table containing the optimal basic strategy action for every
-/// player hand vs dealer upcard combination under a specific set of rules.
+/// Basic strategy for one rule set.
 ///
-/// - `hardTotals[playerTotal - 5][dealerUpcard.columnIndex]` -- 17 rows x 10 columns
-/// - `softTotals[playerTotal - 13][dealerUpcard.columnIndex]` -- 9 rows x 10 columns
-/// - `pairs[pairRankIndex][dealerUpcard.columnIndex]` -- 10 rows x 10 columns
-/// - `hardHitStand` / `softHitStand` -- same shapes as hard/soft, best of hit vs stand only.
-///   Used when the preferred action is not legal (e.g. double on three cards).
+/// Each cell is an ordered preference list; grading picks the first action that is legal
+/// for the hand in play. Columns use `Rank.columnIndex` for the dealer upcard. Rows:
+/// - `hardCells[total - 5]`: 17 rows (hard 5-21)
+/// - `softCells[total - 13]`: 9 rows (soft 13-21)
+/// - `pairCells[pairIndex]`: 10 rows (2,2 to 10,10, then A,A)
+///
+/// Every hard and soft list ends in `.hit` or `.stand`.
 public struct StrategyTable: Sendable, Equatable {
 
-    public let hardTotals: [[Action]]
-    public let softTotals: [[Action]]
-    public let pairs: [[Action]]
-    public let hardHitStand: [[Action]]
-    public let softHitStand: [[Action]]
+    public let hardCells: [[[Action]]]
+    public let softCells: [[[Action]]]
+    public let pairCells: [[[Action]]]
 
-    /// Returns the optimal action assuming every action the table might pick is available
-    /// (two-card hand, no prior split). Kept for the Wizard of Odds validation tests.
-    public func action(for hand: BlackjackHand, dealerUpcard: Rank, rules: BlackjackRules) -> Action {
-        if hand.isPair && hand.canSplit(rules: rules, currentSplitCount: 0) {
-            let pairAction = pairs[hand.pairIndex][dealerUpcard.columnIndex]
-            if pairAction == .split { return .split }
-        }
-        if hand.isSoft {
-            return softTotals[hand.softIndex][dealerUpcard.columnIndex]
-        }
-        return hardTotals[hand.hardIndex][dealerUpcard.columnIndex]
+    public init(hardCells: [[[Action]]], softCells: [[[Action]]], pairCells: [[[Action]]]) {
+        self.hardCells = hardCells
+        self.softCells = softCells
+        self.pairCells = pairCells
     }
+
+    /// The best action when every action is available (each cell's first preference).
+    public var hardTotals: [[Action]] { hardCells.map { $0.map { $0[0] } } }
+    public var softTotals: [[Action]] { softCells.map { $0.map { $0[0] } } }
+    public var pairs: [[Action]] { pairCells.map { $0.map { $0[0] } } }
+
+    /// The best of hit or stand: the play when double and surrender are not available.
+    public var hardHitStand: [[Action]] { hardCells.map { $0.map(Self.hitOrStand) } }
+    public var softHitStand: [[Action]] { softCells.map { $0.map(Self.hitOrStand) } }
 
     /// Returns the best action among `legal`.
     ///
-    /// Order: split (if legal and the pair table says split) → the hard/soft table's
-    /// preferred action if legal → the hit/stand fallback → stand.
+    /// A two-card pair uses its pair row first. Otherwise, or when nothing in the pair row
+    /// is legal (e.g. split at max hands), the hand's hard or soft row is used. Returns
+    /// `.stand` if no preference is legal.
     public func action(for hand: BlackjackHand, dealerUpcard: Rank, legal: Set<Action>) -> Action {
         let col = dealerUpcard.columnIndex
-        if hand.isPair && legal.contains(.split) && pairs[hand.pairIndex][col] == .split {
-            return .split
+        if hand.isPair, let action = pairCells[hand.pairIndex][col].first(where: legal.contains) {
+            return action
         }
-        let preferred = hand.isSoft ? softTotals[hand.softIndex][col] : hardTotals[hand.hardIndex][col]
-        if legal.contains(preferred) { return preferred }
-        let fallback = hand.isSoft ? softHitStand[hand.softIndex][col] : hardHitStand[hand.hardIndex][col]
-        return legal.contains(fallback) ? fallback : .stand
+        let row = hand.isSoft ? softCells[hand.softIndex][col] : hardCells[hand.hardIndex][col]
+        return row.first(where: legal.contains) ?? .stand
+    }
+
+    /// Returns the best action for a two-card hand with no prior split, allowing every
+    /// action the rules permit.
+    public func action(for hand: BlackjackHand, dealerUpcard: Rank, rules: BlackjackRules) -> Action {
+        var legal: Set<Action> = [.hit, .stand]
+        if hand.canDouble(rules: rules) { legal.insert(.double) }
+        if hand.canSplit(rules: rules, currentSplitCount: 0) { legal.insert(.split) }
+        if rules.surrenderRule != .none && hand.cards.count == 2 { legal.insert(.surrender) }
+        return action(for: hand, dealerUpcard: dealerUpcard, legal: legal)
+    }
+
+    private static func hitOrStand(_ preferences: [Action]) -> Action {
+        preferences.last { $0 == .hit || $0 == .stand } ?? .stand
     }
 }
