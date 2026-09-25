@@ -1,22 +1,5 @@
 import SwiftUI
 
-/// The three top-level tabs.
-enum AppTab: String, CaseIterable, Identifiable {
-    case train = "Train"
-    case progress = "Progress"
-    case settings = "Settings"
-
-    var id: Self { self }
-
-    var systemImage: String {
-        switch self {
-        case .train: return "suit.spade.fill"
-        case .progress: return "chart.line.uptrend.xyaxis"
-        case .settings: return "gearshape"
-        }
-    }
-}
-
 struct RootTabView: View {
     var showsCatalogueAtLaunch = false
     @Environment(AppRouter.self) private var router
