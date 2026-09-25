@@ -57,7 +57,7 @@ struct RoundEngineTests {
         #expect(round.totalNet == -2)
     }
 
-    @Test("ENHC + late surrender vs dealer natural still loses the full bet")
+    @Test("ENHC + late surrender vs dealer natural keeps half the bet")
     func enhcLateSurrenderVsNatural() throws {
         var rules = BlackjackRules()
         rules.peekRule = .europeanNoPeek
@@ -68,8 +68,8 @@ struct RoundEngineTests {
         #expect(round.legalActions.contains(.surrender))
         try round.apply(.surrender, shoe: &shoe)
         #expect(round.phase == .settled)
-        #expect(round.hands[0].outcome == .loss)
-        #expect(round.totalNet == -1)
+        #expect(round.hands[0].outcome == .surrendered)
+        #expect(round.totalNet == -0.5)
     }
 
     @Test("ENHC + early surrender vs dealer natural returns half")

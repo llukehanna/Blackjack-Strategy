@@ -215,9 +215,10 @@ public struct RoundEngine: Sendable {
     private mutating func settleAgainstDealerBlackjack(_ i: Int) {
         let state = hands[i]
         if state.isSurrendered {
-            let early = rules.surrenderRule == .early
-            hands[i].outcome = early ? .surrendered : .loss
-            hands[i].net = early ? -0.5 : -1
+            // Reachable only under no hole card or after an early surrender. Either way the
+            // hand was surrendered before the dealer's blackjack existed, so it keeps half.
+            hands[i].outcome = .surrendered
+            hands[i].net = -0.5
         } else {
             hands[i].outcome = state.hand.isBust ? .bust : .loss
             hands[i].net = -state.betUnits
