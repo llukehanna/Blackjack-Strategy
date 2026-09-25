@@ -12,15 +12,22 @@ struct HubView: View {
     @State private var showsStorageDegradedNotice = false
     @State private var hasShownStorageDegradedNotice = false
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     private let logger = Logger(subsystem: "com.bjs.app", category: "HubView")
 
     var body: some View {
+        // At accessibility Dynamic Type sizes the three stat chips stack vertically (full width)
+        // instead of side by side, so their labels have room.
+        let chipsLayout: AnyLayout = FeltAdaptiveLayout.stacksVertically(dynamicTypeSize)
+            ? AnyLayout(VStackLayout(spacing: FeltSpacing.s))
+            : AnyLayout(HStackLayout(spacing: FeltSpacing.s))
         ZStack {
             FeltBackground()
             ScrollView {
                 VStack(alignment: .leading, spacing: FeltSpacing.xl) {
                     header
-                    HStack(spacing: FeltSpacing.s) {
+                    chipsLayout {
                         StatChip(label: "Strategy", value: model.strategyAccuracy)
                         StatChip(label: "Count", value: model.countAccuracy)
                         StatChip(label: "Streak", value: model.streak)
