@@ -27,6 +27,7 @@ struct SettingsView: View {
                                     .foregroundStyle(FeltColor.incorrect)
                                     .font(FeltType.title.font)
                                     .frame(minHeight: FeltTapTarget.minimum)
+                                    .contentShape(Rectangle())
                             }
                         }
                         aboutSection
