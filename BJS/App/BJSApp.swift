@@ -14,6 +14,7 @@ struct BJSApp: App {
     init() {
         let launch = LaunchConfiguration.current
         let container: ModelContainer
+        var isStorageDegraded = false
         do {
             container = try BJSModelContainer.make(inMemory: launch.isUITesting)
         } catch {
@@ -21,12 +22,14 @@ struct BJSApp: App {
             Logger(subsystem: "com.bjs.app", category: "BJSApp")
                 .error("Persistent store failed to open; using in-memory store: \(error.localizedDescription)")
             container = try! BJSModelContainer.make(inMemory: true)
+            isStorageDegraded = true
         }
         self.container = container
         let defaults = launch.makeUserDefaults()
         _rulesStore = State(initialValue: ActiveRulesStore(defaults: defaults))
         _preferences = State(initialValue: PreferencesStore(defaults: defaults))
-        _sessionStore = State(initialValue: SessionStore(context: container.mainContext))
+        _sessionStore = State(initialValue: SessionStore(context: container.mainContext,
+                                                          isStorageDegraded: isStorageDegraded))
         _router = State(initialValue: AppRouter(selectedTab: launch.startTab ?? .train))
         FeltTabBarAppearance.apply()
     }

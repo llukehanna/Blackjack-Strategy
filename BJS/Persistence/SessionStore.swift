@@ -14,8 +14,13 @@ final class SessionStore {
     /// Increments after every successful save or delete.
     private(set) var revision = 0
 
-    init(context: ModelContext) {
+    /// True when the persistent store failed to open and this session is running on an
+    /// in-memory fallback (parent spec §6): sessions appear to save but are lost at relaunch.
+    let isStorageDegraded: Bool
+
+    init(context: ModelContext, isStorageDegraded: Bool = false) {
         self.context = context
+        self.isStorageDegraded = isStorageDegraded
     }
 
     func save(_ draft: SessionDraft) throws {

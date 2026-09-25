@@ -9,6 +9,8 @@ struct HubView: View {
     @Environment(AppRouter.self) private var router
     @State private var model = HubViewModel()
     @State private var presented: HubModule?
+    @State private var showsStorageDegradedNotice = false
+    @State private var hasShownStorageDegradedNotice = false
 
     private let logger = Logger(subsystem: "com.bjs.app", category: "HubView")
 
@@ -44,6 +46,17 @@ struct HubView: View {
             }
         }
         .task(id: sessionStore.revision) { refresh() }
+        .onAppear {
+            if sessionStore.isStorageDegraded && !hasShownStorageDegradedNotice {
+                hasShownStorageDegradedNotice = true
+                showsStorageDegradedNotice = true
+            }
+        }
+        .alert("Progress can't be saved", isPresented: $showsStorageDegradedNotice) {
+            Button("OK") {}
+        } message: {
+            Text("Your progress couldn't be saved right now. Training still works, but sessions from this launch won't be kept.")
+        }
     }
 
     private var header: some View {

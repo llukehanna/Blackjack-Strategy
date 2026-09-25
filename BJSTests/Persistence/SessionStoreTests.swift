@@ -129,4 +129,12 @@ struct SessionStoreTests {
         try store.save(draft())
         #expect(store.revision == before + 1)
     }
+
+    @Test("isStorageDegraded defaults to false, and is true when passed")
+    func storageDegradedFlag() throws {
+        #expect(store.isStorageDegraded == false)
+        let degradedContainer = try BJSModelContainer.make(inMemory: true)
+        let degradedStore = SessionStore(context: degradedContainer.mainContext, isStorageDegraded: true)
+        #expect(degradedStore.isStorageDegraded == true)
+    }
 }
