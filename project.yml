@@ -24,9 +24,9 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.bjs.app
-        INFOPLIST_VALUES:
-          CFBundleName: BJS
-          UILaunchScreen: {}
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_CFBundleDisplayName: BJS
+        TARGETED_DEVICE_FAMILY: "1"
   BJSTests:
     type: bundle.unit-test
     platform: iOS
