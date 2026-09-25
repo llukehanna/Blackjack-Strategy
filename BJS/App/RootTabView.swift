@@ -5,6 +5,13 @@ struct RootTabView: View {
     @Environment(AppRouter.self) private var router
     @State private var showsCatalogue = false
 
+    init(showsCatalogueAtLaunch: Bool = false) {
+        self.showsCatalogueAtLaunch = showsCatalogueAtLaunch
+        #if DEBUG
+        _showsCatalogue = State(initialValue: showsCatalogueAtLaunch)
+        #endif
+    }
+
     var body: some View {
         @Bindable var router = router
         TabView(selection: $router.selectedTab) {
@@ -20,7 +27,6 @@ struct RootTabView: View {
         }
         .tint(FeltColor.cream)
         #if DEBUG
-        .onAppear { showsCatalogue = showsCatalogueAtLaunch }
         .fullScreenCover(isPresented: $showsCatalogue) {
             FeltCatalogue { showsCatalogue = false }
         }
