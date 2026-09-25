@@ -25,7 +25,7 @@ struct RootTabView: View {
         @Bindable var router = router
         TabView(selection: $router.selectedTab) {
             Tab(AppTab.train.rawValue, systemImage: AppTab.train.systemImage, value: AppTab.train) {
-                HubPlaceholder()
+                HubView()
             }
             Tab(AppTab.progress.rawValue, systemImage: AppTab.progress.systemImage, value: AppTab.progress) {
                 ComingSoonView(title: "Progress", message: "Coming in Step 6")
@@ -36,11 +36,6 @@ struct RootTabView: View {
         }
         .tint(FeltColor.cream)
     }
-}
-
-/// Replaced by `HubView` in Task 12.
-private struct HubPlaceholder: View {
-    var body: some View { ComingSoonView(title: "Train", message: "Hub arrives in Task 12") }
 }
 
 /// Replaced by `SettingsView` in Task 14.
