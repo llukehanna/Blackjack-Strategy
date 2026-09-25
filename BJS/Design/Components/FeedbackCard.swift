@@ -72,5 +72,6 @@ struct FeedbackCard: View {
             .background(verdict.badgeColor, in: Circle())
             .overlay(Circle().stroke(FeltColor.cream, lineWidth: 3))
             .accessibilityLabel(verdict.accessibilityLabel)
+            .accessibilitySortPriority(1)
     }
 }

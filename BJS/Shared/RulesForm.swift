@@ -54,6 +54,7 @@ struct RulesForm: View {
                         Text("\(rules.maxSplitHands)").feltText(.body)
                     }
                     .fixedSize()
+                    .accessibilityLabel("Max split hands")
                 }
                 SettingsRow(label: "Resplit aces") {
                     Toggle("Resplit aces", isOn: $rules.resplitAces).labelsHidden()

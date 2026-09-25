@@ -67,6 +67,7 @@ struct SettingsView: View {
                     Text(PreferenceLabels.speedTimer(preferences.speedTimerSeconds)).feltText(.body)
                 }
                 .fixedSize()
+                .accessibilityLabel("Speed timer")
             }
             SettingsRow(label: "True count") {
                 Picker("True count", selection: $preferences.trueCountConvention) {
@@ -80,6 +81,7 @@ struct SettingsView: View {
                     Text(PreferenceLabels.shoeCheck(preferences.shoeCheckFrequency)).feltText(.body)
                 }
                 .fixedSize()
+                .accessibilityLabel("Shoe Sim count check")
             }
             SettingsRow(label: "Haptics") {
                 Toggle("Haptics", isOn: $preferences.hapticsEnabled).labelsHidden()

@@ -5,6 +5,11 @@ struct StatChip: View {
     let label: String
     let value: String
 
+    /// VoiceOver reads the em dash as "No data" rather than "em dash".
+    static func accessibilityValue(for value: String) -> String {
+        value == "—" ? "No data" : value
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: FeltSpacing.xs) {
             Text(label)
@@ -22,5 +27,7 @@ struct StatChip: View {
         .padding(FeltSpacing.m)
         .background(FeltColor.surfaceInset, in: RoundedRectangle(cornerRadius: FeltRadius.chip))
         .accessibilityElement(children: .combine)
+        .accessibilityLabel(label)
+        .accessibilityValue(Self.accessibilityValue(for: value))
     }
 }

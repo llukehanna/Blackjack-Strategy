@@ -20,6 +20,7 @@ struct ModuleTile: View {
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right")
                     .foregroundStyle(FeltColor.textTertiary)
+                    .accessibilityHidden(true)
             }
             .padding(FeltSpacing.l)
             .frame(maxWidth: .infinity, minHeight: FeltTapTarget.minimum, alignment: .leading)
