@@ -208,7 +208,7 @@ v1 is basic-strategy-only. Index plays and bet spreads are v2.
   - Rating from `EdgeRating`: **Good** < 0.50%, **OK** 0.50–1.00%, **Poor** > 1.00%.
   - Per-rule contribution bars from `EdgeResult.contributions`.
 - **Use these rules for training** writes the rules to `ActiveRulesStore` after a confirmation.
-- Accuracy bar: the existing Wizard of Odds validation (≥ 10 rule combinations) must keep passing.
+- Accuracy bar: the house-edge validation against Wizard of Odds (`EdgeCalculatorTests`, ≥ 10 rule combinations) must keep passing.
 
 ### Progress tab
 
@@ -282,6 +282,7 @@ SwiftData models → mappers → plain `Sendable` values (`DecisionSample`, `Cou
   - double restrictions;
   - dealer play;
   - settlement: payouts 3:2 / 6:5 / 2:1, surrender returning 0.5, pushes.
+- **Strategy charts:** every decoded chart matches Wizard of Odds' rendered charts cell for cell (48 rule combinations, `WoOChartTests`; see `2026-09-24-woo-strategy-data-design.md` §6).
 - **Property checks** over 100k seeded rounds:
   - the Hi-Lo RC over a fully dealt shoe returns to 0;
   - no round ever leaves an illegal state.

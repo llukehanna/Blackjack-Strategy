@@ -1,7 +1,7 @@
 # Strategy from Wizard of Odds data — design
 
 Date: 2026-09-24. Status: approved by Luke (chat, 2026-09-24).
-Amends the rebuild spec (`2026-09-23-bjs-rebuild-design.md`): §11's accuracy bar ("the existing Wizard of Odds validation (≥ 10 rule combinations) must keep passing") is replaced by §6 below.
+Amends the rebuild spec (`2026-09-23-bjs-rebuild-design.md`): §7 Testing gains the full-chart strategy bar in §6 below. The Edge module's house-edge bar (§5 Edge) is unchanged.
 
 ## 1. Problem
 
@@ -43,10 +43,10 @@ Rejected: an exact finite-deck EV engine (large; WoO's total-dependent method fo
 
 - Stores a preference list per cell for the hard (17×10), soft (9×10) and pair (10×10) grids.
 - `action(for hand:, dealerUpcard:, legal:)`:
-  1. If the hand is a two-card pair, return the first legal action in its pair list.
-  2. Otherwise, or if nothing in the pair list is legal (e.g. a [split] row at max hands), return the first legal action in the hand's hard/soft list.
+  1. If the hand is a two-card pair and split is legal, return the first legal action in its pair list. This matches `TrainingCell(spot:)`, which files a pair as a pair cell only while split is legal, so a decision is graded on the row it is recorded under. (Cost: 1-deck 7,7 vs 10 at max split hands grades as hard 14, i.e. hit.)
+  2. Otherwise, or if nothing in the pair list is legal, return the first legal action in the hand's hard/soft list. A two-card soft 12 (A,A that can't be split) is graded [hit]: it has no WoO row, and hit beats double against every upcard.
   3. Then the row's hit/stand fallback, then stand.
-  - Row indexing for totals outside the grid (hard 4, soft 12) keeps today's clamping.
+  - Row indexing for hard 4 (2,2 that can't be split) keeps today's clamping to the hard 5 row.
 - `action(for: DecisionSpot)` is unchanged.
 - The existing read-only views stay: `hardTotals`/`softTotals`/`pairs` (first action of each list), `hardHitStand`/`softHitStand` (last hit/stand in each list). Consumers and tests keep compiling.
 - `action(for:dealerUpcard:rules:)` (two-card, all-legal view) is kept, defined as the legal-aware lookup with every action legal except those the rules forbid (split only if `canSplit`, surrender only if the rule allows it).
