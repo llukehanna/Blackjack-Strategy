@@ -25,7 +25,7 @@ struct SettingsView: View {
                             SettingsRow(label: "Reset progress") {
                                 Button("Reset", role: .destructive) { confirmingReset = true }
                                     .foregroundStyle(FeltColor.incorrect)
-                                    .font(FeltType.body.font.weight(.semibold))
+                                    .font(FeltType.title.font)
                                     .frame(minHeight: FeltTapTarget.minimum)
                             }
                         }
