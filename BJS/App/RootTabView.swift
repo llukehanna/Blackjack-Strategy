@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The three top-level tabs. Tab contents are placeholders until Step 2 (Foundation).
+/// The three top-level tabs.
 enum AppTab: String, CaseIterable, Identifiable {
     case train = "Train"
     case progress = "Progress"
@@ -18,16 +18,32 @@ enum AppTab: String, CaseIterable, Identifiable {
 }
 
 struct RootTabView: View {
-    @State private var selection: AppTab = .train
+    var showsCatalogueAtLaunch = false
+    @Environment(AppRouter.self) private var router
 
     var body: some View {
-        TabView(selection: $selection) {
-            ForEach(AppTab.allCases) { tab in
-                Tab(tab.rawValue, systemImage: tab.systemImage, value: tab) {
-                    Text(tab.rawValue)
-                        .font(.title)
-                }
+        @Bindable var router = router
+        TabView(selection: $router.selectedTab) {
+            Tab(AppTab.train.rawValue, systemImage: AppTab.train.systemImage, value: AppTab.train) {
+                HubPlaceholder()
+            }
+            Tab(AppTab.progress.rawValue, systemImage: AppTab.progress.systemImage, value: AppTab.progress) {
+                ComingSoonView(title: "Progress", message: "Coming in Step 6")
+            }
+            Tab(AppTab.settings.rawValue, systemImage: AppTab.settings.systemImage, value: AppTab.settings) {
+                SettingsPlaceholder()
             }
         }
+        .tint(FeltColor.cream)
     }
+}
+
+/// Replaced by `HubView` in Task 12.
+private struct HubPlaceholder: View {
+    var body: some View { ComingSoonView(title: "Train", message: "Hub arrives in Task 12") }
+}
+
+/// Replaced by `SettingsView` in Task 14.
+private struct SettingsPlaceholder: View {
+    var body: some View { ComingSoonView(title: "Settings", message: "Settings arrive in Task 14") }
 }
