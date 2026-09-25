@@ -130,6 +130,16 @@ struct SessionStoreTests {
         #expect(store.revision == before + 1)
     }
 
+    @Test("Saving two drafts with the same id leaves exactly one Session row (SwiftData upserts on .unique)")
+    func duplicateIdUpserts() throws {
+        let d1 = draft(decisions: [decision(true, at: 101)])
+        try store.save(d1)
+        var d2 = draft(start: 200, decisions: [decision(false, at: 201)])
+        d2.id = d1.id
+        try store.save(d2)
+        #expect(try context.fetchCount(FetchDescriptor<Session>()) == 1)
+    }
+
     @Test("isStorageDegraded defaults to false, and is true when passed")
     func storageDegradedFlag() throws {
         #expect(store.isStorageDegraded == false)

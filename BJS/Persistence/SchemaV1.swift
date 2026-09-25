@@ -11,7 +11,7 @@ enum SchemaV1: VersionedSchema {
 
     @Model
     final class Session {
-        var id: UUID
+        @Attribute(.unique) var id: UUID
         /// `TrainingModule` raw value: strategy | countingRC | countingTC | shoe.
         var module: String
         var mode: String?
