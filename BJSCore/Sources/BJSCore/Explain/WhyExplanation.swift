@@ -20,9 +20,17 @@ public struct WhyContext: Identifiable, Equatable, Sendable {
     public let handType: HandType
     public let pairRank: Rank?           // only meaningful when handType == .pair
     public let dealerUpCard: Rank
-    public let userAction: Action
+    /// The player's chosen action. `nil` means a Speed-mode timeout (no action taken).
+    public let userAction: Action?
     public let correctAction: Action
     public let rules: BlackjackRules
+    /// The first-preference action for this spot when it isn't legal here (e.g. double on a
+    /// 3+-card hand), so the explanation can lead with what would have been best.
+    public let preferredIllegal: Action?
+    /// How surrender works under the rules, when it's relevant to explaining this play.
+    public let surrenderContext: SurrenderContext?
+    /// True when WoO's early-surrender composition note applies to this hard-14-vs-10 spot.
+    public let compositionNote: Bool
 
     public init(
         id: UUID = UUID(),
@@ -30,9 +38,12 @@ public struct WhyContext: Identifiable, Equatable, Sendable {
         handType: HandType,
         pairRank: Rank? = nil,
         dealerUpCard: Rank,
-        userAction: Action,
+        userAction: Action?,
         correctAction: Action,
-        rules: BlackjackRules
+        rules: BlackjackRules,
+        preferredIllegal: Action? = nil,
+        surrenderContext: SurrenderContext? = nil,
+        compositionNote: Bool = false
     ) {
         self.id = id
         self.handTotal = handTotal
@@ -42,6 +53,42 @@ public struct WhyContext: Identifiable, Equatable, Sendable {
         self.userAction = userAction
         self.correctAction = correctAction
         self.rules = rules
+        self.preferredIllegal = preferredIllegal
+        self.surrenderContext = surrenderContext
+        self.compositionNote = compositionNote
+    }
+}
+
+/// How surrender works under the rules, for explaining surrender plays.
+public enum SurrenderContext: String, Sendable, Equatable {
+    case late, early, noHoleCard
+
+    /// nil when surrender isn't offered. Under no hole card, late and early play the same.
+    public init?(rules: BlackjackRules) {
+        switch rules.surrenderRule {
+        case .none: return nil
+        case .late: self = rules.peekRule == .europeanNoPeek ? .noHoleCard : .late
+        case .early: self = rules.peekRule == .europeanNoPeek ? .noHoleCard : .early
+        }
+    }
+}
+
+extension WhyContext {
+    /// Builds the context from the row grading used: a pair only while split is legal,
+    /// otherwise the hand's soft or hard total.
+    public init(spot: DecisionSpot, userAction: Action?, table: StrategyTable, rules: BlackjackRules,
+                id: UUID = UUID()) {
+        let hand = spot.hand
+        let legal = spot.legalActions
+        let type: HandType = hand.isPair && legal.contains(.split) ? .pair : (hand.isSoft ? .soft : .hard)
+        let correct = table.action(for: spot)
+        let first = table.preferences(for: hand, dealerUpcard: spot.dealerUpcard, legal: legal).first
+        let illegal = first.flatMap { legal.contains($0) || $0 == correct ? nil : $0 }
+        self.init(id: id, handTotal: hand.total, handType: type,
+                  pairRank: type == .pair ? hand.cards[0].rank : nil,
+                  dealerUpCard: spot.dealerUpcard, userAction: userAction, correctAction: correct,
+                  rules: rules, preferredIllegal: illegal, surrenderContext: SurrenderContext(rules: rules),
+                  compositionNote: table.compositionNoteApplies(to: hand, dealerUpcard: spot.dealerUpcard))
     }
 }
 
@@ -55,7 +102,9 @@ public struct WhyContext: Identifiable, Equatable, Sendable {
 public enum WhyExplanation {
 
     public static func explain(_ context: WhyContext) -> String {
-        let raw = template(for: context)
+        let raw = [illegalLead(context), template(for: context), compositionText(context)]
+            .compactMap { $0 }
+            .joined(separator: " ")
         // Defensive: never return empty, never exceed budget.
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.count < 30 {
@@ -104,6 +153,7 @@ public enum WhyExplanation {
             return "Hard \(total): the strategy table treats this as a split situation — separating the cards gives you two fresh starts instead of one losing total."
 
         case (.hard, .surrender):
+            if let reason = surrenderReason(c) { return "Hard \(total) vs dealer's \(up): \(reason)" }
             return "Hard \(total) vs dealer's \(up): this hand loses more than half the time. Surrendering takes the guaranteed half-loss instead of bleeding more equity."
 
         // MARK: Soft totals
@@ -152,7 +202,50 @@ public enum WhyExplanation {
             return "Pair of \(pairRankName(c.pairRank))s: the combined total is a doubling spot against the dealer's \(up). Take the extra bet rather than splitting into two weaker starts."
 
         case (.pair, .surrender):
+            if let reason = surrenderReason(c) {
+                return "Pair of \(pairRankName(c.pairRank))s vs dealer's \(up): \(reason)"
+            }
             return "Pair of \(pairRankName(c.pairRank))s vs dealer's \(up): both starting cards point to a losing hand — surrender locks in half a bet instead of the full loss."
+        }
+    }
+
+    // MARK: - Illegal-preference lead, composition note, surrender reason
+
+    private static func illegalLead(_ c: WhyContext) -> String? {
+        guard let action = c.preferredIllegal else { return nil }
+        return "\(gerund(action)) would be best, but it isn't allowed on this hand."
+    }
+
+    private static func gerund(_ action: Action) -> String {
+        switch action {
+        case .hit: return "Hitting"
+        case .stand: return "Standing"
+        case .double: return "Doubling"
+        case .split: return "Splitting"
+        case .surrender: return "Surrendering"
+        }
+    }
+
+    private static func compositionText(_ c: WhyContext) -> String? {
+        guard c.compositionNote else { return nil }
+        switch c.rules.deckCount {
+        case .one:
+            return "With one deck, early surrender of hard 14 vs 10 depends on the cards: surrender 8+6, but hit 10+4 and 9+5."
+        default:
+            return "With two decks, early surrender of hard 14 vs 10 depends on the cards: surrender 9+5 and 8+6, but hit 10+4."
+        }
+    }
+
+    /// Why surrendering beats playing on when the dealer's blackjack is still unknown.
+    private static func surrenderReason(_ c: WhyContext) -> String? {
+        let tenOrAce = c.dealerUpCard == .ace || c.dealerUpCard.blackjackValue == 10
+        guard tenOrAce, let context = c.surrenderContext else { return nil }
+        switch context {
+        case .late: return nil
+        case .early:
+            return "early surrender lets you give up half your bet before the dealer checks for blackjack, which saves you from the naturals that would take your whole bet."
+        case .noHoleCard:
+            return "with no hole card the dealer can still turn over a blackjack after you act, but a surrendered hand keeps half its bet, so giving up now beats playing into that risk."
         }
     }
 
