@@ -24,26 +24,40 @@ struct StrategyTrainerView: View {
 
     private var table: some View {
         GeometryReader { geo in
+            let isAwaiting = model.phase == .awaitingDecision
             VStack(spacing: FeltSpacing.l) {
                 topBar
-                if model.setup.mode.isTimed && model.phase == .awaitingDecision {
+                if model.setup.mode.isTimed {
+                    // The slot stays reserved between decisions so the table doesn't jump when the
+                    // bar hides for feedback and the outcome.
                     CountdownBar(startedAt: model.decisionStartedAt, duration: model.speedTimerSeconds)
+                        .opacity(isAwaiting ? 1 : 0)
+                        .accessibilityHidden(!isAwaiting)
                 }
                 DealerHandView(cards: model.dealerCards, isRevealed: model.isDealerRevealed,
                                total: model.isDealerRevealed ? model.round?.dealer.total : nil,
                                cardWidth: SplitHandsLayout.maxCardWidth)
                 Spacer(minLength: 0)
+                    .overlay {
+                        // In the felt between the dealer and the player, clear of both hands.
+                        if showsToast { FeltToast(text: "Correct").fixedSize().transition(.opacity) }
+                    }
                 SplitHandsView(hands: model.playerHands.map { $0.hand.cards },
                                totals: model.playerHands.map { "\($0.hand.total)" },
-                               activeIndex: model.phase == .awaitingDecision ? model.activeHandIndex : nil,
+                               activeIndex: isAwaiting ? model.activeHandIndex : nil,
                                availableWidth: geo.size.width - 2 * FeltSpacing.l)
                 Spacer(minLength: 0)
-                bottom
+                bottom(bottomInset: geo.safeAreaInsets.bottom)
             }
             .padding(.horizontal, FeltSpacing.l)
-            .overlay(alignment: .top) {
-                if showsToast {
-                    FeltToast(text: "Correct").padding(.top, 56).transition(.opacity)
+            .overlay(alignment: .bottom) {
+                // The FeedbackCard is bottom-anchored: carry its cream down through the
+                // home-indicator area instead of leaving a strip of felt under it.
+                if case .feedback = model.phase {
+                    FeltColor.cream
+                        .frame(height: geo.safeAreaInsets.bottom)
+                        .offset(y: geo.safeAreaInsets.bottom)
+                        .accessibilityHidden(true)
                 }
             }
         }
@@ -95,10 +109,26 @@ struct StrategyTrainerView: View {
         }
     }
 
-    @ViewBuilder private var bottom: some View {
+    /// The dock, FeedbackCard and outcome share one bottom region, sized to at least a FeedbackCard,
+    /// so the player's cards stay put as the phase changes (the card lands over the dock).
+    private func bottom(bottomInset: CGFloat) -> some View {
+        ZStack(alignment: .bottom) {
+            FeedbackCard(verdict: .incorrect, headline: "The play is Hit",
+                         reason: "You chose Stand on hard 16 vs 10.", onWhy: {}, onNext: {})
+                .padding(.horizontal, -FeltSpacing.l)
+                .hidden()
+                .accessibilityHidden(true)
+                .allowsHitTesting(false)
+            bottomContent(bottomInset: bottomInset)
+        }
+    }
+
+    @ViewBuilder private func bottomContent(bottomInset: CGFloat) -> some View {
         switch model.phase {
         case .awaitingDecision:
             ActionDock(legal: model.legalActions, hint: model.hint) { model.choose($0) }
+                // Home-button phones have no bottom inset: keep the dock off the screen edge.
+                .padding(.bottom, bottomInset > 0 ? 0 : FeltSpacing.l)
         case .feedback(let graded):
             let text = StrategyText.feedback(isCorrect: graded.isCorrect, chosen: graded.chosen,
                                              correct: graded.correctAction,
