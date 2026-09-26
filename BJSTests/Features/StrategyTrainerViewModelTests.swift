@@ -155,8 +155,12 @@ struct StrategyTrainerViewModelTests {
         #expect(vm.activeHandIndex == 1)
         vm.choose(.stand)            // 17 vs 6: correct, turn ends → feedback
         guard case .feedback = vm.phase else { Issue.record("expected feedback"); return }
+        // Dealer 6+10=16 must draw to resolve the round, but the draw stays hidden until outcome.
+        #expect(!vm.isDealerRevealed)
+        #expect(vm.dealerCards.count == 2)
         vm.next()
         #expect(vm.phase == .outcome)
+        #expect(vm.dealerCards.count == 3)
         #expect(vm.outcomeLines.count == 3)
     }
 
@@ -238,6 +242,8 @@ struct StrategyTrainerViewModelTests {
                 guard case .feedback = vm.phase else {
                     Issue.record("seed \(seed) hand \(dealt): no feedback after STAND"); return
                 }
+                #expect(!vm.isDealerRevealed)
+                #expect(vm.dealerCards.count == 2)
                 #expect(vm.handNumber == dealt, "no new hand before feedback")
                 vm.next()
                 #expect(vm.phase == .outcome)
