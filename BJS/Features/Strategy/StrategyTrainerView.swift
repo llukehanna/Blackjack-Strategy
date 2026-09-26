@@ -29,10 +29,12 @@ struct StrategyTrainerView: View {
                 topBar
                 if model.setup.mode.isTimed {
                     // The slot stays reserved between decisions so the table doesn't jump when the
-                    // bar hides for feedback and the outcome.
+                    // bar hides for feedback and the outcome. It also hides behind the leave dialog,
+                    // where the Speed timer is paused (the clock restarts on "Keep playing").
+                    let showsBar = isAwaiting && !showsLeaveDialog
                     CountdownBar(startedAt: model.decisionStartedAt, duration: model.speedTimerSeconds)
-                        .opacity(isAwaiting ? 1 : 0)
-                        .accessibilityHidden(!isAwaiting)
+                        .opacity(showsBar ? 1 : 0)
+                        .accessibilityHidden(!showsBar)
                 }
                 DealerHandView(cards: model.dealerCards, isRevealed: model.isDealerRevealed,
                                total: model.isDealerRevealed ? model.round?.dealer.total : nil,
