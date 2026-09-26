@@ -82,6 +82,19 @@ struct WhyContextSpotTests {
         #expect(WhyExplanation.explain(c).contains("surrender 8+6"))
     }
 
+    @Test("Post-split hard 14 vs 10 (surrender illegal) does not apply the composition note")
+    func compositionNoteRequiresSurrenderLegal() {
+        var r = BlackjackRules()
+        r.deckCount = .one
+        r.surrenderRule = .early
+        // Same 8+6 composition as `compositionNote` above, but surrender isn't legal here
+        // (e.g. after a split, where surrender is never offered).
+        let c = context(spot([.eight, .six], up: .ten, legal: [.hit, .stand, .double]), rules: r)
+        #expect(!c.compositionNote)
+        #expect(c.correctAction == .hit)
+        #expect(!WhyExplanation.explain(c).contains("surrender 8+6"))
+    }
+
     @Test("A timeout context has no user action")
     func timeout() {
         #expect(context(spot([.ten, .six], up: .ten, legal: [.hit, .stand]), user: nil).userAction == nil)

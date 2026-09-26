@@ -83,12 +83,14 @@ extension WhyContext {
         let type: HandType = hand.isPair && legal.contains(.split) ? .pair : (hand.isSoft ? .soft : .hard)
         let correct = table.action(for: spot)
         let first = table.preferences(for: hand, dealerUpcard: spot.dealerUpcard, legal: legal).first
-        let illegal = first.flatMap { legal.contains($0) || $0 == correct ? nil : $0 }
+        let illegal = first.flatMap { legal.contains($0) ? nil : $0 }
+        let compositionNote = legal.contains(.surrender)
+            && table.compositionNoteApplies(to: hand, dealerUpcard: spot.dealerUpcard)
         self.init(id: id, handTotal: hand.total, handType: type,
                   pairRank: type == .pair ? hand.cards[0].rank : nil,
                   dealerUpCard: spot.dealerUpcard, userAction: userAction, correctAction: correct,
                   rules: rules, preferredIllegal: illegal, surrenderContext: SurrenderContext(rules: rules),
-                  compositionNote: table.compositionNoteApplies(to: hand, dealerUpcard: spot.dealerUpcard))
+                  compositionNote: compositionNote)
     }
 }
 
@@ -231,8 +233,12 @@ public enum WhyExplanation {
         switch c.rules.deckCount {
         case .one:
             return "With one deck, early surrender of hard 14 vs 10 depends on the cards: surrender 8+6, but hit 10+4 and 9+5."
-        default:
+        case .two:
             return "With two decks, early surrender of hard 14 vs 10 depends on the cards: surrender 9+5 and 8+6, but hit 10+4."
+        case .four, .six, .eight:
+            // compositionNote is only ever true for 1-2 decks (StrategyTable.hard14VsTenSurrenders
+            // is nil at 4+ decks), so this is unreachable in practice.
+            return nil
         }
     }
 
