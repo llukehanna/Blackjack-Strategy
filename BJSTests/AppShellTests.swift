@@ -42,4 +42,14 @@ struct AppShellTests {
         #expect(LaunchConfiguration(arguments: ["BJS", "-startTab", "casino"]).startTab == nil)
         #expect(LaunchConfiguration(arguments: ["BJS", "-startTab"]).startTab == nil)
     }
+
+    @Test("Strategy UI-test hooks are read only under -uiTesting")
+    func strategyHooks() {
+        let on = LaunchConfiguration(arguments: ["-uiTesting", "-strategyLength", "5", "-seed", "7"])
+        #expect(on.strategyLength == 5)
+        #expect(on.seed == 7)
+        let off = LaunchConfiguration(arguments: ["-strategyLength", "5", "-seed", "7"])
+        #expect(off.strategyLength == nil)
+        #expect(off.seed == nil)
+    }
 }

@@ -7,6 +7,10 @@ struct LaunchConfiguration {
     let startTab: AppTab?
     /// DEBUG builds only: present the Felt catalogue at launch.
     let showsCatalogue: Bool
+    /// UI testing only: overrides the Strategy session length (hands).
+    let strategyLength: Int?
+    /// UI testing only: seeds the Strategy trainer's random number generator.
+    let seed: UInt64?
 
     init(arguments: [String]) {
         isUITesting = arguments.contains("-uiTesting")
@@ -16,6 +20,12 @@ struct LaunchConfiguration {
         } else {
             startTab = nil
         }
+        func value(after flag: String) -> String? {
+            guard let i = arguments.firstIndex(of: flag), i + 1 < arguments.count else { return nil }
+            return arguments[i + 1]
+        }
+        strategyLength = isUITesting ? value(after: "-strategyLength").flatMap { Int($0) } : nil
+        seed = isUITesting ? value(after: "-seed").flatMap { UInt64($0) } : nil
     }
 
     static let current = LaunchConfiguration(arguments: ProcessInfo.processInfo.arguments)
