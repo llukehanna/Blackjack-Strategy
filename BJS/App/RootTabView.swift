@@ -26,6 +26,9 @@ struct RootTabView: View {
             }
         }
         .tint(FeltColor.cream)
+        .fullScreenCover(item: $router.launch) { launch in
+            ModuleHost(launch: launch) { router.launch = nil }
+        }
         #if DEBUG
         .fullScreenCover(isPresented: $showsCatalogue) {
             FeltCatalogue { showsCatalogue = false }

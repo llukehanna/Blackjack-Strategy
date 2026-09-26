@@ -68,8 +68,20 @@ final class PreferencesStore {
         let shoe = defaults.object(forKey: Key.shoeCheckFrequency) as? Int ?? Self.defaultShoeCheck
         self.shoeCheckFrequency = Self.clampShoeCheck(shoe)
         self.hapticsEnabled = defaults.object(forKey: Key.hapticsEnabled) as? Bool ?? true
-        self.lastLaunch = defaults.data(forKey: Key.lastLaunch)
-            .flatMap { try? JSONDecoder().decode(LastLaunch.self, from: $0) }
+        var lastLaunchFailed = false
+        if let data = defaults.data(forKey: Key.lastLaunch) {
+            do {
+                self.lastLaunch = try JSONDecoder().decode(LastLaunch.self, from: data)
+            } catch {
+                self.lastLaunch = nil
+                lastLaunchFailed = true
+            }
+        } else {
+            self.lastLaunch = nil
+        }
+        if lastLaunchFailed {
+            logger.error("lastLaunch failed to decode; Continue is hidden until the next session")
+        }
     }
 
     static func clampSpeedTimer(_ seconds: Double) -> Double {

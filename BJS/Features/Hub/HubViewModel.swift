@@ -29,4 +29,16 @@ final class HubViewModel {
         guard let fraction else { return noData }
         return "\(Int((fraction * 100).rounded()))%"
     }
+
+    /// The launch the hub's Continue button starts: the last module with its saved setup.
+    static func continueLaunch(from last: LastLaunch?) -> ModuleLaunch? {
+        guard let last else { return nil }
+        let module: AppModule
+        switch last.module {
+        case .strategy: module = .strategy
+        case .countingRC, .countingTC: module = .counting
+        case .shoe: module = .shoe
+        }
+        return ModuleLaunch(module: module, setup: last.setup)
+    }
 }

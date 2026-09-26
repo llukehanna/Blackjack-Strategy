@@ -8,7 +8,6 @@ struct HubView: View {
     @Environment(SessionStore.self) private var sessionStore
     @Environment(AppRouter.self) private var router
     @State private var model = HubViewModel()
-    @State private var presented: HubModule?
     @State private var showsStorageDegradedNotice = false
     @State private var hasShownStorageDegradedNotice = false
 
@@ -32,24 +31,20 @@ struct HubView: View {
                         StatChip(label: "Count", value: model.countAccuracy)
                         StatChip(label: "Streak", value: model.streak)
                     }
-                    if preferences.lastLaunch != nil {
-                        // Relaunch wiring arrives with the first module (Step 3).
-                        PrimaryButton(title: "Continue") {}
+                    if let launch = HubViewModel.continueLaunch(from: preferences.lastLaunch) {
+                        PrimaryButton(title: "Continue") { router.launch = launch }
+                            .accessibilityIdentifier("hub.continue")
                     }
                     VStack(spacing: FeltSpacing.m) {
-                        ForEach(HubModule.allCases) { module in
+                        ForEach(AppModule.allCases) { module in
                             ModuleTile(title: module.title, subtitle: module.subtitle) {
-                                presented = module
+                                router.launch = ModuleLaunch(module: module, setup: nil)
                             }
+                            .accessibilityIdentifier("hub.tile.\(module.rawValue)")
                         }
                     }
                 }
                 .padding(FeltSpacing.l)
-            }
-        }
-        .fullScreenCover(item: $presented) { module in
-            ComingSoonView(title: module.title, message: "Coming in Step \(module.step)") {
-                presented = nil
             }
         }
         .task(id: sessionStore.revision) { refresh() }

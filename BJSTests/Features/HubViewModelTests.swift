@@ -76,7 +76,7 @@ struct HubViewModelTests {
 
     @Test("Module tiles: Strategy, Counting, Shoe Sim, Edge")
     func tiles() {
-        #expect(HubModule.allCases.map { $0.title } == ["Strategy", "Counting", "Shoe Sim", "Edge"])
-        #expect(HubModule.allCases.map { $0.step } == [3, 4, 7, 5])
+        #expect(AppModule.allCases.map { $0.title } == ["Strategy", "Counting", "Shoe Sim", "Edge"])
+        #expect(AppModule.allCases.map { $0.step } == [3, 4, 7, 5])
     }
 }

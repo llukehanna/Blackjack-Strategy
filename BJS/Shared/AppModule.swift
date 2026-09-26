@@ -1,5 +1,8 @@
-/// The hub's module tiles. Each opens a placeholder until its build step (parent spec §8).
-enum HubModule: String, CaseIterable, Identifiable {
+import Foundation
+
+/// The trainable areas the hub launches (parent spec §5). Shared so the App layer can route
+/// launches without the hub knowing about any feature.
+enum AppModule: String, CaseIterable, Identifiable {
     case strategy, counting, shoe, edge
 
     var id: Self { self }
@@ -31,4 +34,12 @@ enum HubModule: String, CaseIterable, Identifiable {
         case .edge: return 5
         }
     }
+}
+
+/// A request to present a module full-screen. `setup` is the module's own encoded setup
+/// (Continue); nil opens the module's setup screen. Every launch has a fresh id.
+struct ModuleLaunch: Identifiable, Equatable {
+    let id = UUID()
+    let module: AppModule
+    let setup: Data?
 }

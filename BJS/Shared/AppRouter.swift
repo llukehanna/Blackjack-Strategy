@@ -22,6 +22,9 @@ enum AppTab: String, CaseIterable, Identifiable {
 final class AppRouter {
     var selectedTab: AppTab
 
+    /// The module presented full-screen over the tabs; set by the hub, cleared on close.
+    var launch: ModuleLaunch?
+
     init(selectedTab: AppTab = .train) {
         self.selectedTab = selectedTab
     }
