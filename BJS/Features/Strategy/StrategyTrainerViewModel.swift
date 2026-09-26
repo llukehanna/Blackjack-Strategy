@@ -30,6 +30,16 @@ enum TrainerPhase: Equatable {
     case summary
 }
 
+/// The numbers shown on the Strategy session summary screen (spec §5).
+struct StrategySessionSummary: Equatable {
+    let accuracy: Double?           // nil with no decisions
+    let decisionCount: Int
+    let mistakes: [GradedDecision]  // in order
+    let bestStreak: Int
+    let handsPlayed: Int            // hands with at least one decision
+    let averageDecisionMs: Double?  // Speed mode only
+}
+
 /// Runs a Strategy session over `RoundEngine` (Step 3 spec §4). Thin: BJSCore deals, plays and
 /// grades; this type sequences phases, hides the dealer until the outcome, and persists.
 @MainActor
@@ -58,6 +68,9 @@ final class StrategyTrainerViewModel {
     private(set) var decisionToken = 0
     private(set) var decisionStartedAt: Date
     private(set) var toastCount = 0
+    private(set) var hasSaved = false
+    private(set) var saveFailed = false
+    private(set) var endedAt: Date?
 
     @ObservationIgnored private let table: StrategyTable
     @ObservationIgnored private let weights: [TrainingCell: Double]?
@@ -119,6 +132,25 @@ final class StrategyTrainerViewModel {
             run += 1
         }
         return run
+    }
+
+    /// Whether "Save partial" has anything to save right now.
+    var canSavePartial: Bool { !decisions.isEmpty && phase != .summary }
+
+    var sessionDraft: SessionDraft {
+        SessionDraft(id: sessionID, module: .strategy, mode: setup.mode.rawValue, startedAt: startedAt,
+                     endedAt: endedAt ?? now(), rules: rules, decisions: decisions.map { $0.draft })
+    }
+
+    var summary: StrategySessionSummary {
+        let core = SessionSummary(decisions: decisions.map { ($0.isCorrect, $0.responseMs) }, countChecks: [])
+        return StrategySessionSummary(
+            accuracy: decisions.isEmpty ? nil : Double(core.correctDecisions) / Double(core.decisionCount),
+            decisionCount: core.decisionCount,
+            mistakes: decisions.filter { !$0.isCorrect },
+            bestStreak: core.bestStreak,
+            handsPlayed: Set(decisions.map { $0.handNumber }).count,
+            averageDecisionMs: setup.mode.isTimed ? core.meanResponseMs : nil)
     }
 
     // MARK: - Input
@@ -202,10 +234,33 @@ final class StrategyTrainerViewModel {
         phase = .awaitingDecision
     }
 
-    /// Ends the session: shows the summary. Task 7 adds saving.
+    /// Speed mode: the view's timer fired for the decision identified by `token`.
+    func timeoutElapsed(token: Int) {
+        guard phase == .awaitingDecision, token == decisionToken, let spot = round?.currentSpot else { return }
+        let graded = GradedDecision(
+            id: decisions.count, handNumber: handNumber, cell: TrainingCell(spot: spot), chosen: .timeout,
+            correctAction: table.action(for: spot), isCorrect: false,
+            responseMs: Int((speedTimerSeconds * 1000).rounded()), decidedAt: now(),
+            why: WhyContext(spot: spot, userAction: nil, table: table, rules: rules),
+            abandonsHand: true)
+        decisions.append(graded)
+        phase = .feedback(graded)
+    }
+
+    /// Ends the session (length reached, END, or Save partial): shows the summary and saves once.
+    /// A session with no graded decisions isn't saved.
     func finish() {
         guard phase != .summary else { return }
+        endedAt = now()
         phase = .summary
+        guard !decisions.isEmpty, !hasSaved else { return }
+        hasSaved = true
+        do {
+            try persist(sessionDraft)
+        } catch {
+            saveFailed = true
+            logger.error("Strategy session failed to save: \(error.localizedDescription)")
+        }
     }
 
     static func milliseconds(from start: Date, to end: Date) -> Int {
