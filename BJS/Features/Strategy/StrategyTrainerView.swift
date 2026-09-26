@@ -7,6 +7,7 @@ struct StrategyTrainerView: View {
     let onAgain: () -> Void
 
     @Environment(PreferencesStore.self) private var preferences
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showsToast = false
     @State private var showsLeaveDialog = false
     @State private var whyContext: WhyContext?
@@ -29,9 +30,10 @@ struct StrategyTrainerView: View {
                 topBar
                 if model.setup.mode.isTimed {
                     // The slot stays reserved between decisions so the table doesn't jump when the
-                    // bar hides for feedback and the outcome. It also hides behind the leave dialog,
-                    // where the Speed timer is paused (the clock restarts on "Keep playing").
-                    let showsBar = isAwaiting && !showsLeaveDialog
+                    // bar hides for feedback and the outcome. It also hides behind the leave dialog
+                    // and while the app isn't active, where the Speed timer is paused (the clock
+                    // restarts on "Keep playing" or on returning to the foreground).
+                    let showsBar = isAwaiting && !showsLeaveDialog && scenePhase == .active
                     CountdownBar(startedAt: model.decisionStartedAt, duration: model.speedTimerSeconds)
                         .opacity(showsBar ? 1 : 0)
                         .accessibilityHidden(!showsBar)
@@ -39,6 +41,12 @@ struct StrategyTrainerView: View {
                 DealerHandView(cards: model.dealerCards, isRevealed: model.isDealerRevealed,
                                total: model.isDealerRevealed ? model.round?.dealer.total : nil,
                                cardWidth: SplitHandsLayout.maxCardWidth)
+                    // Force a fresh identity per hand: without this, the ForEach inside
+                    // DealerHandView keys its hole-card FlipCard by index, so a new hand's
+                    // hole card reuses the previous hand's (revealed) FlipCard view. Its
+                    // isFaceUp then animates true → false instead of starting face-down,
+                    // which briefly shows the new hole card face-up on DEAL.
+                    .id(model.handNumber)
                 Spacer(minLength: 0)
                     .overlay {
                         // In the felt between the dealer and the player, clear of both hands.
@@ -63,12 +71,18 @@ struct StrategyTrainerView: View {
                 }
             }
         }
-        .task(id: "\(model.decisionToken)-\(showsLeaveDialog)") { await runSpeedTimer() }
+        .task(id: "\(model.decisionToken)-\(showsLeaveDialog)-\(scenePhase == .active)") { await runSpeedTimer() }
         .onChange(of: model.toastCount) { flashToast() }
         .onChange(of: showsLeaveDialog) { wasShowing, isShowing in
             // Dismissed (Keep playing, or tapping outside): re-arm so time spent looking at the
             // dialog never counts against the Speed timer, and the response clock restarts clean.
             if wasShowing && !isShowing { model.restartDecisionClock() }
+        }
+        .onChange(of: scenePhase) { wasActive, isActive in
+            // Returning from the background or inactive (a call, Notification Centre, the app
+            // switcher): re-arm exactly like dismissing the leave dialog, so time spent away from
+            // the app never counts against the Speed timer.
+            if wasActive != .active && isActive == .active { model.restartDecisionClock() }
         }
         .sensoryFeedback(trigger: model.decisions.count) { _, _ in
             guard preferences.hapticsEnabled, let last = model.decisions.last else { return nil }
@@ -153,7 +167,8 @@ struct StrategyTrainerView: View {
     }
 
     private func runSpeedTimer() async {
-        guard model.setup.mode.isTimed, model.phase == .awaitingDecision, !showsLeaveDialog else { return }
+        guard model.setup.mode.isTimed, model.phase == .awaitingDecision, !showsLeaveDialog,
+              scenePhase == .active else { return }
         let token = model.decisionToken
         try? await Task.sleep(for: .seconds(model.speedTimerSeconds))
         guard !Task.isCancelled else { return }
