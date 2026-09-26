@@ -22,7 +22,20 @@ enum WoOChartDecoder {
             }
         }
         return StrategyTable(hardCells: grid(hardRows), softCells: grid(softRows),
-                             pairCells: grid(pairRows))
+                             pairCells: grid(pairRows),
+                             hard14VsTenSurrenders: earlySurrender14Compositions(rules))
+    }
+
+    /// WoO's composition note for early surrender of hard 14 vs 10 ("Do not surrender 10 Vs. 4+10
+    /// or 5+9 in single deck"; "Do not surrender 10 Vs. 4+10 in double deck"), as the sorted
+    /// two-card values that do surrender. With 4+ decks every hard 14 surrenders, so no note.
+    static func earlySurrender14Compositions(_ rules: BlackjackRules) -> Set<[Int]>? {
+        guard rules.surrenderRule == .early, rules.peekRule == .americanPeek else { return nil }
+        switch rules.deckCount {
+        case .one: return [[6, 8]]
+        case .two: return [[5, 9], [6, 8]]
+        case .four, .six, .eight: return nil
+        }
     }
 
     static func sourceTable(for rules: BlackjackRules) -> [[String]] {
@@ -84,7 +97,8 @@ enum WoOChartDecoder {
 
     /// WoO's early-surrender list (https://wizardofodds.com/games/blackjack/surrender/),
     /// reduced to totals. 10+4 is the most common hard 14, so 14 vs 10 is not surrendered
-    /// with 1 or 2 decks.
+    /// with 1 or 2 decks; see `earlySurrender14Compositions` for the composition note that
+    /// overrides this for specific two-card hard-14 hands.
     static func earlySurrenderListed(row: Int, dealerCol: Int, rules: BlackjackRules) -> Bool {
         let decks = rules.deckCount.rawValue
         if hardRows.contains(row) {
