@@ -109,3 +109,75 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   - This Xcode (27.0) has no iPhone SE simulator on iOS 18.4; the SE runs iOS 18.3.
   - The iOS Simulator control tool can't attach without a Simulator GUI. Full-scroll screenshots used a temporary XCUITest target, deleted afterwards.
 - Next: Step 3 (Strategy) — brainstorm and plan in a fresh session.
+
+## Step 3 — Strategy (2026-09-26)
+
+- Spec: `docs/superpowers/specs/2026-09-25-step-3-strategy-design.md`. Plan: `docs/superpowers/plans/2026-09-25-step-3-strategy.md`.
+  Branch `step-3-strategy`, commits ed61341..(this handoff). Built task by task with subagents, each task reviewed; then a whole-branch review (verdict "with fixes") and one fix wave, which passed its re-review.
+- Tests: BJSCore 229 passing; app 133 unit tests + 2 UI tests (`FoundationUITests`, `StrategyUITests`) passing, with no warnings.
+- Luke's decisions in brainstorming:
+  - Feedback cadence: a wrong decision, or any decision that ends the player's turn, shows the FeedbackCard; a correct mid-hand decision shows a ✓ toast.
+  - After a wrong decision the hand continues with the user's action.
+  - The next hand deals only on the user's DEAL tap.
+  - A Speed timeout is recorded as a wrong `timeout` and abandons the hand.
+  - Learn sessions are saved but excluded from stats.
+  - WoO's hard 14 vs 10 early-surrender composition note is applied exactly.
+- Shipped:
+  - **BJSCore:**
+    - `StrategyTable.hard14VsTenSurrenders` (1D: 8+6; 2D: 9+5, 8+6), plus `preferences(for:dealerUpcard:legal:)` and `compositionNoteApplies`.
+    - `WhyContext(spot:userAction:table:rules:)`: built from the graded row; `userAction: nil` means a timeout; adds `preferredIllegal`, `SurrenderContext` and `compositionNote` (only when surrender is legal).
+    - New WHY templates for illegal doubles and surrenders, early and no-hole-card surrender, and the composition note.
+  - **Persistence:** `SessionStore` sample queries take `forStats: Bool = true`, which drops `mode == "learn"` sessions (`statsExcludedModes`).
+  - **Routing:**
+    - `AppModule` and `ModuleLaunch` in Shared (`HubModule` is gone); `AppRouter.launch`.
+    - `App/ModuleHost` presents modules over `RootTabView`.
+    - The hub's tiles and Continue set `router.launch`.
+    - `PreferencesStore` logs a `lastLaunch` decode failure.
+    - `PercentText` moved to Shared.
+  - **Strategy (`Features/Strategy`):**
+    - `StrategySetup` / `StrategyMode` / `StrategyLength`, `StrategyText`.
+    - `StrategyTrainerViewModel`: a phase machine over `RoundEngine` with the dealer hidden until the outcome, save-once `finish()`, `timeoutElapsed(token:)` (Speed only), `restartDecisionClock()` and the summary.
+    - Screens: `StrategyFlowView`, `StrategySetupView`, `StrategyTrainerView`, `DealerHandView`, `WhySheet`, `StrategySummaryView`.
+    - UI-test hooks `-strategyLength N` and `-seed N`, honoured only with `-uiTesting`.
+  - **New Felt components** (existing tokens only, all in `FeltCatalogue`): `FlipCard`, `FeltToast`, `CountdownBar`, `SplitHandsView`.
+- Deviations from the plan:
+  - `StrategyTrainerViewModel` is explicitly `@MainActor`: its static default shoe maker needed it.
+  - Added after review:
+    - the in-session streak in the trainer header (spec §4; the plan left it out);
+    - the Speed timer and countdown pause behind the leave dialog and while the app isn't active (`restartDecisionClock()` on return);
+    - the dealer view gets a fresh identity per hand (`.id(handNumber)`), so the new hole card never flashes face-up;
+    - design-check layout fixes in the trainer view: toast position, reserved countdown and bottom-area space, SE dock padding, cream running to the bottom edge.
+  - The final review ran before this handoff, so the handoff records the post-fix state.
+- Carry-overs resolved: H14 vs 10 composition; WHY rules context; Continue wiring; the `lastLaunch` decode log; the save-partial orphan risk (save-once guard); `WhyContext` can now represent `timeout`.
+- **Needs Luke's decision** (screenshots: iPhone 16 / SE design check in the Step 3 session scratchpad):
+  - **`DefaultIsolationMainActor`:** Step 3's reviewer checked with `swiftc` that `-enable-upcoming-feature DefaultIsolationMainActor` in `project.yml` is a no-op. The setting that works is `SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor`. The app has not actually been main-actor by default, so the Step 2 key-path guidance may rest on this. It needs its own `chore` change and decision before Step 4.
+  - The leave-session `confirmationDialog` uses system chrome (blue/grey). The reviewer recommends accepting it, as with the Liquid Glass tab bar.
+  - "Weak spots" is scaled down and touches its segment edges in `ModePicker` on the iPhone SE (375 pt). Options: shorten the label (for example "Weak"), or change the frozen component.
+  - After a 3–4 hand split, the outcome lines push the player hands up about 28 pt. Option: reserve the outcome area's height.
+- Deferred minors (non-blocking, triaged in the final review):
+  - The toast `Task` isn't cancelled, so rapid correct decisions can hide the second toast early.
+  - The `strategy.close` identifier is duplicated in the trainer and the WHY sheet.
+  - END is a plain `.label` button.
+  - `StrategySummaryView.handsTarget` and `mode` are unused.
+  - Continue shows the setup screen for one frame, and `loadWeights` runs twice.
+  - `PercentText.noData` duplicates `HubViewModel.noData`.
+  - `CountdownBar`'s `TimelineView` keeps ticking while hidden, and the catalogue's `CountdownBar` resets on re-render.
+  - `choose()` appends before `apply` succeeds (practically unreachable).
+  - `outcomeLines` isn't phase-guarded (the view only reads it in `.outcome`).
+  - There is no direct `countSamples(forStats:)` test (add it in Step 4).
+  - There is no automated test for pausing on `scenePhase` or behind the leave dialog; the VM side is tested.
+- Carry-overs still open:
+  - Documented limitation (spec §3.4): under no hole card with RSA, split A,A vs A falls back to stand where resplitting is better. It only arises after a deviation.
+  - Step 5: `EdgeCalculator` treats no-hole-card late surrender as late, but it now settles like early.
+  - Step 6:
+    - history screens pass `forStats: false`;
+    - the heat map should respect the Learn exclusion and ignores hard 4 / soft 12;
+    - fetches read whole tables;
+    - WHY-from-history needs the legal actions, which aren't persisted (`WhyContext(spot:)` needs `legalActions`): store them or fall back;
+    - the per-card RC trace isn't persisted.
+  - Step 8:
+    - `FeltType.label` tracking doesn't scale;
+    - `FlipCard` and `SplitHandsView` don't use `FeltAdaptiveLayout`;
+    - `DealerHandView`'s placeholder total gives VoiceOver an empty stop;
+    - `SplitHandsView`'s `accessibilityValue` is `""`.
+- Next: Luke decides the items above (`DefaultIsolationMainActor` first). Then Step 4 (Counting): brainstorm and plan in a fresh session.
