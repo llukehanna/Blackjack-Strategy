@@ -4,10 +4,17 @@ import SwiftUI
 struct ModuleHost: View {
     let launch: ModuleLaunch
     let onClose: () -> Void
+    private let configuration = LaunchConfiguration.current
 
     var body: some View {
-        // Strategy is wired to its flow in Step 3 Task 9.
-        ComingSoonView(title: launch.module.title, message: "Coming in Step \(launch.module.step)",
-                       onClose: onClose)
+        switch launch.module {
+        case .strategy:
+            StrategyFlowView(initialSetup: launch.setup.flatMap(StrategySetup.decode),
+                             handLimitOverride: configuration.strategyLength, seed: configuration.seed,
+                             onClose: onClose)
+        case .counting, .shoe, .edge:
+            ComingSoonView(title: launch.module.title, message: "Coming in Step \(launch.module.step)",
+                           onClose: onClose)
+        }
     }
 }

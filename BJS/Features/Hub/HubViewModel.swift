@@ -26,8 +26,7 @@ final class HubViewModel {
     }
 
     static func percent(_ fraction: Double?) -> String {
-        guard let fraction else { return noData }
-        return "\(Int((fraction * 100).rounded()))%"
+        PercentText.text(fraction)
     }
 
     /// The launch the hub's Continue button starts: the last module with its saved setup.

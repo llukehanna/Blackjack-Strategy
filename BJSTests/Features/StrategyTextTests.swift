@@ -45,4 +45,10 @@ struct StrategyTextTests {
         #expect(StrategyText.signedUnits(-0.5) == "−0.5")
         #expect(StrategyText.signedUnits(0) == "±0")
     }
+
+    @Test("Percent text")
+    func percent() {
+        #expect(PercentText.text(nil) == "—")
+        #expect(PercentText.text(2.0 / 3.0) == "67%")
+    }
 }
