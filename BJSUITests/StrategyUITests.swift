@@ -31,6 +31,21 @@ final class StrategyUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["strategy.summary"].waitForExistence(timeout: 5))
         app.buttons["Done"].tap()
+
+        let hubContinue = app.buttons["hub.continue"]
+        XCTAssertTrue(hubContinue.waitForExistence(timeout: 5))
+        hubContinue.tap()
+
+        // Continue should skip setup and go straight to the trainer, awaiting the first decision.
+        XCTAssertTrue(app.buttons["STAND"].waitForExistence(timeout: 5), "Continue should reopen the trainer directly")
+
+        app.buttons["strategy.close"].tap()
+        // No decision has been made in this fresh session yet, so the leave dialog shouldn't
+        // appear; but handle it either way to keep the test deterministic if that changes.
+        let keepPlaying = app.buttons["Keep playing"]
+        if keepPlaying.waitForExistence(timeout: 2) {
+            app.buttons["Discard"].tap()
+        }
         XCTAssertTrue(app.buttons["hub.continue"].waitForExistence(timeout: 5))
     }
 }
