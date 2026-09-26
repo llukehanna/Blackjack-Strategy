@@ -26,6 +26,11 @@ Native iPhone blackjack **trainer** (Swift 6.2 / SwiftUI / iOS 18+). Users get m
 
 The Felt design system is the only design system. It is **frozen at the end of Step 2**. Later steps may add new components built from existing tokens, but must not restyle or re-tune existing tokens or components. A change to a frozen token needs an explicit decision from Luke in its own change, never inside a feature step. There are no "redesign" steps.
 
+- **Frozen on 2026-09-25** after Luke's sign-off (review page: https://claude.ai/artifact/44U1bKzLPNxgDKiXLeQexN). The DEBUG `FeltCatalogue` (Settings → Debug, or launch with `-showCatalogue`) is the reference to check against.
+- **Pre-approved exception:** accessibility-only fixes to frozen components (Dynamic Type up to AX3, VoiceOver, Reduce Motion) are allowed in Step 8, as long as the default-text-size appearance does not change.
+- iOS 26 draws the tab bar as system Liquid Glass. This is accepted; don't opt out of it.
+- The app is portrait-only on iPhone.
+
 ## Commands
 
 ```bash
