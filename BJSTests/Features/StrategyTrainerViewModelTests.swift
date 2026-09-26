@@ -176,6 +176,21 @@ struct StrategyTrainerViewModelTests {
         #expect(graded.isCorrect)
     }
 
+    @Test("The composition note doesn't blanket-surrender every hard-14 composition")
+    func compositionGradingContrast() {
+        // Same 1D early-surrender rules as `compositionGrading`, but 10+4 vs 10 is the
+        // composition WoO says to hit, not surrender.
+        var rules = BlackjackRules()
+        rules.deckCount = .one
+        rules.surrenderRule = .early
+        let vm = trainer(ScriptedShoes([shoe(player: (.ten, .four), up: .ten, hole: .seven)]), rules: rules)
+        #expect(vm.legalActions.contains(.surrender))
+        vm.choose(.surrender)
+        guard case .feedback(let graded) = vm.phase else { Issue.record("expected feedback"); return }
+        #expect(!graded.isCorrect)
+        #expect(graded.correctAction == .hit)
+    }
+
     @Test("Decisions record cell, response time and WHY context")
     func decisionRecord() {
         var clock = Date(timeIntervalSince1970: 1000)
