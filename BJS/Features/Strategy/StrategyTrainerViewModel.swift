@@ -234,6 +234,15 @@ final class StrategyTrainerViewModel {
         phase = .awaitingDecision
     }
 
+    /// Re-arms the current decision's clock, e.g. after the "Leave this session?" dialog closes:
+    /// a fresh token means a Speed timeout that was already in flight can't fire for time spent
+    /// away from the dock, and the response time for this decision is measured from here rather
+    /// than from before the interruption. A no-op outside `.awaitingDecision`.
+    func restartDecisionClock() {
+        guard phase == .awaitingDecision else { return }
+        beginDecision()
+    }
+
     /// Speed mode: the view's timer fired for the decision identified by `token`.
     func timeoutElapsed(token: Int) {
         guard phase == .awaitingDecision, token == decisionToken, let spot = round?.currentSpot else { return }

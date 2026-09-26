@@ -154,4 +154,43 @@ struct StrategySessionTests {
         #expect(vm.summary.accuracy == nil)
         #expect(vm.summary.handsPlayed == 0)
     }
+
+    @Test("Restarting the decision clock bumps the token; a stale timeout after that is ignored")
+    func restartDecisionClockBumpsToken() {
+        let vm = make(SaveSpy(), mode: .speed)
+        let originalToken = vm.decisionToken
+        vm.restartDecisionClock()
+        #expect(vm.decisionToken != originalToken)
+        #expect(vm.phase == .awaitingDecision)
+        // The dialog-era token is now stale: a timeout that fires for it must be ignored.
+        vm.timeoutElapsed(token: originalToken)
+        #expect(vm.phase == .awaitingDecision)
+        #expect(vm.decisions.isEmpty)
+    }
+
+    @Test("Restarting the decision clock measures the response time from the restart")
+    func restartDecisionClockResetsStartTime() {
+        // A timeout's responseMs is always the fixed timer duration, so exercise the reset via a
+        // real choice instead, which measures elapsed time from `decisionStartedAt`.
+        var clock = Date(timeIntervalSince1970: 1000)
+        let vm = make(SaveSpy(), mode: .speed, now: { clock })
+        clock = clock.addingTimeInterval(5) // time spent looking at the leave-session dialog
+        vm.restartDecisionClock()
+        clock = clock.addingTimeInterval(1.2)
+        vm.choose(.stand)
+        guard case .feedback(let graded) = vm.phase else { Issue.record("expected feedback"); return }
+        #expect(graded.responseMs == 1200)
+    }
+
+    @Test("Restarting the decision clock outside awaitingDecision is a no-op")
+    func restartDecisionClockNoOpOutsideAwaitingDecision() {
+        let vm = make(SaveSpy(), mode: .speed)
+        vm.choose(.stand)
+        let phaseBefore = vm.phase
+        let tokenBefore = vm.decisionToken
+        #expect(phaseBefore != .awaitingDecision)
+        vm.restartDecisionClock()
+        #expect(vm.phase == phaseBefore)
+        #expect(vm.decisionToken == tokenBefore)
+    }
 }

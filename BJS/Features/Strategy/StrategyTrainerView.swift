@@ -47,8 +47,13 @@ struct StrategyTrainerView: View {
                 }
             }
         }
-        .task(id: model.decisionToken) { await runSpeedTimer() }
+        .task(id: "\(model.decisionToken)-\(showsLeaveDialog)") { await runSpeedTimer() }
         .onChange(of: model.toastCount) { flashToast() }
+        .onChange(of: showsLeaveDialog) { wasShowing, isShowing in
+            // Dismissed (Keep playing, or tapping outside): re-arm so time spent looking at the
+            // dialog never counts against the Speed timer, and the response clock restarts clean.
+            if wasShowing && !isShowing { model.restartDecisionClock() }
+        }
         .sensoryFeedback(trigger: model.decisions.count) { _, _ in
             guard preferences.hapticsEnabled, let last = model.decisions.last else { return nil }
             return last.isCorrect ? .success : .error
@@ -69,10 +74,16 @@ struct StrategyTrainerView: View {
             Text(model.handLimit.map { "Hand \(model.handNumber) / \($0)" } ?? "Hand \(model.handNumber)")
                 .feltText(.label).foregroundStyle(FeltColor.textTertiary)
             Spacer()
-            Text("\(model.correctCount) / \(model.decisions.count)")
-                .feltText(.stat).foregroundStyle(FeltColor.textPrimary)
-                .accessibilityLabel("Correct")
-                .accessibilityValue("\(model.correctCount) of \(model.decisions.count)")
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(model.correctCount) / \(model.decisions.count)")
+                    .feltText(.stat).foregroundStyle(FeltColor.textPrimary)
+                    .accessibilityLabel("Correct")
+                    .accessibilityValue("\(model.correctCount) of \(model.decisions.count)")
+                Text("Streak \(model.currentStreak)")
+                    .feltText(.label).foregroundStyle(FeltColor.textTertiary)
+                    .accessibilityLabel("Streak")
+                    .accessibilityValue("\(model.currentStreak)")
+            }
             if model.handLimit == nil {
                 Button("END") {
                     if model.decisions.isEmpty { onClose() } else { model.finish() }
@@ -110,7 +121,7 @@ struct StrategyTrainerView: View {
     }
 
     private func runSpeedTimer() async {
-        guard model.setup.mode.isTimed, model.phase == .awaitingDecision else { return }
+        guard model.setup.mode.isTimed, model.phase == .awaitingDecision, !showsLeaveDialog else { return }
         let token = model.decisionToken
         try? await Task.sleep(for: .seconds(model.speedTimerSeconds))
         guard !Task.isCancelled else { return }
