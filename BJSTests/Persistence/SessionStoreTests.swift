@@ -147,4 +147,27 @@ struct SessionStoreTests {
         let degradedStore = SessionStore(context: degradedContainer.mainContext, isStorageDegraded: true)
         #expect(degradedStore.isStorageDegraded == true)
     }
+
+    func draft(mode: String?, decisions: [DecisionDraft]) -> SessionDraft {
+        SessionDraft(module: .strategy, mode: mode, startedAt: t(100), endedAt: t(160),
+                     rules: RulePreset.downtownVegas.rules, decisions: decisions)
+    }
+
+    @Test("Stats queries drop Learn sessions; forStats: false keeps them")
+    func learnExcludedFromStats() throws {
+        try store.save(draft(mode: "learn", decisions: [decision(true, at: 101)]))
+        try store.save(draft(mode: "test", decisions: [decision(false, at: 102)]))
+
+        #expect(try store.sessionSamples().count == 1)
+        #expect(try store.sessionSamples(forStats: false).count == 2)
+        #expect(try store.decisionSamples().map { $0.isCorrect } == [false])
+        #expect(try store.decisionSamples(forStats: false).count == 2)
+        #expect(try store.decisionSamples(modules: [.strategy]).count == 1)
+    }
+
+    @Test("Sessions with no mode count towards stats")
+    func nilModeCounts() throws {
+        try store.save(draft(mode: nil, decisions: [decision(true, at: 101)]))
+        #expect(try store.decisionSamples().count == 1)
+    }
 }

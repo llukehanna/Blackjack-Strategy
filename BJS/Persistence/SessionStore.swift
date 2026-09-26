@@ -58,26 +58,37 @@ final class SessionStore {
         revision += 1
     }
 
-    /// All sessions, oldest first.
-    func sessionSamples() throws -> [SessionSample] {
-        let sessions = try context.fetch(FetchDescriptor<Session>()).sorted { $0.startedAt < $1.startedAt }
+    /// Session modes whose decisions don't feed accuracy, streaks or weak spots (Step 3 spec §1):
+    /// Learn mode shows the answer before the user chooses.
+    static let statsExcludedModes: Set<String> = ["learn"]
+
+    /// All sessions, oldest first. `forStats` drops sessions in `statsExcludedModes`.
+    func sessionSamples(forStats: Bool = true) throws -> [SessionSample] {
+        let sessions = try context.fetch(FetchDescriptor<Session>())
+            .filter { !forStats || Self.countsForStats($0) }
+            .sorted { $0.startedAt < $1.startedAt }
         return mapLogging(sessions, kind: "session") { $0.sample }
     }
 
     /// Decisions from sessions in `modules` (all when nil), chronological.
-    func decisionSamples(modules: Set<TrainingModule>? = nil) throws -> [DecisionSample] {
+    func decisionSamples(modules: Set<TrainingModule>? = nil, forStats: Bool = true) throws -> [DecisionSample] {
         let records = try context.fetch(FetchDescriptor<DecisionRecord>())
-            .filter { Self.matches($0.session, modules) }
+            .filter { Self.matches($0.session, modules) && (!forStats || Self.countsForStats($0.session)) }
             .sorted { ($0.decidedAt, $0.sequence) < ($1.decidedAt, $1.sequence) }
         return mapLogging(records, kind: "decision") { $0.sample }
     }
 
     /// Count checks from sessions in `modules` (all when nil), chronological.
-    func countSamples(modules: Set<TrainingModule>? = nil) throws -> [CountSample] {
+    func countSamples(modules: Set<TrainingModule>? = nil, forStats: Bool = true) throws -> [CountSample] {
         let records = try context.fetch(FetchDescriptor<CountCheckRecord>())
-            .filter { Self.matches($0.session, modules) }
+            .filter { Self.matches($0.session, modules) && (!forStats || Self.countsForStats($0.session)) }
             .sorted { ($0.checkedAt, $0.sequence) < ($1.checkedAt, $1.sequence) }
         return mapLogging(records, kind: "count check") { $0.sample }
+    }
+
+    private static func countsForStats(_ session: Session?) -> Bool {
+        guard let mode = session?.mode else { return true }
+        return !statsExcludedModes.contains(mode)
     }
 
     /// Deletes every session and record. Rules and preferences live elsewhere and are untouched.
