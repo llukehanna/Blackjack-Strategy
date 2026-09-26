@@ -10,6 +10,7 @@ struct FeltCatalogue: View {
     @State private var entry = CountEntry()
     @State private var toggle = true
     @State private var stepper = 4
+    @State private var flipped = false
 
     private let swatches: [(String, FeltRGB)] = [
         ("feltDeep", FeltPalette.feltDeep), ("feltBase", FeltPalette.feltBase),
@@ -42,6 +43,7 @@ struct FeltCatalogue: View {
                     section("Cards") { cards }
                     section("Action dock") { docks }
                     section("Feedback") { feedback }
+                    section("Strategy components") { strategyComponents }
                     section("Chips, tiles, buttons") { surfaces }
                     section("Mode picker and settings") { controls }
                     section("Count keypad") {
@@ -141,6 +143,32 @@ struct FeltCatalogue: View {
                          onWhy: {}, onNext: {})
         }
         .padding(.top, FeltSpacing.xl)
+    }
+
+    private var strategyComponents: some View {
+        VStack(alignment: .leading, spacing: FeltSpacing.xl) {
+            VStack(spacing: FeltSpacing.s) {
+                HStack(spacing: FeltSpacing.l) {
+                    FlipCard(card: Card(rank: .king, suit: .spades), isFaceUp: flipped, width: 70)
+                    FlipCard(card: Card(rank: .ace, suit: .hearts), isFaceUp: !flipped, width: 70)
+                }
+                SecondaryButton(title: "Flip") { flipped.toggle() }
+            }
+            FeltToast(text: "Correct")
+            CountdownBar(startedAt: .now, duration: 3)
+            VStack(alignment: .leading, spacing: FeltSpacing.m) {
+                SplitHandsView(
+                    hands: [[Card(rank: .eight, suit: .clubs), Card(rank: .eight, suit: .spades)]],
+                    totals: ["16"], activeIndex: nil, availableWidth: 343)
+                SplitHandsView(
+                    hands: [
+                        [Card(rank: .eight, suit: .clubs), Card(rank: .nine, suit: .hearts)],
+                        [Card(rank: .eight, suit: .spades), Card(rank: .six, suit: .diamonds)],
+                        [Card(rank: .four, suit: .hearts), Card(rank: .seven, suit: .clubs)],
+                    ],
+                    totals: ["17", "14", "11"], activeIndex: 1, availableWidth: 343)
+            }
+        }
     }
 
     private var surfaces: some View {
