@@ -55,6 +55,14 @@ struct StrategySessionTests {
         #expect(vm.decisions.isEmpty)
     }
 
+    @Test("A timeout is a no-op outside Speed mode: only Speed's mode is timed")
+    func timeoutIgnoredOutsideSpeed() {
+        let vm = make(SaveSpy(), mode: .test)
+        vm.timeoutElapsed(token: vm.decisionToken)
+        #expect(vm.phase == .awaitingDecision)
+        #expect(vm.decisions.isEmpty)
+    }
+
     @Test("A timeout during feedback is ignored")
     func timeoutDuringFeedback() {
         let vm = make(SaveSpy(), mode: .speed)

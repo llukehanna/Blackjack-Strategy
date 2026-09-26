@@ -201,7 +201,7 @@ final class StrategyTrainerViewModel {
 
     // MARK: - Internals
 
-    func completeHand() {
+    private func completeHand() {
         handsCompleted += 1
         if let handLimit, handsCompleted >= handLimit {
             finish()
@@ -228,7 +228,7 @@ final class StrategyTrainerViewModel {
         }
     }
 
-    func beginDecision() {
+    private func beginDecision() {
         decisionToken += 1
         decisionStartedAt = now()
         phase = .awaitingDecision
@@ -245,7 +245,8 @@ final class StrategyTrainerViewModel {
 
     /// Speed mode: the view's timer fired for the decision identified by `token`.
     func timeoutElapsed(token: Int) {
-        guard phase == .awaitingDecision, token == decisionToken, let spot = round?.currentSpot else { return }
+        guard setup.mode.isTimed, phase == .awaitingDecision, token == decisionToken,
+              let spot = round?.currentSpot else { return }
         let graded = GradedDecision(
             id: decisions.count, handNumber: handNumber, cell: TrainingCell(spot: spot), chosen: .timeout,
             correctAction: table.action(for: spot), isCorrect: false,
