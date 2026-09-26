@@ -62,3 +62,50 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   - split A,A vs A under no hole card with RSA falls back to stand where resplit is better (only after a deviation).
 - Carry into Step 5 (Edge): `EdgeCalculator` credits no-hole-card late surrender as late, but it now settles like early.
 - Next: Step 2 (Foundation) — brainstorm/plan in a fresh session from spec §4 and §8, with the Step 1 and this entry's carry-overs.
+
+## Step 2 — Foundation (2026-09-25)
+
+- Spec: `docs/superpowers/specs/2026-09-24-step-2-foundation-design.md`. Plan: `docs/superpowers/plans/2026-09-24-step-2-foundation.md`.
+  Branch `step-2-foundation`, commits 0cafc73..(this handoff). Built task by task with subagents, each task reviewed; then a whole-branch review and one fix wave.
+- Tests: BJSCore 211 passing; app 80 unit tests + 1 UI test (preset → hub header) passing, with no warnings.
+- **Felt design system FROZEN on 2026-09-25** after Luke's sign-off (review page: https://claude.ai/artifact/44U1bKzLPNxgDKiXLeQexN).
+  - Later steps may add components built from existing tokens. Changing a token or an existing component needs Luke's explicit decision in its own change.
+  - Pre-approved: accessibility-only fixes to frozen components in Step 8, as long as default-size appearance is unchanged (see CLAUDE.md).
+  - Luke's decisions: keep iOS 26's Liquid Glass tab bar; portrait-only.
+- Shipped:
+  - Tokens: `FeltPalette`/`FeltColor` (with `FeltRGB` WCAG maths), `FeltContrast` (31 tested pairs), `FeltType`, `FeltSpacing`, `FeltRadius`, `FeltTapTarget`, `FeltMotion`, `FeltAdaptiveLayout`.
+  - Components: FeltBackground, PlayingCard, HandView, ActionDock, FeedbackCard, StatChip, ModuleTile, Primary/SecondaryButton, ModePicker, SettingsSection/Row, CountKeypad (+ `CountEntry`), ComingSoonView; DEBUG `FeltCatalogue` (Settings → Debug, or `-showCatalogue`).
+  - Hub: rules header → Settings, stat chips, tiles → placeholders. Settings: shared `RulesForm`, preferences, reset, About. Progress tab is a placeholder.
+  - Stores: `ActiveRulesStore`, `PreferencesStore` (+ `LastLaunch`), `AppRouter` + `AppTab` (in Shared). `LaunchConfiguration` handles `-uiTesting`, `-startTab`, `-showCatalogue`.
+  - Persistence: SwiftData `SchemaV1` + `BJSMigrationPlan`; `SessionStore` (`SessionDraft` → records, chronological samples, `deleteAll`, `revision`, `isStorageDegraded`); `SessionSummary` in BJSCore.
+  - Project: generated launch screen, iPhone only, dark style, portrait only, version 1.0 (1), `BJSUITests` target.
+- Deviations from the plan:
+  - Unplanned Task 13b fixed `project.yml`: `INFOPLIST_VALUES` from Step 0 was silently ignored, so the app ran letterboxed.
+  - Accessibility-size layouts were added (rows, dock and hub chips stack vertically at accessibility sizes).
+  - `Session.id` is `@Attribute(.unique)`; SwiftData upserts on a duplicate id.
+  - The cached count on `Session` is `countCheckCount` (the relationship is `countChecks`).
+- Rules for Step 3 onwards:
+  - **Schema:** once a build with real data is on a device, any model change needs `SchemaV2` plus a migration stage. Never edit `SchemaV1` in place.
+  - **Key paths:** under `DefaultIsolationMainActor`, don't form `\.prop` key paths or `SortDescriptor`/`#Predicate` on app-module types, including `@Model`s. Use closures and in-memory sorting. Marking the schema models `nonisolated` would lift this; consider it before Step 6 needs predicates.
+  - **New components:** the card reveal (flip) will be a new component wrapping `PlayingCard`. Toasts and non-blocking alerts will be new components too.
+- Notes for Step 3 (Strategy):
+  - Save via `SessionStore.save(SessionDraft)`, with decisions in order.
+    - Use `chosen: .timeout` for Speed timeouts.
+    - Use `TrainingCell(spot:)` for the cell and `StrategyTable.action(for: DecisionSpot)` for `correctAction`.
+  - Refresh views with `.task(id: sessionStore.revision)`.
+  - Set `PreferencesStore.lastLaunch` when a session starts, and wire the hub's Continue button. It is currently a no-op, hidden until `lastLaunch` is set. Add a log line for `lastLaunch` decode failures.
+  - Replace `HubModule.strategy`'s placeholder with the setup screen. Features must not import each other.
+  - **Save partial vs end-of-session:** if both can save the same session id, the upsert replaces the `Session`, but the first save's child records may be orphaned. Test and handle this.
+  - Save failures show a non-blocking alert; the summary is still shown.
+- Carry-overs still open:
+  - Step 3 items from the WoO entry: H14 vs 10 composition, WHY rules context, A,A vs A ENHC RSA.
+  - Step 5: `EdgeCalculator` treats ENHC late surrender as late, but it now settles like early.
+  - Step 6:
+    - the heat map ignores hard 4 / soft 12;
+    - fetches read whole tables;
+    - history gaps: the RC trace per card isn't persisted, legal actions aren't persisted for WHY-from-history, and `WhyContext` can't represent `timeout`.
+  - Step 8: `FeltType.label` tracking is a fixed 1.54 pt, which doesn't scale with Dynamic Type; the catalogue's demo chip row truncates at AX3 (DEBUG only).
+- Environment notes:
+  - This Xcode (27.0) has no iPhone SE simulator on iOS 18.4; the SE runs iOS 18.3.
+  - The iOS Simulator control tool can't attach without a Simulator GUI. Full-scroll screenshots used a temporary XCUITest target, deleted afterwards.
+- Next: Step 3 (Strategy) — brainstorm and plan in a fresh session.
