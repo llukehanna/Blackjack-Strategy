@@ -1,4 +1,5 @@
 import SwiftUI
+import BJSCore
 
 enum DiscardTrayLayout {
     /// How full the tray is: decks played over the whole shoe, clamped to 0...1.
@@ -14,11 +15,21 @@ enum DiscardTrayLayout {
         return (1..<whole).map { Double($0) / decksTotal }
     }
 
-    /// Rounded to the nearest half deck, so VoiceOver users still estimate (Step 4 spec §2).
-    static func accessibilityValue(decksPlayed: Double) -> String {
-        let halves = (decksPlayed * 2).rounded() / 2
-        let number = halves == halves.rounded() ? "\(Int(halves))" : String(format: "%.1f", halves)
-        return "About \(number) \(halves == 1 ? "deck" : "decks") played"
+    /// Rounded to the shoe's true-count step, so VoiceOver users still estimate (Step 4 spec §2).
+    /// 1–2 deck shoes move in quarter decks; larger shoes move in half decks, matching the TC
+    /// questions the app asks for that deck count (`CountDrillGenerator.trueCountStep`).
+    static func accessibilityValue(decksPlayed: Double, decksTotal: Double) -> String {
+        let step = CountDrillGenerator.trueCountStep(deckCount: Int(decksTotal.rounded()))
+        let rounded = (decksPlayed / step).rounded() * step
+        let number: String
+        if rounded == rounded.rounded() {
+            number = "\(Int(rounded))"
+        } else if (rounded * 2) == (rounded * 2).rounded() {
+            number = String(format: "%.1f", rounded)
+        } else {
+            number = String(format: "%.2f", rounded)
+        }
+        return "About \(number) \(rounded == 1 ? "deck" : "decks") played"
     }
 }
 
@@ -38,12 +49,6 @@ struct DiscardTray: View {
         let shape = RoundedRectangle(cornerRadius: FeltRadius.chip)
         ZStack(alignment: .bottom) {
             shape.fill(FeltColor.surfaceInset)
-            StackedEdges(spacing: 3)
-                .stroke(FeltColor.onCreamSecondary.opacity(0.5), lineWidth: 0.5)
-                .background(FeltColor.cream)
-                .frame(height: inner * fill)
-                .clipShape(RoundedRectangle(cornerRadius: FeltRadius.chip - FeltSpacing.xs))
-                .padding(FeltSpacing.xs)
             ForEach(DiscardTrayLayout.tickFractions(decksTotal: decksTotal), id: \.self) { fraction in
                 Rectangle()
                     .fill(FeltColor.textTertiary.opacity(0.6))
@@ -51,12 +56,18 @@ struct DiscardTray: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .offset(y: -(FeltSpacing.xs + inner * fraction))
             }
+            StackedEdges(spacing: 3)
+                .stroke(FeltColor.onCreamSecondary.opacity(0.5), lineWidth: 0.5)
+                .background(FeltColor.cream)
+                .frame(height: inner * fill)
+                .clipShape(RoundedRectangle(cornerRadius: FeltRadius.chip - FeltSpacing.xs))
+                .padding(FeltSpacing.xs)
             shape.strokeBorder(FeltColor.textTertiary.opacity(0.6), lineWidth: 1)
         }
         .frame(width: Self.width, height: height)
         .accessibilityElement()
         .accessibilityLabel("Discard tray")
-        .accessibilityValue(DiscardTrayLayout.accessibilityValue(decksPlayed: decksPlayed))
+        .accessibilityValue(DiscardTrayLayout.accessibilityValue(decksPlayed: decksPlayed, decksTotal: decksTotal))
     }
 }
 
