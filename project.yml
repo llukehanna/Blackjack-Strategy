@@ -9,7 +9,6 @@ settings:
   base:
     SWIFT_VERSION: "6.2"
     SWIFT_STRICT_CONCURRENCY: complete
-    OTHER_SWIFT_FLAGS: "-enable-upcoming-feature DefaultIsolationMainActor"
 targets:
   BJS:
     type: application
@@ -25,6 +24,7 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.bjs.app
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_CFBundleDisplayName: BJS
         INFOPLIST_KEY_UIUserInterfaceStyle: Dark

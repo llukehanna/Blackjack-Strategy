@@ -60,8 +60,8 @@ struct PlayingCard: View {
     }
 }
 
-/// Parallel 45° lines filling a rectangle.
-struct DiagonalStripes: Shape {
+/// Parallel 45° lines filling a rectangle. `nonisolated` because SwiftUI draws shapes off the main actor.
+nonisolated struct DiagonalStripes: Shape {
     var spacing: CGFloat
 
     func path(in rect: CGRect) -> Path {

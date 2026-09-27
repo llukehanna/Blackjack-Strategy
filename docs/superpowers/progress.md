@@ -86,7 +86,7 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   - The cached count on `Session` is `countCheckCount` (the relationship is `countChecks`).
 - Rules for Step 3 onwards:
   - **Schema:** once a build with real data is on a device, any model change needs `SchemaV2` plus a migration stage. Never edit `SchemaV1` in place.
-  - **Key paths:** under `DefaultIsolationMainActor`, don't form `\.prop` key paths or `SortDescriptor`/`#Predicate` on app-module types, including `@Model`s. Use closures and in-memory sorting. Marking the schema models `nonisolated` would lift this; consider it before Step 6 needs predicates.
+  - ~~**Key paths:** under `DefaultIsolationMainActor`, don't form `\.prop` key paths or `SortDescriptor`/`#Predicate` on app-module types, including `@Model`s.~~ Retired on 2026-09-26: see "Main-actor isolation fix" below.
   - **New components:** the card reveal (flip) will be a new component wrapping `PlayingCard`. Toasts and non-blocking alerts will be new components too.
 - Notes for Step 3 (Strategy):
   - Save via `SessionStore.save(SessionDraft)`, with decisions in order.
@@ -150,7 +150,7 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   - The final review ran before this handoff, so the handoff records the post-fix state.
 - Carry-overs resolved: H14 vs 10 composition; WHY rules context; Continue wiring; the `lastLaunch` decode log; the save-partial orphan risk (save-once guard); `WhyContext` can now represent `timeout`.
 - **Needs Luke's decision** (screenshots: iPhone 16 / SE design check in the Step 3 session scratchpad):
-  - **`DefaultIsolationMainActor`:** Step 3's reviewer checked with `swiftc` that `-enable-upcoming-feature DefaultIsolationMainActor` in `project.yml` is a no-op. The setting that works is `SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor`. The app has not actually been main-actor by default, so the Step 2 key-path guidance may rest on this. It needs its own `chore` change and decision before Step 4.
+  - **`DefaultIsolationMainActor`:** Step 3's reviewer checked with `swiftc` that `-enable-upcoming-feature DefaultIsolationMainActor` in `project.yml` is a no-op. The setting that works is `SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor`. The app has not actually been main-actor by default, so the Step 2 key-path guidance may rest on this. It needs its own `chore` change and decision before Step 4. **Resolved 2026-09-26** (see "Main-actor isolation fix").
   - The leave-session `confirmationDialog` uses system chrome (blue/grey). The reviewer recommends accepting it, as with the Liquid Glass tab bar.
   - "Weak spots" is scaled down and touches its segment edges in `ModePicker` on the iPhone SE (375 pt). Options: shorten the label (for example "Weak"), or change the frozen component.
   - After a 3–4 hand split, the outcome lines push the player hands up about 28 pt. Option: reserve the outcome area's height.
@@ -181,3 +181,14 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
     - `DealerHandView`'s placeholder total gives VoiceOver an empty stop;
     - `SplitHandsView`'s `accessibilityValue` is `""`.
 - Next: Luke decides the items above (`DefaultIsolationMainActor` first). Then Step 4 (Counting): brainstorm and plan in a fresh session.
+
+## Main-actor isolation fix (2026-09-26)
+
+- `project.yml`:
+  - Removed `OTHER_SWIFT_FLAGS: "-enable-upcoming-feature DefaultIsolationMainActor"`. That flag was a silent no-op, so the app had never actually been main-actor by default.
+  - Added `SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor` to the **BJS app target only**.
+  - BJSCore (a package) and the test targets are unchanged. The tests already mark their suites `@MainActor`.
+- The only code change: `DiagonalStripes` (`PlayingCard.swift`) is now `nonisolated`, because `Shape` conformances are used off the main actor. This is a compile-only annotation on a frozen component that Luke approved; its appearance is unchanged.
+- The Step 2 key-path rule is retired. With real main-actor isolation, `\.prop` key paths and `FetchDescriptor(sortBy: [SortDescriptor(\Session.startedAt)])` compile fine in main-actor code (probed). `#Predicate` hasn't been probed yet; check it in Step 6.
+- New app types are now main-actor by default. A type used off the main actor must be marked `nonisolated`, for example a `Shape`, or a value type whose `Codable`/`Sendable` conformance is used from a background context.
+- Tests: BJSCore 229, app 133 unit + 2 UI, all passing.
