@@ -170,4 +170,21 @@ struct SessionStoreTests {
         try store.save(draft(mode: nil, decisions: [decision(true, at: 101)]))
         #expect(try store.decisionSamples().count == 1)
     }
+
+    @Test("countSamples(forStats:) drops Learn sessions only when asked for stats")
+    func countSamplesForStats() throws {
+        let learnCheck = CountCheckDraft(kind: .runningCount, expected: 1, answered: 1, isCorrect: true,
+                                         responseMs: 900, cardsSeen: 10, checkedAt: t(101))
+        try store.save(SessionDraft(module: .strategy, mode: "learn", startedAt: t(100), endedAt: t(160),
+                                    rules: BlackjackRules(), countChecks: [learnCheck]))
+        let tcCheck = CountCheckDraft(kind: .trueCount, expected: 2, answered: 2, isCorrect: true,
+                                      responseMs: 1200, cardsSeen: 104, checkedAt: t(201))
+        try store.save(SessionDraft(module: .countingTC, mode: "exact", startedAt: t(200), endedAt: t(260),
+                                    rules: BlackjackRules(), countChecks: [tcCheck]))
+
+        #expect(try store.countSamples().map(\.kind) == [.trueCount])
+        #expect(try store.countSamples(forStats: false).map(\.kind) == [.runningCount, .trueCount])
+        #expect(try store.countSamples(modules: [.countingTC]).count == 1)
+        #expect(try store.countSamples(modules: [.countingRC]).isEmpty)
+    }
 }
