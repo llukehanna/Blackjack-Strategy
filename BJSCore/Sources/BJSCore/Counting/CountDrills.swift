@@ -13,6 +13,19 @@ public enum DrillLength: Sendable, Equatable, Hashable {
     case fullShoe
 }
 
+/// One card in a running-count trace: its Hi-Lo value and the running count after it.
+public struct CountTraceEntry: Sendable, Equatable {
+    public let card: Card
+    public let value: Int
+    public let runningCount: Int
+
+    public init(card: Card, value: Int, runningCount: Int) {
+        self.card = card
+        self.value = value
+        self.runningCount = runningCount
+    }
+}
+
 /// A running-count drill: cards shown in groups; the user reports the count at checkpoints.
 public struct RunningCountDrill: Sendable, Equatable {
     public let groups: [[Card]]
@@ -21,7 +34,8 @@ public struct RunningCountDrill: Sendable, Equatable {
     public let checkpoints: [Int]
     private let countsAfterGroup: [Int]
 
-    init(groups: [[Card]], checkpoints: [Int]) {
+    /// `checkpoints` must be ascending group indices ending with the last group.
+    public init(groups: [[Card]], checkpoints: [Int]) {
         self.groups = groups
         self.checkpoints = checkpoints
         var running = 0
@@ -36,6 +50,21 @@ public struct RunningCountDrill: Sendable, Equatable {
     /// The correct running count after the group at `index` has been shown.
     public func expectedCount(afterGroup index: Int) -> Int {
         countsAfterGroup[index]
+    }
+
+    /// Every card from the group after the previous checkpoint through `groupIndex`, with its
+    /// Hi-Lo value and the running count after it. The first checkpoint's trace starts at card 1.
+    public func trace(throughGroup groupIndex: Int) -> [CountTraceEntry] {
+        let first = checkpoints.last(where: { $0 < groupIndex }).map { $0 + 1 } ?? 0
+        var running = first == 0 ? 0 : countsAfterGroup[first - 1]
+        var entries: [CountTraceEntry] = []
+        for group in groups[first...groupIndex] {
+            for card in group {
+                running += card.rank.hiLoValue
+                entries.append(CountTraceEntry(card: card, value: card.rank.hiLoValue, runningCount: running))
+            }
+        }
+        return entries
     }
 }
 

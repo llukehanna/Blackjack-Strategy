@@ -141,4 +141,34 @@ struct CountDrillTests {
         #expect(negative.isCorrect(-3, convention: .truncate))
         #expect(!negative.isCorrect(-3, convention: .floor))
     }
+
+    @Test("Trace covers the cards since the previous checkpoint, with running totals")
+    func trace() {
+        let c = { (r: Rank) in Card(rank: r, suit: .spades) }
+        let drill = RunningCountDrill(
+            groups: [[c(.two), c(.king)], [c(.five), c(.five)], [c(.ace), c(.seven)], [c(.three)]],
+            checkpoints: [1, 3])
+        let first = drill.trace(throughGroup: 1)
+        #expect(first.map(\.card.rank) == [.two, .king, .five, .five])
+        #expect(first.map(\.value) == [1, -1, 1, 1])
+        #expect(first.map(\.runningCount) == [1, 0, 1, 2])
+        // The next trace starts after group 1 and continues from its count (+2).
+        let later = drill.trace(throughGroup: 3)
+        #expect(later.map(\.card.rank) == [.ace, .seven, .three])
+        #expect(later.map(\.runningCount) == [1, 1, 2])
+    }
+
+    @Test("Traces over every checkpoint cover the drill exactly once", arguments: [1, 2, 3])
+    func tracesPartitionDrill(groupSize: Int) {
+        var rng = SeededRandomNumberGenerator(seed: 7)
+        let drill = CountDrillGenerator.runningCountDrill(
+            length: .cards(52), groupSize: groupSize, deckCount: 6, randomCheckpoints: true, using: &rng)
+        var all: [CountTraceEntry] = []
+        for checkpoint in drill.checkpoints {
+            let entries = drill.trace(throughGroup: checkpoint)
+            #expect(entries.last?.runningCount == drill.expectedCount(afterGroup: checkpoint))
+            all += entries
+        }
+        #expect(all.map(\.card) == drill.groups.flatMap { $0 })
+    }
 }
