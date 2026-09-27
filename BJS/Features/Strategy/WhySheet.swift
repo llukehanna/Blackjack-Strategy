@@ -13,7 +13,7 @@ struct WhySheet: View {
                     HStack {
                         Text(StrategyText.handLabel(context)).feltText(.display).foregroundStyle(FeltColor.textPrimary)
                         Spacer()
-                        CloseButton { dismiss() }
+                        CloseButton(identifier: "strategy.close") { dismiss() }
                     }
                     HStack(spacing: FeltSpacing.s) {
                         StatChip(label: "Your play",

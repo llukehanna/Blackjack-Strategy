@@ -13,7 +13,7 @@ struct StrategySetupView: View {
                 HStack {
                     Text("Strategy").feltText(.display).foregroundStyle(FeltColor.textPrimary)
                     Spacer()
-                    CloseButton(action: onClose)
+                    CloseButton(identifier: "strategy.close", action: onClose)
                 }
                 group("Mode") {
                     ModePicker(options: StrategyMode.allCases, selection: $setup.mode) { $0.title }
@@ -41,22 +41,5 @@ struct StrategySetupView: View {
             Text(title).feltText(.label).foregroundStyle(FeltColor.textTertiary)
             content()
         }
-    }
-}
-
-/// The × used on Strategy screens (not a Felt component; built from tokens).
-struct CloseButton: View {
-    let action: () -> Void
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: "xmark")
-                .font(.body.weight(.semibold))
-                .foregroundStyle(FeltColor.textSecondary)
-                .frame(width: FeltTapTarget.minimum, height: FeltTapTarget.minimum)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Close")
-        .accessibilityIdentifier("strategy.close")
     }
 }

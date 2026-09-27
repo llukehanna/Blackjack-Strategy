@@ -98,7 +98,7 @@ struct StrategyTrainerView: View {
 
     private var topBar: some View {
         HStack(spacing: FeltSpacing.m) {
-            CloseButton {
+            CloseButton(identifier: "strategy.close") {
                 if model.canSavePartial { showsLeaveDialog = true } else { onClose() }
             }
             Text(model.handLimit.map { "Hand \(model.handNumber) / \($0)" } ?? "Hand \(model.handNumber)")
