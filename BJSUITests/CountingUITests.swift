@@ -17,6 +17,8 @@ final class CountingUITests: XCTestCase {
         XCTAssertTrue(running.waitForExistence(timeout: 5))
         running.tap()
 
+        // "10" is unique on the setup screen: the "Cards" length options are 10/26/52/Shoe,
+        // and the only other picker on this screen ("Cards at a time") only offers 1–3.
         let ten = app.buttons["10"]
         XCTAssertTrue(ten.waitForExistence(timeout: 5))
         ten.tap()
@@ -25,6 +27,8 @@ final class CountingUITests: XCTestCase {
         // 10 cards at 0.3 s each, then the end-of-drill checkpoint.
         let enter = app.buttons["Enter"]
         XCTAssertTrue(enter.waitForExistence(timeout: 15), "keypad at the checkpoint")
+        // "0" is unique on the keypad: CountKeypad lays out one button per digit 0–9, so
+        // there is exactly one button labelled "0" on screen here.
         app.buttons["0"].tap()
         enter.tap()
 
