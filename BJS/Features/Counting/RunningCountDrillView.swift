@@ -93,9 +93,10 @@ struct RunningCountDrillView: View {
             }
             // A fresh identity per group, so a repeated card still reads as a new deal.
             .id(model.presentationToken)
-        case .answering:
+        case .answering, .feedback:
+            // Stays up behind the FeedbackCard so the felt above it isn't bare.
             Text("Running count?").feltText(.title).foregroundStyle(FeltColor.textPrimary)
-        case .feedback, .summary:
+        case .summary:
             EmptyView()
         }
     }
