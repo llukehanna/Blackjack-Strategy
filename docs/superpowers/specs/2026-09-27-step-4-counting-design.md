@@ -20,6 +20,7 @@ The Felt design system is frozen. This step adds one new component built from ex
 | TC length | 10 / 20 / Endless. Endless has an END button. | Mirrors Strategy's fixed-or-Endless choice at a scale that suits quick arithmetic. |
 | Card values self-test | Not persisted. An endless warm-up with an in-screen score and streak. | It's a learning aid. Persisting it would dilute count accuracy with trivially easy checks. |
 | Structure | One `CountingFlowView` with a drill menu. RC and TC are separate phase machines. | Only RC has a timed presentation phase. A shared machine would branch on drill type everywhere. |
+| Full-deck RC drills (**amends** parent §5; decided 2026-09-27, after the build) | Full shoe holds back a random 5–15 card tail. A card length equal to the whole shoe (e.g. 52 cards under 1-deck rules) draws from one extra deck. | Hi-Lo is balanced, so dealing a whole shoe always ends at RC 0 and the final check could be answered without counting, inflating count accuracy. |
 
 ## 2. Structure and navigation
 
@@ -72,7 +73,7 @@ Both ViewModels are `@Observable` phase machines with an injected RNG (`SeededRa
 - **Setup** (`RunningCountSetup`, `Codable`):
   - group size 1 / 2 / 3, default 1;
   - pace 0.3–2.0 s per group in 0.1 s steps, default 1.0;
-  - length 10 / 26 / 52 cards or Full shoe (the active rules' deck count), default 52;
+  - length 10 / 26 / 52 cards or Full shoe (the active rules' deck count, less a random 5–15 card tail), default 52;
   - random checkpoints, off by default.
 - **Phases:**
   1. `presenting(groupIndex)`:

@@ -165,7 +165,7 @@ All roles are built on Dynamic Type text styles so they scale.
 
 **Running count drill**
 - Presentation: 1, 2 or 3 cards at a time. Pace from 2.0 s to 0.3 s per group, adjustable in 0.1 s steps.
-- Length: 10, 26 or 52 cards, or Full shoe (all cards for the active rules' deck count).
+- Length: 10, 26 or 52 cards, or Full shoe (the active rules' deck count, less a random 5–15 card tail; amended 2026-09-27, see the Step 4 spec §1).
 - Checkpoints: always at the end. Optionally also at random points, averaging one check every 8 groups.
 - Answers are entered on `CountKeypad`.
 - Scores: exact-correct %, mean absolute error, seconds per card.

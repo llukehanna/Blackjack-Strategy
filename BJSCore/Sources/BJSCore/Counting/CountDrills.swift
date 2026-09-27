@@ -110,6 +110,10 @@ public enum CountDrillGenerator {
     /// Chance that any non-final group is a surprise checkpoint (about 1 in 8).
     public static let randomCheckpointProbability = 0.125
 
+    /// How many cards a full-shoe drill holds back. Hi-Lo is balanced, so a drill that deals a
+    /// whole shoe always ends at running count 0 and its final check needs no counting.
+    public static let fullShoeHoldBack = 5...15
+
     public static func runningCountDrill<G: RandomNumberGenerator>(
         length: DrillLength, groupSize: Int, deckCount: Int,
         randomCheckpoints: Bool, using rng: inout G
@@ -118,10 +122,13 @@ public enum CountDrillGenerator {
         switch length {
         case .cards(let n):
             let neededDecks = max(1, Int((Double(n) / 52).rounded(.up)))
-            let decks = max(deckCount, neededDecks)
+            var decks = max(deckCount, neededDecks)
+            // Dealing an entire pool would force the final count to 0, so draw from one more deck.
+            if n == decks * 52 { decks += 1 }
             cards = Array(Shoe.standardCards(deckCount: decks).shuffled(using: &rng).prefix(n))
         case .fullShoe:
-            cards = Shoe.standardCards(deckCount: deckCount).shuffled(using: &rng)
+            let holdBack = Int.random(in: fullShoeHoldBack, using: &rng)
+            cards = Array(Shoe.standardCards(deckCount: deckCount).shuffled(using: &rng).dropLast(holdBack))
         }
         let size = max(1, groupSize)
         let groups = stride(from: 0, to: cards.count, by: size).map {

@@ -16,13 +16,34 @@ struct CountDrillTests {
         #expect(drill.checkpoints == [drill.groups.count - 1])
     }
 
-    @Test("Full shoe uses every card of the rules' deck count and ends at count zero")
+    @Test("Full shoe holds back a random 5–15 card tail, so the last count isn't forced to zero")
     func fullShoe() {
-        var rng = SeededRandomNumberGenerator(seed: 2)
-        let drill = CountDrillGenerator.runningCountDrill(
-            length: .fullShoe, groupSize: 2, deckCount: 2, randomCheckpoints: false, using: &rng)
-        #expect(drill.cardCount == 104)
-        #expect(drill.expectedCount(afterGroup: drill.groups.count - 1) == 0)
+        var sawNonZero = false
+        var tails = Set<Int>()
+        for seed in UInt64(1)...40 {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            let drill = CountDrillGenerator.runningCountDrill(
+                length: .fullShoe, groupSize: 2, deckCount: 2, randomCheckpoints: false, using: &rng)
+            let tail = 104 - drill.cardCount
+            #expect(CountDrillGenerator.fullShoeHoldBack.contains(tail))
+            tails.insert(tail)
+            if drill.expectedCount(afterGroup: drill.groups.count - 1) != 0 { sawNonZero = true }
+        }
+        #expect(sawNonZero)
+        #expect(tails.count > 1)
+    }
+
+    @Test("A card length equal to the whole shoe draws from a larger pool, so it isn't a full count-down")
+    func wholePoolLength() {
+        var sawNonZero = false
+        for seed in UInt64(1)...20 {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            let drill = CountDrillGenerator.runningCountDrill(
+                length: .cards(52), groupSize: 1, deckCount: 1, randomCheckpoints: false, using: &rng)
+            #expect(drill.cardCount == 52)
+            if drill.expectedCount(afterGroup: drill.groups.count - 1) != 0 { sawNonZero = true }
+        }
+        #expect(sawNonZero)
     }
 
     @Test("Partial-length drills draw from the configured deck count, not a minimal pool")
