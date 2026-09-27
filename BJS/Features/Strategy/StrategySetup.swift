@@ -11,7 +11,7 @@ enum StrategyMode: String, CaseIterable, Codable {
         case .learn: return "Learn"
         case .test: return "Test"
         case .speed: return "Speed"
-        case .weakSpots: return "Weak spots"
+        case .weakSpots: return "Weak"
         }
     }
 

@@ -186,7 +186,7 @@ struct FeltCatalogue: View {
 
     private var controls: some View {
         VStack(spacing: FeltSpacing.l) {
-            ModePicker(options: ["Learn", "Test", "Speed", "Weak spots"], selection: $mode) { $0 }
+            ModePicker(options: ["Learn", "Test", "Speed", "Weak"], selection: $mode) { $0 }
             SettingsSection(title: "Section") {
                 SettingsRow(label: "Value") { Text("6 decks") }
                 SettingsRow(label: "Toggle") { Toggle("", isOn: $toggle).labelsHidden() }

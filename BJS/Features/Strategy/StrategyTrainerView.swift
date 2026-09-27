@@ -125,18 +125,34 @@ struct StrategyTrainerView: View {
         }
     }
 
-    /// The dock, FeedbackCard and outcome share one bottom region, sized to at least a FeedbackCard,
-    /// so the player's cards stay put as the phase changes (the card lands over the dock).
+    /// The dock, FeedbackCard and outcome share one bottom region, sized to at least a FeedbackCard
+    /// and to this hand's outcome (a dealer line plus one line per player hand), so the player's
+    /// cards stay put as the phase changes. After a split the region grows while the hands are
+    /// being re-laid out anyway, never at the outcome.
     private func bottom(bottomInset: CGFloat) -> some View {
         ZStack(alignment: .bottom) {
-            FeedbackCard(verdict: .incorrect, headline: "The play is Hit",
-                         reason: "You chose Stand on hard 16 vs 10.", onWhy: {}, onNext: {})
-                .padding(.horizontal, -FeltSpacing.l)
-                .hidden()
-                .accessibilityHidden(true)
-                .allowsHitTesting(false)
+            Group {
+                FeedbackCard(verdict: .incorrect, headline: "The play is Hit",
+                             reason: "You chose Stand on hard 16 vs 10.", onWhy: {}, onNext: {})
+                    .padding(.horizontal, -FeltSpacing.l)
+                outcomeStack(lines: Array(repeating: "Dealer 20", count: 1 + max(1, model.playerHands.count)))
+            }
+            .hidden()
+            .accessibilityHidden(true)
+            .allowsHitTesting(false)
             bottomContent(bottomInset: bottomInset)
         }
+    }
+
+    private func outcomeStack(lines: [String]) -> some View {
+        VStack(spacing: FeltSpacing.m) {
+            ForEach(lines.indices, id: \.self) { index in
+                Text(lines[index]).feltText(.title).foregroundStyle(FeltColor.textPrimary)
+            }
+            PrimaryButton(title: "DEAL") { model.deal() }
+                .accessibilityIdentifier("strategy.deal")
+        }
+        .padding(.bottom, FeltSpacing.l)
     }
 
     @ViewBuilder private func bottomContent(bottomInset: CGFloat) -> some View {
@@ -153,14 +169,7 @@ struct StrategyTrainerView: View {
                          reason: text.reason, onWhy: { whyContext = graded.why }, onNext: { model.next() })
                 .padding(.horizontal, -FeltSpacing.l)
         case .outcome:
-            VStack(spacing: FeltSpacing.m) {
-                ForEach(model.outcomeLines, id: \.self) { line in
-                    Text(line).feltText(.title).foregroundStyle(FeltColor.textPrimary)
-                }
-                PrimaryButton(title: "DEAL") { model.deal() }
-                    .accessibilityIdentifier("strategy.deal")
-            }
-            .padding(.bottom, FeltSpacing.l)
+            outcomeStack(lines: model.outcomeLines)
         case .summary:
             EmptyView()
         }

@@ -151,9 +151,9 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
 - Carry-overs resolved: H14 vs 10 composition; WHY rules context; Continue wiring; the `lastLaunch` decode log; the save-partial orphan risk (save-once guard); `WhyContext` can now represent `timeout`.
 - **Needs Luke's decision** (screenshots: iPhone 16 / SE design check in the Step 3 session scratchpad):
   - **`DefaultIsolationMainActor`:** Step 3's reviewer checked with `swiftc` that `-enable-upcoming-feature DefaultIsolationMainActor` in `project.yml` is a no-op. The setting that works is `SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor`. The app has not actually been main-actor by default, so the Step 2 key-path guidance may rest on this. It needs its own `chore` change and decision before Step 4. **Resolved 2026-09-26** (see "Main-actor isolation fix").
-  - The leave-session `confirmationDialog` uses system chrome (blue/grey). The reviewer recommends accepting it, as with the Liquid Glass tab bar.
-  - "Weak spots" is scaled down and touches its segment edges in `ModePicker` on the iPhone SE (375 pt). Options: shorten the label (for example "Weak"), or change the frozen component.
-  - After a 3–4 hand split, the outcome lines push the player hands up about 28 pt. Option: reserve the outcome area's height.
+  - The leave-session `confirmationDialog` uses system chrome (blue/grey). The reviewer recommends accepting it, as with the Liquid Glass tab bar. **Accepted by Luke 2026-09-26** (recorded in CLAUDE.md).
+  - "Weak spots" is scaled down and touches its segment edges in `ModePicker` on the iPhone SE (375 pt). Options: shorten the label (for example "Weak"), or change the frozen component. **Resolved 2026-09-26:** the label is now "Weak".
+  - After a 3–4 hand split, the outcome lines push the player hands up about 28 pt. Option: reserve the outcome area's height. **Resolved 2026-09-26:** the bottom region reserves this hand's outcome height.
 - Deferred minors (non-blocking, triaged in the final review):
   - The toast `Task` isn't cancelled, so rapid correct decisions can hide the second toast early.
   - The `strategy.close` identifier is duplicated in the trainer and the WHY sheet.
@@ -192,3 +192,14 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
 - The Step 2 key-path rule is retired. With real main-actor isolation, `\.prop` key paths and `FetchDescriptor(sortBy: [SortDescriptor(\Session.startedAt)])` compile fine in main-actor code (probed). `#Predicate` hasn't been probed yet; check it in Step 6.
 - New app types are now main-actor by default. A type used off the main actor must be marked `nonisolated`, for example a `Shape`, or a value type whose `Codable`/`Sendable` conformance is used from a background context.
 - Tests: BJSCore 229, app 133 unit + 2 UI, all passing.
+
+## Step 3 polish (2026-09-26)
+
+- Luke's decisions on the remaining Step 3 items:
+  - The leave dialog keeps system styling (an accepted exception, now in CLAUDE.md).
+  - The Weak spots mode's picker label is now "Weak" (`StrategyMode.title`; the stored mode is still `weakSpots`). The catalogue's `ModePicker` demo matches.
+  - The trainer's bottom region reserves this hand's outcome height (a dealer line plus one line per player hand), so split hands no longer shift at the outcome. After a split the region grows while the hands are being re-laid out anyway.
+- Verified with a temporary UI test (not committed): split hands keep the same position from the decision to the outcome on the iPhone 16 (18.4) and the SE (18.3); "Weak" fits on the SE.
+- Tests: BJSCore 229, app 133 unit + 2 UI, all passing.
+- Note for later steps: piping `xcodebuild test` straight into `grep | head` can hang after the run finishes (a leftover child process keeps the pipe open). Redirect to a log file, then grep it.
+- Step 3 is closed. Next: Step 4 (Counting): brainstorm and plan in a fresh session.

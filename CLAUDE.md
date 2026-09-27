@@ -29,6 +29,7 @@ The Felt design system is the only design system. It is **frozen at the end of S
 - **Frozen on 2026-09-25** after Luke's sign-off (review page: https://claude.ai/artifact/44U1bKzLPNxgDKiXLeQexN). The DEBUG `FeltCatalogue` (Settings → Debug, or launch with `-showCatalogue`) is the reference to check against.
 - **Pre-approved exception:** accessibility-only fixes to frozen components (Dynamic Type up to AX3, VoiceOver, Reduce Motion) are allowed in Step 8, as long as the default-text-size appearance does not change.
 - iOS 26 draws the tab bar as system Liquid Glass. This is accepted; don't opt out of it.
+- System `confirmationDialog`s (e.g. Strategy's "Leave this session?") keep iOS's own styling. This is accepted; don't build a Felt replacement.
 - The app is portrait-only on iPhone.
 
 ## Commands

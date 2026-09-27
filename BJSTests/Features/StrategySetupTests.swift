@@ -24,7 +24,7 @@ struct StrategySetupTests {
 
     @Test("Mode behaviour flags")
     func modes() {
-        #expect(StrategyMode.allCases.map { $0.title } == ["Learn", "Test", "Speed", "Weak spots"])
+        #expect(StrategyMode.allCases.map { $0.title } == ["Learn", "Test", "Speed", "Weak"])
         #expect(StrategyMode.learn.showsHint && !StrategyMode.test.showsHint)
         #expect(StrategyMode.speed.isTimed && !StrategyMode.weakSpots.isTimed)
         #expect(StrategyMode.weakSpots.usesWeights && !StrategyMode.test.usesWeights)
