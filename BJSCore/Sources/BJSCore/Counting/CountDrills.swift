@@ -51,14 +51,27 @@ public struct TrueCountQuestion: Sendable, Equatable {
 
     public var exactTrueCount: Double { Double(runningCount) / decksRemaining }
 
+    /// The value a convention grades against: exact RC ÷ decks, rounded down, or rounded toward zero.
+    public func target(for convention: TrueCountConvention) -> Double {
+        switch convention {
+        case .exact: return exactTrueCount
+        case .floor: return exactTrueCount.rounded(.down)
+        case .truncate: return exactTrueCount.rounded(.towardZero)
+        }
+    }
+
+    /// What to enter on the half-step keypad: the nearest half for Exact (always within 0.25),
+    /// otherwise the target.
+    public func keypadAnswer(for convention: TrueCountConvention) -> Double {
+        convention == .exact ? (exactTrueCount * 2).rounded() / 2 : target(for: convention)
+    }
+
     public func isCorrect(_ answer: Double, convention: TrueCountConvention) -> Bool {
         switch convention {
         case .exact:
             return abs(answer - exactTrueCount) <= 0.25 + 1e-9
-        case .floor:
-            return abs(answer - exactTrueCount.rounded(.down)) < 1e-9
-        case .truncate:
-            return abs(answer - exactTrueCount.rounded(.towardZero)) < 1e-9
+        case .floor, .truncate:
+            return abs(answer - target(for: convention)) < 1e-9
         }
     }
 }
@@ -96,14 +109,28 @@ public enum CountDrillGenerator {
         return RunningCountDrill(groups: groups, checkpoints: checkpoints)
     }
 
-    /// Running count in -12...12; decks remaining in half-deck steps from 0.5
-    /// to `deckCount - 0.5` (0.5 for a single deck).
+    /// No TC question asks for more than ±10 (Step 4 spec §1).
+    public static let maxTrueCountMagnitude = 10.0
+
+    /// Decks-remaining step: quarter decks for 1–2 decks, half decks otherwise (Step 4 spec §1).
+    public static func trueCountStep(deckCount: Int) -> Double {
+        deckCount <= 2 ? 0.25 : 0.5
+    }
+
+    /// Decks remaining in `trueCountStep` steps from one step to `deckCount` minus one step.
+    /// Running count in -12...12, redrawn until |RC ÷ decks remaining| ≤ `maxTrueCountMagnitude`
+    /// (RC 0 always qualifies, so this terminates).
     public static func trueCountQuestion<G: RandomNumberGenerator>(
         deckCount: Int, using rng: inout G
     ) -> TrueCountQuestion {
-        let maxHalfDecks = max(1, deckCount * 2 - 1)
-        let halfDecks = Int.random(in: 1...maxHalfDecks, using: &rng)
-        let rc = Int.random(in: -12...12, using: &rng)
-        return TrueCountQuestion(runningCount: rc, decksRemaining: Double(halfDecks) / 2)
+        let step = trueCountStep(deckCount: deckCount)
+        let stepsPerDeck = Int((1 / step).rounded())
+        let maxSteps = max(1, max(1, deckCount) * stepsPerDeck - 1)
+        let decksRemaining = Double(Int.random(in: 1...maxSteps, using: &rng)) * step
+        var rc: Int
+        repeat {
+            rc = Int.random(in: -12...12, using: &rng)
+        } while abs(Double(rc) / decksRemaining) > maxTrueCountMagnitude + 1e-9
+        return TrueCountQuestion(runningCount: rc, decksRemaining: decksRemaining)
     }
 }

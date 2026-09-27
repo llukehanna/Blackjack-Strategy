@@ -63,18 +63,67 @@ struct CountDrillTests {
         #expect((15...70).contains(drill.checkpoints.count - 1))
     }
 
-    @Test("True count questions have half-deck steps within the shoe")
-    func trueCountQuestionShape() {
-        var rng = SeededRandomNumberGenerator(seed: 5)
-        for _ in 0..<500 {
-            let q = CountDrillGenerator.trueCountQuestion(deckCount: 6, using: &rng)
-            #expect(q.decksRemaining >= 0.5 && q.decksRemaining <= 5.5)
-            #expect((q.decksRemaining * 2).rounded() == q.decksRemaining * 2)
+    @Test("True count questions step in quarter decks for 1–2 decks and half decks otherwise",
+          arguments: [(1, 0.25), (2, 0.25), (6, 0.5), (8, 0.5)])
+    func trueCountSteps(deckCount: Int, step: Double) {
+        #expect(CountDrillGenerator.trueCountStep(deckCount: deckCount) == step)
+        var rng = SeededRandomNumberGenerator(seed: UInt64(deckCount))
+        var seen = Set<Double>()
+        for _ in 0..<2000 {
+            let q = CountDrillGenerator.trueCountQuestion(deckCount: deckCount, using: &rng)
+            #expect(q.decksRemaining >= step && q.decksRemaining <= Double(deckCount) - step)
+            #expect((q.decksRemaining / step).rounded() == q.decksRemaining / step)
             #expect((-12...12).contains(q.runningCount))
+            #expect(abs(q.exactTrueCount) <= CountDrillGenerator.maxTrueCountMagnitude + 1e-9)
+            seen.insert(q.decksRemaining)
         }
-        var single = SeededRandomNumberGenerator(seed: 6)
-        let q = CountDrillGenerator.trueCountQuestion(deckCount: 1, using: &single)
-        #expect(q.decksRemaining == 0.5)
+        // Every step from one step to one step short of the full shoe appears.
+        #expect(seen.count == Int((Double(deckCount) / step).rounded()) - 1)
+    }
+
+    @Test("The TC cap keeps small-deck questions sane but still allows big counts in a shoe")
+    func trueCountCap() {
+        var single = SeededRandomNumberGenerator(seed: 11)
+        for _ in 0..<500 {
+            let q = CountDrillGenerator.trueCountQuestion(deckCount: 1, using: &single)
+            if q.decksRemaining == 0.25 { #expect(abs(q.runningCount) <= 2) }
+        }
+        var shoe = SeededRandomNumberGenerator(seed: 12)
+        var sawBig = false
+        for _ in 0..<500 where abs(CountDrillGenerator.trueCountQuestion(deckCount: 6, using: &shoe).runningCount) >= 10 {
+            sawBig = true
+        }
+        #expect(sawBig)
+    }
+
+    @Test("Target per convention, including negatives")
+    func targets() {
+        let q = TrueCountQuestion(runningCount: 7, decksRemaining: 3)      // +2.333…
+        #expect(abs(q.target(for: .exact) - 7.0 / 3) < 1e-12)
+        #expect(q.target(for: .floor) == 2)
+        #expect(q.target(for: .truncate) == 2)
+        let n = TrueCountQuestion(runningCount: -7, decksRemaining: 3)     // −2.333…
+        #expect(n.target(for: .floor) == -3)
+        #expect(n.target(for: .truncate) == -2)
+    }
+
+    @Test("Keypad answer: nearest half under Exact, the target otherwise")
+    func keypadAnswers() {
+        #expect(TrueCountQuestion(runningCount: 7, decksRemaining: 3).keypadAnswer(for: .exact) == 2.5)
+        #expect(TrueCountQuestion(runningCount: -7, decksRemaining: 3).keypadAnswer(for: .exact) == -2.5)
+        #expect(TrueCountQuestion(runningCount: 7, decksRemaining: 3).keypadAnswer(for: .floor) == 2)
+        #expect(TrueCountQuestion(runningCount: -7, decksRemaining: 3).keypadAnswer(for: .truncate) == -2)
+    }
+
+    @Test("The keypad answer is always graded correct", arguments: TrueCountConvention.allCases)
+    func keypadAnswerIsCorrect(convention: TrueCountConvention) {
+        var rng = SeededRandomNumberGenerator(seed: 13)
+        for deckCount in [1, 2, 6, 8] {
+            for _ in 0..<500 {
+                let q = CountDrillGenerator.trueCountQuestion(deckCount: deckCount, using: &rng)
+                #expect(q.isCorrect(q.keypadAnswer(for: convention), convention: convention))
+            }
+        }
     }
 
     @Test("Grading conventions")
