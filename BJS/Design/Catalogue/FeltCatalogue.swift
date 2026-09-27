@@ -44,6 +44,14 @@ struct FeltCatalogue: View {
                     section("Action dock") { docks }
                     section("Feedback") { feedback }
                     section("Strategy components") { strategyComponents }
+                    section("Counting components") {
+                        HStack(alignment: .bottom, spacing: FeltSpacing.l) {
+                            DiscardTray(decksTotal: 6, decksPlayed: 2.5)
+                            DiscardTray(decksTotal: 8, decksPlayed: 6)
+                            DiscardTray(decksTotal: 2, decksPlayed: 0.75)
+                            DiscardTray(decksTotal: 1, decksPlayed: 0.25)
+                        }
+                    }
                     section("Chips, tiles, buttons") { surfaces }
                     section("Mode picker and settings") { controls }
                     section("Count keypad") {
