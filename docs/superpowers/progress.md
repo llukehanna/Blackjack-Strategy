@@ -284,3 +284,17 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
     - VoiceOver isn't told about new RC cards during presentation.
 - Environment note: this Mac's SE runtime is 18.3.1, so `name=iPhone SE (3rd generation),OS=18.3` doesn't resolve. Use `OS=18.3.1` or the simulator's id.
 - Next: Luke decides the items above (the full-deck RC one first). Then Step 5 (Edge): brainstorm and plan in a fresh session.
+
+## Step 4 follow-ups (2026-09-27)
+
+- Luke's decisions on the open Step 4 items:
+  - **Full-deck RC drills:**
+    - Full shoe now holds back a random 5–15 card tail (`CountDrillGenerator.fullShoeHoldBack`).
+    - A card length equal to the whole pool, such as 52 cards under 1-deck rules, draws from one extra deck.
+    - The final check is no longer forced to RC 0. The parent spec §5 and the Step 4 spec §1 are amended. Sessions saved before this change may carry an inflated full-deck accuracy; nothing shipped, so no data fix.
+  - **`CountKeypad` placeholder:** fixed in the frozen component, approved as its own change (`fix(design)` commit 31faa15). The blank key now has a fixed 52 pt height. Keypads that show `.5` look the same. The drills' `.fixedSize` workarounds are removed. `FeltCatalogue` shows the whole-number keypad.
+  - **FeedbackCard badge over the disabled "0" button in Card values:** accepted, as in Strategy.
+  - **RC feedback:** the "Running count?" prompt stays up behind the FeedbackCard.
+- Verified with screenshots on iPhone 16 and SE (RC keypad, RC feedback, TC keypad).
+- Tests: BJSCore 241, app 184 unit + 3 UI, all passing.
+- Next: Step 5 (Edge): brainstorm and plan in a fresh session.
