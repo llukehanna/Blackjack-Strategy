@@ -65,6 +65,37 @@ struct TrueCountDrillViewModelTests {
         #expect(graded.expected == 3)
     }
 
+    @Test("Truncate rounds toward zero, unlike floor", arguments: [(-3.0, true), (-4.0, false)])
+    func truncateGrading(answer: Double, correct: Bool) {
+        let vm = make(convention: .truncate, questions: [TrueCountQuestion(runningCount: -7, decksRemaining: 2)])
+        vm.submit(answer)
+        guard case .feedback(let graded) = vm.phase else { Issue.record("expected feedback"); return }
+        #expect(graded.isCorrect == correct)
+        #expect(graded.expected == -3)
+    }
+
+    @Test("canSavePartial is false before any check, true after one, false at the summary")
+    func canSavePartial() {
+        let vm = make()
+        #expect(!vm.canSavePartial)
+        vm.submit(3.5)
+        #expect(vm.canSavePartial)
+        vm.finish()
+        #expect(!vm.canSavePartial)
+    }
+
+    @Test("correctCount counts only correct checks")
+    func correctCount() {
+        let vm = make(convention: .floor,
+                      questions: [TrueCountQuestion(runningCount: 7, decksRemaining: 2),
+                                  TrueCountQuestion(runningCount: -4, decksRemaining: 4)])
+        #expect(vm.correctCount == 0)
+        vm.submit(3); vm.next()
+        #expect(vm.correctCount == 1)
+        vm.submit(0); vm.next()
+        #expect(vm.correctCount == 1)
+    }
+
     @Test("NEXT asks a new question; the limit goes to the summary and saves once as countingTC")
     func limitSaves() throws {
         let spy = SaveSpy()

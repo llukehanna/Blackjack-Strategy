@@ -54,6 +54,7 @@ struct CountingSetupTests {
 
         let tcLaunch = try CountingSetup.trueCount(TrueCountSetup(length: .endless)).lastLaunch()
         #expect(tcLaunch.module == .countingTC)
+        #expect(tcLaunch.mode == nil)
         #expect(CountingSetup.decode(tcLaunch.setup) == .trueCount(TrueCountSetup(length: .endless)))
     }
 

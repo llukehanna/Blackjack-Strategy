@@ -3,6 +3,8 @@ import BJSCore
 
 /// One graded count check, kept in memory for feedback, WHY and the summary.
 struct GradedCount: Equatable, Identifiable {
+    /// The check's position in its drill's `checks` array. Drill ViewModels rely on this to index
+    /// parallel arrays (e.g. `TrueCountDrillViewModel.askedQuestions`) with a check's `id`.
     let id: Int
     let kind: CountKind
     let expected: Double
