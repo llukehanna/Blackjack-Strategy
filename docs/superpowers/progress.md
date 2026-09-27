@@ -203,3 +203,84 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
 - Tests: BJSCore 229, app 133 unit + 2 UI, all passing.
 - Note for later steps: piping `xcodebuild test` straight into `grep | head` can hang after the run finishes (a leftover child process keeps the pipe open). Redirect to a log file, then grep it.
 - Step 3 is closed. Next: Step 4 (Counting): brainstorm and plan in a fresh session.
+
+## Step 4 — Counting (2026-09-27)
+
+- Spec: `docs/superpowers/specs/2026-09-27-step-4-counting-design.md`. Plan: `docs/superpowers/plans/2026-09-27-step-4-counting.md`.
+  Branch `step-4-counting`, commits 8b33f1e..(this handoff). Built task by task with subagents, each task reviewed; then a whole-branch review (verdict "with fixes") and one fix wave, which passed its re-review.
+- Tests: BJSCore 240 passing; app 184 unit tests + 3 UI tests (`FoundationUITests`, `StrategyUITests`, `CountingUITests`) passing, with no compiler warnings (only the toolchain's appintentsmetadataprocessor notice).
+- Luke's decisions in brainstorming:
+  - After each RC checkpoint the FeedbackCard reveals the correct count; NEXT resumes from the correct count. WHY shows a card-by-card trace.
+  - The TC discard tray shows no decks-left number.
+  - TC length is 10 / 20 / Endless.
+  - The card values self-test isn't persisted.
+  - One Counting flow with a menu; separate RC and TC phase machines.
+  - **Amendment to the parent spec:** TC decks remaining moves in quarter decks for 1–2 decks (half decks for 4+), and questions are capped at |TC| ≤ 10.
+- Shipped:
+  - **BJSCore:**
+    - `CountDrillGenerator.trueCountStep(deckCount:)`, `maxTrueCountMagnitude`, reworked `trueCountQuestion`, and `randomCard(using:)`.
+    - `TrueCountQuestion.target(for:)` and `keypadAnswer(for:)` (the nearest half under Exact).
+    - `RunningCountDrill`: public init, `trace(throughGroup:)`, and `CountTraceEntry`.
+    - `CountDrillScore` (accuracy, mean absolute error, `secondsPerCard`).
+  - **Counting (`Features/Counting`):**
+    - `CountingFlowView`: menu → setup → drill → summary, plus a `.launching` screen so Continue doesn't flash the menu.
+    - `CountingMenuView` and `CountingHeader`.
+    - RC and TC setups; `CountingSetup` goes into `lastLaunch`.
+    - `RunningCountDrillViewModel` / `RunningCountDrillView`, and `CountTraceSheet`.
+    - `TrueCountDrillViewModel` / `TrueCountDrillView`, and `TrueCountWorkingSheet`.
+    - `CardValuesViewModel` / `CardValuesView`.
+    - `CountSummaryView`, and `CountingText` for all copy.
+  - **Shared:** `CloseButton(identifier:)`, moved out of Strategy.
+  - **New Felt component:** `DiscardTray`, built from existing tokens and added to `FeltCatalogue`.
+  - **App:** `ModuleHost` routes `.counting`. `-countPace S` UI-test hook; `-seed` now also seeds the counting drills.
+  - **Persistence:** RC saves as `countingRC` with mode nil; TC saves as `countingTC` with mode = the convention. No schema change.
+  - The Step 3 carry-over `countSamples(forStats:)` test is done.
+- Deviations from the plan:
+  - The card draw moved from `CardValuesViewModel` into BJSCore (`CountDrillGenerator.randomCard`), following the architecture rule.
+  - Design-check fixes:
+    - `.fixedSize` on `CountKeypad` in both drills, because its blank placeholder key stretched when `.5` is hidden;
+    - Card values scrolls the missed card above the FeedbackCard on the SE.
+  - Fix wave:
+    - `DiscardTray`'s VoiceOver value now rounds to the question step (quarter decks for 1–2 decks);
+    - the tray's ticks are drawn behind the stack;
+    - TC VM test gaps filled;
+    - the trace sheet says "Since the start" for the first check.
+  - Copy differs from the spec's examples, and the code is right. Under Exact, the TC headline shows the keypad answer ("True count is +3" when the working is +2.8); the spec's "+2.5 / +2.8" example contradicted itself. The Card values headline is "Five is +1". A correct RC answer's headline is "Correct".
+  - Commit trailers name the model that wrote each commit, so some say Claude Sonnet 5.
+- **Needs Luke's decision** (screenshots: iPhone 16 / SE design check in the Step 4 session scratchpad, `step4-shots/`):
+  - **A full-deck RC drill always ends at RC 0.** A full shoe, or 52 cards under 1-deck rules, always counts back to 0. With random checks off (the default), the only graded check can be answered without counting, which inflates count accuracy and the hub chip. Decide before Step 6 builds on these numbers. Options:
+    - hold back a random tail of cards when the drill covers the whole shoe (this changes the parent spec's "Full shoe = all cards");
+    - exclude that check from stats;
+    - accept it as known.
+  - **`CountKeypad`'s blank placeholder** (shown when `allowsHalf` is false) is greedy. It's worked around per screen with `.fixedSize`. The proper fix is in the frozen component (`Color.clear.frame(maxWidth: .infinity).frame(height: 52)`), which changes no existing appearance, plus an `allowsHalf: false` keypad in the catalogue. It needs its own approved change.
+  - In Card values, the FeedbackCard badge overlaps the disabled "0" button by about 24 pt. This is the frozen component's design, as in Strategy. Accept it, or add bottom clearance in `CardValuesView`.
+  - The RC feedback screen shows empty felt above the FeedbackCard, as specified. Showing "Running count?" or the card count there would cost little.
+- Deferred minors (non-blocking, triaged in the final review):
+  - The RC redraw uses rejection sampling (fine at current values).
+  - `trace()` computes `hiLoValue` twice per card.
+  - The decode-failure `Logger` interpolation is redacted as `<private>` (same in Strategy).
+  - `cardsThrough` re-sums the groups on every call.
+  - The `.task(id:)` key is a string.
+  - `StatChip`'s `maxWidth: 160` has no comment.
+  - The toast `Task` overlap can hide the toast early, and the card `.id` churns on wrong answers (same as Strategy).
+  - The Counting flow navigation is covered only by the UI test.
+  - The `.fixedSize` keypad could overflow if its ideal height grows (revisit in Step 8).
+  - `CountTraceSheet` uses a non-lazy stack, which is slow for a full-shoe trace with no random checks.
+  - Resuming resets the answer clock (matches Strategy).
+- Carry-overs still open:
+  - Documented limitation: under no hole card with RSA, split A,A vs A falls back to stand.
+  - Step 5: `EdgeCalculator` treats no-hole-card late surrender as late.
+  - Step 6:
+    - history screens pass `forStats: false`;
+    - the heat map should respect the Learn exclusion, and it ignores hard 4 / soft 12;
+    - fetches read whole tables;
+    - WHY-from-history needs legal actions;
+    - the per-card RC trace isn't persisted;
+    - the full-deck RC decision above.
+  - Step 8:
+    - `FeltType.label` tracking;
+    - `FlipCard` / `SplitHandsView` adaptive layout, the `DealerHandView` placeholder, and `SplitHandsView`'s `accessibilityValue`;
+    - `DiscardTray` and the counting screens need the AX3 pass;
+    - VoiceOver isn't told about new RC cards during presentation.
+- Environment note: this Mac's SE runtime is 18.3.1, so `name=iPhone SE (3rd generation),OS=18.3` doesn't resolve. Use `OS=18.3.1` or the simulator's id.
+- Next: Luke decides the items above (the full-deck RC one first). Then Step 5 (Edge): brainstorm and plan in a fresh session.
