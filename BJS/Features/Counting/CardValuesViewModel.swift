@@ -19,7 +19,7 @@ final class CardValuesViewModel {
 
     init(seed: UInt64) {
         var rng = SeededRandomNumberGenerator(seed: seed)
-        card = Self.randomCard(using: &rng)
+        card = CountDrillGenerator.randomCard(using: &rng)
         self.rng = rng
     }
 
@@ -30,7 +30,7 @@ final class CardValuesViewModel {
             correct += 1
             streak += 1
             toastCount += 1
-            card = Self.randomCard(using: &rng)
+            card = CountDrillGenerator.randomCard(using: &rng)
         } else {
             streak = 0
             mistake = card
@@ -41,10 +41,6 @@ final class CardValuesViewModel {
     func next() {
         guard mistake != nil else { return }
         mistake = nil
-        card = Self.randomCard(using: &rng)
-    }
-
-    private static func randomCard(using rng: inout SeededRandomNumberGenerator) -> Card {
-        Card(rank: Rank.allCases.randomElement(using: &rng)!, suit: Suit.allCases.randomElement(using: &rng)!)
+        card = CountDrillGenerator.randomCard(using: &rng)
     }
 }

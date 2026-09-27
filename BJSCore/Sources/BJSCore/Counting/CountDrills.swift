@@ -162,4 +162,9 @@ public enum CountDrillGenerator {
         } while abs(Double(rc) / decksRemaining) > maxTrueCountMagnitude + 1e-9
         return TrueCountQuestion(runningCount: rc, decksRemaining: decksRemaining)
     }
+
+    /// One card with a uniformly random rank and suit, for the card-values self-test.
+    public static func randomCard<G: RandomNumberGenerator>(using rng: inout G) -> Card {
+        Card(rank: Rank.allCases.randomElement(using: &rng)!, suit: Suit.allCases.randomElement(using: &rng)!)
+    }
 }

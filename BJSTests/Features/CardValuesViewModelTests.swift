@@ -33,6 +33,14 @@ struct CardValuesViewModelTests {
         #expect(vm.mistake == nil)
     }
 
+    @Test("Two consecutive correct answers extend the streak to 2")
+    func streakExtends() {
+        let vm = CardValuesViewModel(seed: 5)
+        vm.answer(vm.card.rank.hiLoValue)
+        vm.answer(vm.card.rank.hiLoValue)
+        #expect(vm.streak == 2)
+    }
+
     @Test("NEXT does nothing without a mistake")
     func nextWithoutMistake() {
         let vm = CardValuesViewModel(seed: 3)

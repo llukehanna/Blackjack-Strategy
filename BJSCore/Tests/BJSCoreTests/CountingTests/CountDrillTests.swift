@@ -171,4 +171,24 @@ struct CountDrillTests {
         }
         #expect(all.map(\.card) == drill.groups.flatMap { $0 })
     }
+
+    @Test("Random cards cover every rank and suit, and a seed reproduces the same sequence")
+    func randomCardCoversRanksAndSuits() {
+        var rng = SeededRandomNumberGenerator(seed: 8)
+        var ranks = Set<Rank>()
+        var suits = Set<Suit>()
+        var drawn: [Card] = []
+        for _ in 0..<500 {
+            let card = CountDrillGenerator.randomCard(using: &rng)
+            ranks.insert(card.rank)
+            suits.insert(card.suit)
+            drawn.append(card)
+        }
+        #expect(ranks == Set(Rank.allCases))
+        #expect(suits == Set(Suit.allCases))
+
+        var replay = SeededRandomNumberGenerator(seed: 8)
+        let replayed = (0..<500).map { _ in CountDrillGenerator.randomCard(using: &replay) }
+        #expect(replayed == drawn)
+    }
 }
