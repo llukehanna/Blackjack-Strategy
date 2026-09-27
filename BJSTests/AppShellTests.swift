@@ -52,4 +52,11 @@ struct AppShellTests {
         #expect(off.strategyLength == nil)
         #expect(off.seed == nil)
     }
+
+    @Test("The counting pace hook is read only under -uiTesting")
+    func countPaceHook() {
+        #expect(LaunchConfiguration(arguments: ["-uiTesting", "-countPace", "0.3"]).countPace == 0.3)
+        #expect(LaunchConfiguration(arguments: ["-countPace", "0.3"]).countPace == nil)
+        #expect(LaunchConfiguration(arguments: ["-uiTesting"]).countPace == nil)
+    }
 }

@@ -12,7 +12,11 @@ struct ModuleHost: View {
             StrategyFlowView(initialSetup: launch.setup.flatMap(StrategySetup.decode),
                              handLimitOverride: configuration.strategyLength, seed: configuration.seed,
                              onClose: onClose)
-        case .counting, .shoe, .edge:
+        case .counting:
+            CountingFlowView(initialSetup: launch.setup.flatMap(CountingSetup.decode),
+                             paceOverride: configuration.countPace, seed: configuration.seed,
+                             onClose: onClose)
+        case .shoe, .edge:
             ComingSoonView(title: launch.module.title, message: "Coming in Step \(launch.module.step)",
                            onClose: onClose)
         }

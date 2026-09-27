@@ -9,8 +9,10 @@ struct LaunchConfiguration {
     let showsCatalogue: Bool
     /// UI testing only: overrides the Strategy session length (hands).
     let strategyLength: Int?
-    /// UI testing only: seeds the Strategy trainer's random number generator.
+    /// UI testing only: seeds the Strategy trainer's and the counting drills' random number generators.
     let seed: UInt64?
+    /// UI testing only: overrides the running-count drill's pace (seconds per group).
+    let countPace: Double?
 
     init(arguments: [String]) {
         isUITesting = arguments.contains("-uiTesting")
@@ -26,6 +28,7 @@ struct LaunchConfiguration {
         }
         strategyLength = isUITesting ? value(after: "-strategyLength").flatMap { Int($0) } : nil
         seed = isUITesting ? value(after: "-seed").flatMap { UInt64($0) } : nil
+        countPace = isUITesting ? value(after: "-countPace").flatMap { Double($0) } : nil
     }
 
     static let current = LaunchConfiguration(arguments: ProcessInfo.processInfo.arguments)
