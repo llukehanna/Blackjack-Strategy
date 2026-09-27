@@ -8,6 +8,7 @@ struct FeltCatalogue: View {
 
     @State private var mode = "Learn"
     @State private var entry = CountEntry()
+    @State private var wholeEntry = CountEntry()
     @State private var toggle = true
     @State private var stepper = 4
     @State private var flipped = false
@@ -56,6 +57,9 @@ struct FeltCatalogue: View {
                     section("Mode picker and settings") { controls }
                     section("Count keypad") {
                         CountKeypad(entry: $entry) { _ in }
+                    }
+                    section("Count keypad, whole numbers") {
+                        CountKeypad(entry: $wholeEntry, allowsHalf: false) { _ in }
                     }
                 }
                 .padding(FeltSpacing.l)

@@ -28,7 +28,8 @@ struct CountKeypad: View {
                 if allowsHalf {
                     key(.half)
                 } else {
-                    Color.clear.frame(maxWidth: .infinity, minHeight: 52)
+                    // A fixed height, not a minimum: a bare Color is greedy and would soak up spare height.
+                    Color.clear.frame(maxWidth: .infinity).frame(height: 52)
                 }
             }
             HStack(spacing: FeltSpacing.s) {

@@ -104,8 +104,6 @@ struct RunningCountDrillView: View {
         switch model.phase {
         case .answering:
             CountKeypad(entry: $entry, allowsHalf: false) { model.submit($0) }
-                // Without .5, the keypad's blank placeholder key would stretch into the free height.
-                .fixedSize(horizontal: false, vertical: true)
                 .padding(.bottom, bottomInset > 0 ? 0 : FeltSpacing.l)
         case .feedback(let graded):
             let text = CountingText.runningFeedback(expected: Int(graded.expected), answered: Int(graded.answered))
