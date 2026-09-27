@@ -15,6 +15,8 @@ struct CardValuesView: View {
         var id: Int { value }
     }
 
+    private static let answersID = "answers"
+
     private static let rows: [ValueRow] = [
         ValueRow(value: 1, ranks: [.two, .three, .four, .five, .six]),
         ValueRow(value: 0, ranks: [.seven, .eight, .nine]),
@@ -42,6 +44,12 @@ struct CardValuesView: View {
                         selfTest
                     }
                     .padding(FeltSpacing.l)
+                }
+                .onChange(of: model.mistake) { _, mistake in
+                    // Keep the missed card in view above the FeedbackCard. On the SE it would be covered;
+                    // where it already shows, the scroll clamps at the top and nothing moves.
+                    guard mistake != nil else { return }
+                    withAnimation(FeltMotion.ui) { proxy.scrollTo(Self.answersID, anchor: .bottom) }
                 }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     if let mistake = model.mistake {
@@ -88,6 +96,7 @@ struct CardValuesView: View {
                 }
             }
             .disabled(model.mistake != nil)
+            .id(Self.answersID)
             Text("Score \(model.correct) / \(model.answered) · Streak \(model.streak)")
                 .feltText(.body).foregroundStyle(FeltColor.textSecondary)
         }
