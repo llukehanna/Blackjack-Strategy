@@ -32,6 +32,25 @@ struct WhyContextRebuildTests {
             && cell.dealerUpcard == 10
     }
 
+    /// The oracle shared by the random property test and the deterministic sweep (final-review
+    /// item 8): builds the live context for a hand/upcard/legal spot and the context rebuilt from
+    /// its cell, then asserts they match. Returns `false` (without asserting) for the documented
+    /// ambiguous composition-note cell, which has its own dedicated test.
+    @discardableResult
+    func assertRebuildMatchesLive(hand: BlackjackHand, upcard: Rank, legal: Set<Action>,
+                                  rules: BlackjackRules, table: StrategyTable) -> Bool {
+        let spot = DecisionSpot(hand: hand, dealerUpcard: upcard, legalActions: legal)
+        let cell = TrainingCell(spot: spot)
+        guard !isNoteCell(cell, table) else { return false }
+
+        let id = UUID()
+        let live = WhyContext(spot: spot, userAction: .hit, table: table, rules: rules, id: id)
+        let rebuilt = WhyContext(cell: cell, userAction: .hit, correctAction: live.correctAction,
+                                 rules: rules, table: table, id: id)
+        #expect(rebuilt == live, "\(hand.cards.map(\.rank)) vs \(upcard), legal \(legal)")
+        return true
+    }
+
     @Test("Rebuilding from the saved cell matches the live context", arguments: ruleSets)
     func matchesLiveContext(rules: BlackjackRules) {
         let table = StrategyEngine().strategy(for: rules)
@@ -48,18 +67,38 @@ struct WhyContextRebuildTests {
             if count == 2 && Bool.random(using: &rng) { legal.insert(.double) }
             if hand.isPair && Bool.random(using: &rng) { legal.insert(.split) }
             if count == 2 && rules.surrenderRule != .none && Bool.random(using: &rng) { legal.insert(.surrender) }
-            let spot = DecisionSpot(hand: hand, dealerUpcard: upcard, legalActions: legal)
-            let cell = TrainingCell(spot: spot)
-            guard !isNoteCell(cell, table) else { continue }
-
-            let id = UUID()
-            let live = WhyContext(spot: spot, userAction: .hit, table: table, rules: rules, id: id)
-            let rebuilt = WhyContext(cell: cell, userAction: .hit, correctAction: live.correctAction,
-                                     rules: rules, table: table, id: id)
-            #expect(rebuilt == live, "\(hand.cards.map(\.rank)) vs \(upcard), legal \(legal)")
-            compared += 1
+            if assertRebuildMatchesLive(hand: hand, upcard: upcard, legal: legal, rules: rules, table: table) {
+                compared += 1
+            }
         }
         #expect(compared > 1_000)
+    }
+
+    /// A deterministic sweep over every trainable cell (plus hard 4 and soft 12, which
+    /// `TrainingCell.all` omits — Step 6 final-review item 8, closing the deferred minor that the
+    /// random generator leaves rare pair/soft cells unsampled). Reuses the same oracle as
+    /// `matchesLiveContext` on a canonical two-card hand per cell, so it's exhaustive over cells
+    /// and rule sets rather than relying on random sampling.
+    @Test("Every cell, plus hard 4 and soft 12, rebuilds correctly across every rule set", arguments: ruleSets)
+    func sweepsEveryCell(rules: BlackjackRules) {
+        let table = StrategyEngine().strategy(for: rules)
+        let cells = TrainingCell.all
+            + (2...11).map { TrainingCell(handType: .hard, playerValue: 4, dealerUpcard: $0) }
+            + (2...11).map { TrainingCell(handType: .soft, playerValue: 12, dealerUpcard: $0) }
+        var compared = 0
+        for cell in cells {
+            guard !isNoteCell(cell, table) else { continue }
+            let hand = WhyContext.representativeHand(for: cell)
+            let upcard = cell.dealerUpcard == 11 ? Rank.ace : Rank(rawValue: cell.dealerUpcard)!
+            var legal: Set<Action> = [.hit, .stand, .double]
+            if cell.handType == .pair { legal.insert(.split) }
+            if rules.surrenderRule != .none { legal.insert(.surrender) }
+            if assertRebuildMatchesLive(hand: hand, upcard: upcard, legal: legal, rules: rules, table: table) {
+                compared += 1
+            }
+        }
+        let expectedSkipped = cells.filter { isNoteCell($0, table) }.count
+        #expect(compared == cells.count - expectedSkipped)
     }
 
     @Test("Composition-note cells assume the first-decision two-card hand")
