@@ -16,7 +16,9 @@ struct ModuleHost: View {
             CountingFlowView(initialSetup: launch.setup.flatMap(CountingSetup.decode),
                              paceOverride: configuration.countPace, seed: configuration.seed,
                              onClose: onClose)
-        case .shoe, .edge:
+        case .edge:
+            EdgeView(onClose: onClose)
+        case .shoe:
             ComingSoonView(title: launch.module.title, message: "Coming in Step \(launch.module.step)",
                            onClose: onClose)
         }
