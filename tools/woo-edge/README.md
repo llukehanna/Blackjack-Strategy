@@ -11,7 +11,10 @@ peek / no hole card, no / late surrender, and 3:2 / 6:5. That is 5,760 values. I
 `BJSCore/Sources/BJSCore/Edge/WoOEdgeData.swift`.
 
 Two rules the calculator doesn't offer are handled in `EdgeCalculator`: 2:1 payouts (derived
-exactly from the 3:2 and 6:5 values) and early surrender (WoO's rule-variation figures).
+exactly from the 3:2 and 6:5 values) and early surrender (WoO's rule-variation figures). Early
+surrender under no hole card is priced as the no-hole-card table value less 0.63. This slightly
+overstates the house edge, because surrendered hands no longer carry the no-hole-card penalty on
+doubles and splits. It's a conservative, 8-deck estimate.
 
 Regenerate from the repo root, review the diff, then run `cd BJSCore && swift test`:
 

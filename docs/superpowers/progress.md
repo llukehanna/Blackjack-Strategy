@@ -302,8 +302,8 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
 ## Step 5 — Edge (2026-09-27)
 
 - Spec: `docs/superpowers/specs/2026-09-27-step-5-edge-design.md`. Plan: `docs/superpowers/plans/2026-09-27-step-5-edge.md`.
-  Branch `step-5-edge`, commits 12e1bbc..(this handoff). Built task by task with subagents, each task reviewed (Task 5 needed one fix round); then this design check, with a final whole-branch review still to follow.
-- Tests: BJSCore 249 passing; app 198 unit tests + 4 UI tests (`FoundationUITests`, `StrategyUITests`, `CountingUITests`, `EdgeUITests`) passing, with no compiler warnings.
+  Branch `step-5-edge`, commits 12e1bbc..c6d6b70. Built task by task with subagents, each task reviewed (Task 5 needed one fix round); then a design check (no fixes needed); then a final whole-branch review, which found no Critical issues and confirmed the table matches the live WoO page for all 5,760 combinations, and one fix wave for its Important/Minor findings (below).
+- Tests: BJSCore 249 passing; app 201 unit tests + 4 UI tests (`FoundationUITests`, `StrategyUITests`, `CountingUITests`, `EdgeUITests`) passing, with no compiler warnings.
 - Luke's decisions in brainstorming (Step 5 spec §1):
   - The WoO house-edge table replaces the old additive model.
   - The headline is the cut-card figure.
@@ -323,7 +323,6 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   - Early surrender: +0.24% vs +0.63%.
 - Deviations from the plan:
   - Task 5 fix round: the plan-mandated "important" finding that `analyze()` was recomputed ~5x per body was fixed outright rather than parked — `EdgeViewModel` caches `result`, recomputed in `rules`'s `didSet` (and `init`); the public API is unchanged.
-  - `EdgeUITests` uses the Single Deck 6:5 preset to reach a "Poor" rule set, rather than changing Decks to 1 from the default (6D S17 DAS 3:2 is itself already close to the preset grid, and the preset gives a fixed, named target rather than an ad hoc picker change).
   - The spec's WoO table size was corrected to 5,760 entries.
 - Design check (this task): screenshots on iPhone 16 (18.4) and SE 3rd gen (18.3.1) across 8 states — default rules, the Single Deck 6:5 preset (Poor, longest 6:5 bar), a partial scroll showing the breakdown tail and Preset/Table rules rows under the pinned bar, a full scroll to the apply button and footnote, the confirmation dialog, the applied caption, a player-edge state (1 deck, "PLAYER EDGE" unsigned "0.03%"), and an added zero-change-row state (Max split hands 2 + Resplit aces, to check the flagged zero-change rendering). No fixes were needed in `Features/Edge`:
   - Only Felt tokens are used; brass never appears.
@@ -333,7 +332,9 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   - `EdgeContributionRow`'s `FeltSpacing.s` vertical padding (vs. `SettingsRow`'s `.xs` in the same section) reads fine — the row carries a bar the plain rows don't, so the extra padding doesn't look inconsistent.
   - The player-edge state reads "PLAYER EDGE" with the unsigned number (0.03%), full sign carried by the label only, as designed.
   - `FeltColorTests` is green (part of the app unit-test run above). `FeltCatalogue`'s "Edge components" section matches the live screen's rows exactly, including the zero-change row.
-- Needs Luke's decision: none from this design check — the screen conforms to spec §4 as built.
+- **Needs Luke's decision** (from the final whole-branch review): breakdown bar scaling. Bars scale to the largest change on screen (`EdgeViewModel.breakdownScale`, floor 0.01), so a lone +0.05% "Split to 2 hands" fills the half-bar (design-check shot 08) and −0.02% for 6 decks fills about 40% of it. Options:
+  - keep relative scaling (the biggest rule on screen always fills the bar);
+  - use a fixed or absolute floor such as 0.5%, so small effects look small but most bars are short.
 - Deferred minors (non-blocking, triaged across the task reviews and this check):
   - `extract.js` is mode 755 vs `woo-strategy`'s 644; its header date is local, not UTC (chosen deliberately).
   - `maxSplitHands` outside 2...4 is silently clamped in `EdgeCalculator.tableIndex`; undocumented on the public API.
@@ -348,5 +349,11 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   - Step 8 (from earlier entries, still open): `FeltType.label` tracking doesn't scale with Dynamic Type; `FlipCard` / `SplitHandsView` adaptive layout, the `DealerHandView` placeholder, and `SplitHandsView`'s `accessibilityValue`; `DiscardTray` and the counting screens need the AX3 pass.
   - **Add for Step 8:** the Edge screen and `EdgeContributionRow` need the AX3 pass (Dynamic Type up to AX3, VoiceOver, Reduce Motion — the pre-approved accessibility-only exception).
   - Note: early surrender is priced as an 8-deck estimate throughout (WoO's rule-variation figures), not deck-specific.
-- A final whole-branch review still follows this design check before Step 5 closes.
+- Final whole-branch review and fix wave:
+  - **I2 (Important), fixed:** the rating and the "PLAYER EDGE" label were derived from the unrounded house edge while the headline shows it rounded to hundredths, so a value could be rated or labelled inconsistently with the number on screen (0.4998% showed "0.50%" rated Good; −0.00399% showed "PLAYER EDGE 0.00%"). `EdgeViewModel.displayedEdge(_:)` now rounds first; both `rating` and `isPlayerEdge` derive from it. New tests in `EdgeViewModelTests` cover the −0.00399 (1D S17 no-DAS, split to 2, hit split aces) and 0.4998 (2D S17 no-DAS, double 10-11, split to 4, RSA, late surrender, 3:2) cases, plus `displayedEdge` directly.
+  - **M3 (Minor), fixed:** the toast overlapped the confirmation dialog's own dismissal and was gone before it was readable. `EdgeView` now delays it ~0.35s (past the dialog's dismissal) and holds it ~1.6s, posting the VoiceOver announcement only once visible; named constants document why Edge's toast timing differs from the drills'.
+  - **Doc wording (Minor), fixed:** `EdgeResult.contributions`'s doc comment now says the steps sum "(to floating-point rounding)" rather than "exactly".
+  - **M7 (Minor), fixed:** `tools/woo-edge/README.md` now says early surrender under no hole card is priced as the no-hole-card table value less 0.63, and why that's conservative.
+  - **M6 (Minor), fixed:** the parent spec's Edge output bullet on negative-edge display was amended to match the accuracy-bar line's style.
+  - Deliberately left (non-blocking, per the final review): a throwaway VM on a store change; spec tolerance wording; UI-test assertions without explicit waits.
 - Next: Step 6 (Progress) — brainstorm and plan in a fresh session.

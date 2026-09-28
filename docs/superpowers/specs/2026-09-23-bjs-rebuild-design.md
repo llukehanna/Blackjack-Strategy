@@ -204,7 +204,7 @@ v1 is basic-strategy-only. Index plays and bet spreads are v2.
 
 - The rules form reuses `SettingsRow`s and is prefilled from the active rules or a chosen preset.
 - Output:
-  - Large house-edge number (e.g. `0.42%`), where a negative number means a player edge.
+  - Large house-edge number (e.g. `0.42%`). The headline shows the absolute value under a "PLAYER EDGE" label when the player has the edge. (Amended 2026-09-27; see the Step 5 spec §4.)
   - Rating from `EdgeRating`: **Good** < 0.50%, **OK** 0.50–1.00%, **Poor** > 1.00%.
   - Per-rule contribution bars from `EdgeResult.contributions`.
 - **Use these rules for training** writes the rules to `ActiveRulesStore` after a confirmation.
