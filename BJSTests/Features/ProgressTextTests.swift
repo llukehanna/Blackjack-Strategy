@@ -70,6 +70,18 @@ struct ProgressTextTests {
                 == "Shoe Sim accuracy, 30 days: no sessions")
     }
 
+    @Test("Every StrategyMode and TrueCountConvention raw value has a title — a drift guard for modeTitle's hard-coded raw values")
+    func modeTitleCoversEveryRawValue() {
+        for mode in StrategyMode.allCases {
+            let title = ProgressText.modeTitle(mode.rawValue, module: .strategy)
+            #expect(title != nil, "StrategyMode.\(mode.rawValue) has no title")
+        }
+        for convention in TrueCountConvention.allCases {
+            let title = ProgressText.modeTitle(convention.rawValue, module: .countingTC)
+            #expect(title != nil, "TrueCountConvention.\(convention.rawValue) has no title")
+        }
+    }
+
     @Test("Dates use the abbreviated date and short time")
     func dateTime() {
         let text = ProgressText.dateTime(Date(timeIntervalSince1970: 0), locale: Locale(identifier: "en_US"),

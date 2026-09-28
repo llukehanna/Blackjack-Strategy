@@ -9,6 +9,13 @@ extension WhyContext {
     /// composition-note cell (hard 14 vs a ten), a first-decision two-card hand and any other
     /// hard 14 save identical records. There the rebuild assumes the two-card hand
     /// (`compositionNote` true, no illegal lead). Ten-valued ranks rebuild as `.ten`.
+    ///
+    /// - Precondition: `cell` must be one of the domains `TrainingCell` is graded on — hard
+    ///   4...20, soft 12...20, pair 2...11, dealer upcard 2...11 (11 = ace) — the same domain
+    ///   `TrainingCell.all` (plus hard 4 and soft 12) covers. Outside that domain this force-unwraps
+    ///   `Rank(rawValue:)` and traps; it is not failable. A cell rebuilt from persisted data must be
+    ///   validated first, as the app's `SchemaV1.DecisionRecord.detail` does before ever constructing
+    ///   a `TrainingCell` from a saved record.
     public init(cell: TrainingCell, userAction: Action?, correctAction: Action, rules: BlackjackRules,
                 table: StrategyTable, id: UUID = UUID()) {
         let hand = Self.representativeHand(for: cell)
