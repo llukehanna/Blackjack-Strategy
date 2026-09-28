@@ -1,7 +1,7 @@
 # Step 6 — Progress — Design
 
 **Date:** 2026-09-27
-**Status:** Approved in brainstorming; pending written-spec review
+**Status:** Approved and implemented (Step 6, 2026-09-27)
 **Parent spec:** `2026-09-23-bjs-rebuild-design.md` (§5 Progress tab, §6 data, §7 testing, §8 Step 6)
 
 Step 6 builds the Progress tab: per-module headline numbers, a daily accuracy trend, the strategy heat map, and a session history whose rows open a read-only session detail (with WHY for strategy mistakes). This document records only what the parent spec leaves open or amends, plus the Step 6 carry-overs from `progress.md`. Everything else follows the parent spec as written.
@@ -13,7 +13,7 @@ The Felt design system is frozen. This step adds one new component built from ex
 | Topic | Decision | Why |
 |---|---|---|
 | Range toggle | One `ModePicker` at the top (7 days / 30 days / All time) sets the window for the headlines, the trend chart and the heat map. History always lists every session. | One rule for the whole screen. |
-| Range definition (**clarifies** parent §5 "last 30 days") | An N-day window is today plus the previous N − 1 calendar days: `since = startOfDay(now) − (N − 1) days`. The hub's 30-day chips switch to the same helper, so the hub and Progress always agree. | The hub's rolling `now − 30 days` window includes part of a 31st day, which a per-day trend chart can't show. |
+| Range definition (**clarifies** parent §5 "last 30 days") | An N-day window is today plus the previous N − 1 calendar days: `since = startOfDay(now) − (N − 1) days`. The hub's 30-day chips switch to the same helper, so the hub and Progress always agree. Within that window, the heat map filters by `DecisionRecord.decidedAt` while the headlines and trend filter by `Session.startedAt`. A session that started just before the window's start midnight but whose decisions run past it can therefore contribute those decisions to the heat map even though the headline/trend treat the whole session as out of range (**controller ruling**, final review). | The hub's rolling `now − 30 days` window includes part of a 31st day, which a per-day trend chart can't show. |
 | Headlines | Four `StatChip`s, one per module: **Strategy** (strategy-module decisions), **Running count** (`countingRC` checks), **True count** (`countingTC` checks), **Shoe Sim** (decisions + checks combined). Each shows "—" with no data. Shoe stays "—" until Step 7. | Matches the parent spec's list. The hub keeps its cross-module chips (strategy + shoe decisions, all count checks) unchanged. |
 | Trend chart | A `ModePicker` over the same four modules selects the series. The chart is one cream line with points, 0–100%, one point per day with attempts. | Felt has no categorical palette, and `brass` is reserved for highlights, so a multi-series chart would need new tokens. |
 | Heat map | A `ModePicker` (Hard / Soft / Pairs) shows one grid at a time. The data is strategy + shoe decisions, **excluding Learn sessions** (`forStats: true`), within the range. | One grid fits the SE. The Learn exclusion closes a Step 3 carry-over. |
