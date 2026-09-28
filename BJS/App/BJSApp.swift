@@ -28,8 +28,11 @@ struct BJSApp: App {
         let defaults = launch.makeUserDefaults()
         _rulesStore = State(initialValue: ActiveRulesStore(defaults: defaults))
         _preferences = State(initialValue: PreferencesStore(defaults: defaults))
-        _sessionStore = State(initialValue: SessionStore(context: container.mainContext,
-                                                          isStorageDegraded: isStorageDegraded))
+        let sessionStore = SessionStore(context: container.mainContext, isStorageDegraded: isStorageDegraded)
+        #if DEBUG
+        if launch.seedsProgressFixture { ProgressFixture.seed(into: sessionStore, now: .now) }
+        #endif
+        _sessionStore = State(initialValue: sessionStore)
         _router = State(initialValue: AppRouter(selectedTab: launch.startTab ?? .train))
         FeltTabBarAppearance.apply()
     }

@@ -59,4 +59,11 @@ struct AppShellTests {
         #expect(LaunchConfiguration(arguments: ["-countPace", "0.3"]).countPace == nil)
         #expect(LaunchConfiguration(arguments: ["-uiTesting"]).countPace == nil)
     }
+
+    @Test("Launch arguments: the Progress fixture needs UI testing")
+    func progressFixtureFlag() {
+        #expect(LaunchConfiguration(arguments: ["BJS", "-uiTesting", "-progressFixture"]).seedsProgressFixture)
+        #expect(!LaunchConfiguration(arguments: ["BJS", "-progressFixture"]).seedsProgressFixture)
+        #expect(!LaunchConfiguration(arguments: ["BJS", "-uiTesting"]).seedsProgressFixture)
+    }
 }

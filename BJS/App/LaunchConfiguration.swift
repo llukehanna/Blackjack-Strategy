@@ -13,6 +13,8 @@ struct LaunchConfiguration {
     let seed: UInt64?
     /// UI testing only: overrides the running-count drill's pace (seconds per group).
     let countPace: Double?
+    /// UI testing only (DEBUG): seed the Progress fixture (Step 6 spec §5).
+    let seedsProgressFixture: Bool
 
     init(arguments: [String]) {
         isUITesting = arguments.contains("-uiTesting")
@@ -29,6 +31,7 @@ struct LaunchConfiguration {
         strategyLength = isUITesting ? value(after: "-strategyLength").flatMap { Int($0) } : nil
         seed = isUITesting ? value(after: "-seed").flatMap { UInt64($0) } : nil
         countPace = isUITesting ? value(after: "-countPace").flatMap { Double($0) } : nil
+        seedsProgressFixture = isUITesting && arguments.contains("-progressFixture")
     }
 
     static let current = LaunchConfiguration(arguments: ProcessInfo.processInfo.arguments)

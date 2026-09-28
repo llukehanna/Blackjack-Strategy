@@ -19,7 +19,7 @@ struct RootTabView: View {
                 HubView()
             }
             Tab(AppTab.progress.rawValue, systemImage: AppTab.progress.systemImage, value: AppTab.progress) {
-                ComingSoonView(title: "Progress", message: "Coming in Step 6")
+                ProgressTabView()
             }
             Tab(AppTab.settings.rawValue, systemImage: AppTab.settings.systemImage, value: AppTab.settings) {
                 SettingsView()
