@@ -75,7 +75,7 @@ WoO rule-variation figures used (https://wizardofodds.com/games/blackjack/rule-v
 
 1. **Extraction (`tools/woo-edge/`):**
    - `extract.js` (Node) downloads the calculator page. It evaluates the inline script that defines `edgeTable` and `CalculateResult()`, against a stub `document.selectForm` whose radio groups `SELECT1`…`SELECT10` it sets.
-   - For every combination the app supports it calls WoO's `CalculateResult()` and reads `RESULTS7` (basic strategy with cut card). That covers decks 1/2/4/6/8 (WoO index 0/1/2/4/5; 5 decks is skipped), S17/H17, DAS, double any two / 9-11 / 10-11, 2 / 3 / 4 hands, RSA, hit split aces, peek / no hole card (`SELECT8` "loses only original bet" Yes / No), no / late surrender, and 3:2 / 6:5. That is 5 × 2 × 2 × 3 × 3 × 2 × 2 × 2 × 2 × 2 = 2,880 values.
+   - For every combination the app supports it calls WoO's `CalculateResult()` and reads `RESULTS7` (basic strategy with cut card). That covers decks 1/2/4/6/8 (WoO index 0/1/2/4/5; 5 decks is skipped), S17/H17, DAS, double any two / 9-11 / 10-11, 2 / 3 / 4 hands, RSA, hit split aces, peek / no hole card (`SELECT8` "loses only original bet" Yes / No), no / late surrender, and 3:2 / 6:5. That is 5 × 2 × 2 × 3 × 3 × 2 × 2 × 2 × 2 × 2 = 5,760 values.
    - It writes `BJSCore/Sources/BJSCore/Edge/WoOEdgeData.swift`: a flat `[Double]` in a documented index order, plus header comments with the source URL, the retrieval date and "House edge by WizardOfOdds.com". It is generated and never edited by hand.
    - `README.md` explains the source and how to regenerate, following `tools/woo-strategy/README.md`. The script is run by hand only. We take data, not WoO's code.
 2. **`EdgeCalculator.analyze(rules:)`**, rewritten:
@@ -149,7 +149,7 @@ WoO rule-variation figures used (https://wizardofodds.com/games/blackjack/rule-v
     - the baseline rules give no contributions;
     - the order is fixed;
     - each `edgeChange` equals the table difference at its step (checked on a multi-rule case).
-  - **Table integrity:** 2,880 entries, all finite and within −1…+3. Every index field round-trips.
+  - **Table integrity:** 5,760 entries, all finite and within −1…+3. Every index field round-trips.
   - **`EdgeRating`:** the existing tests stay. The presets rate Good (Vegas Strip, Downtown, Atlantic City), OK (European) and Poor (Single Deck 6:5).
 - **App** (Swift Testing):
   - **`EdgeViewModel`:**
@@ -160,7 +160,7 @@ WoO rule-variation figures used (https://wizardofodds.com/games/blackjack/rule-v
   - **`EdgeText`:** every factor has a non-empty label.
 - **UI** (XCTest, `EdgeUITests`):
   - Hub → Edge tile.
-  - Change Decks to 1 → `edge.number` changes.
+  - Choose the Single Deck 6:5 preset → `edge.number` changes (0.43% → 1.70%) and the rating reads Poor.
   - `edge.apply` → confirm → `edge.close` → the hub header starts with `1D`.
 - **Design check:**
   - iPhone 16 and SE screenshots of the default rules, 6:5 (Poor, long bar) and 1D S17 DAS (player edge).
