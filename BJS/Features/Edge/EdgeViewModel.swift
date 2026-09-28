@@ -25,9 +25,17 @@ final class EdgeViewModel {
         self.result = calculator.analyze(rules: activeRules)
     }
 
-    var rating: EdgeRating { EdgeRating(houseEdge: result.houseEdge) }
+    /// The rating and the player-edge label must agree with the headline, which shows the edge
+    /// rounded to hundredths (`EdgeText.headlineNumber`). Rating or labelling the unrounded edge
+    /// can disagree with what's on screen at the rounding boundary (e.g. 0.4998 displays "0.50%"
+    /// but is < 0.5 unrounded) or at zero (e.g. −0.00399 displays "0.00%" but is negative).
+    static func displayedEdge(_ houseEdge: Double) -> Double {
+        (houseEdge * 100).rounded() / 100
+    }
 
-    var isPlayerEdge: Bool { result.houseEdge < 0 }
+    var rating: EdgeRating { EdgeRating(houseEdge: Self.displayedEdge(result.houseEdge)) }
+
+    var isPlayerEdge: Bool { Self.displayedEdge(result.houseEdge) < 0 }
 
     /// The form's edge less the active rules' edge; nil when they are the same rules.
     var comparison: Double? {

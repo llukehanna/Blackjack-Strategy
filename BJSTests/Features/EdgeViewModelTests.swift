@@ -69,4 +69,43 @@ struct EdgeViewModelTests {
         #expect(model.result.contributions.isEmpty)
         #expect(model.breakdownScale == 0.01)
     }
+
+    @Test("A small negative edge that rounds to 0.00% is not shown as a player edge")
+    func roundsToZeroIsNotPlayerEdge() {
+        // 1D S17 no-DAS, split to 2 hands, hit split aces: WoO -0.00399.
+        var rules = BlackjackRules()
+        rules.deckCount = .one
+        rules.doubleAfterSplit = false
+        rules.maxSplitHands = 2
+        rules.hitSplitAces = true
+        let model = EdgeViewModel(activeRules: rules)
+        #expect(abs(model.result.houseEdge - (-0.00399)) < 0.00001)
+        #expect(!model.isPlayerEdge)
+        #expect(EdgeText.headlineNumber(model.result.houseEdge) == "0.00%")
+    }
+
+    @Test("An edge that rounds up to 0.50% is rated OK, not Good")
+    func roundsUpToRatingBoundary() {
+        // 2D S17, no DAS, double 10-11, split to 4 hands, RSA, peek, late surrender, 3:2: WoO
+        // 0.4998, which rounds to the 0.50% Good/OK boundary.
+        var rules = BlackjackRules()
+        rules.deckCount = .two
+        rules.dealerSoft17 = .stands
+        rules.doubleAfterSplit = false
+        rules.doubleRestriction = .tenToEleven
+        rules.maxSplitHands = 4
+        rules.resplitAces = true
+        rules.peekRule = .americanPeek
+        rules.surrenderRule = .late
+        let model = EdgeViewModel(activeRules: rules)
+        #expect(abs(model.result.houseEdge - 0.4998) < 0.00001)
+        #expect(EdgeText.headlineNumber(model.result.houseEdge) == "0.50%")
+        #expect(model.rating == .ok)
+    }
+
+    @Test("displayedEdge rounds to hundredths for rating and player-edge purposes")
+    func displayedEdgeRoundingBoundary() {
+        #expect(EdgeRating(houseEdge: EdgeViewModel.displayedEdge(0.4998)) == .ok)
+        #expect(EdgeViewModel.displayedEdge(-0.00399) == 0.0)
+    }
 }

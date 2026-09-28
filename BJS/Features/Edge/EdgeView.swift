@@ -146,11 +146,20 @@ private struct EdgeScreen: View {
         }
     }
 
+    /// Edge's toast follows a confirmation dialog's own dismissal animation, unlike the drills'
+    /// (which show it mid-drill, with nothing else animating off). Starting immediately races
+    /// that dismissal and the toast is gone before the sheet clears; `toastDelay` waits it out,
+    /// and `toastVisibleDuration` (longer than `FeltToast.displayDuration`) keeps it up long
+    /// enough to actually read once the dialog is out of the way.
+    private static let toastDelay: Duration = .seconds(0.35)
+    private static let toastVisibleDuration: Duration = .seconds(1.6)
+
     private func flashToast() {
-        withAnimation(FeltMotion.ui) { showsToast = true }
-        AccessibilityNotification.Announcement(EdgeText.toast).post()
         Task {
-            try? await Task.sleep(for: .seconds(FeltToast.displayDuration))
+            try? await Task.sleep(for: Self.toastDelay)
+            withAnimation(FeltMotion.ui) { showsToast = true }
+            AccessibilityNotification.Announcement(EdgeText.toast).post()
+            try? await Task.sleep(for: Self.toastVisibleDuration)
             withAnimation(FeltMotion.ui) { showsToast = false }
         }
     }

@@ -31,7 +31,7 @@ public struct RuleContribution: Sendable, Hashable {
 public struct EdgeResult: Sendable, Hashable {
     /// House edge in percent (0.43 means 0.43%). Negative means the player has the edge.
     public let houseEdge: Double
-    /// Steps from `EdgeCalculator.baselineRules`. They sum exactly to
+    /// Steps from `EdgeCalculator.baselineRules`. They sum (to floating-point rounding) to
     /// `houseEdge - EdgeCalculator.baselineHouseEdge`.
     public let contributions: [RuleContribution]
 
