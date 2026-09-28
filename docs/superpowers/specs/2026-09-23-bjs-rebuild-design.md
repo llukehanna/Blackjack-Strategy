@@ -208,7 +208,7 @@ v1 is basic-strategy-only. Index plays and bet spreads are v2.
   - Rating from `EdgeRating`: **Good** < 0.50%, **OK** 0.50–1.00%, **Poor** > 1.00%.
   - Per-rule contribution bars from `EdgeResult.contributions`.
 - **Use these rules for training** writes the rules to `ActiveRulesStore` after a confirmation.
-- Accuracy bar: the house-edge validation against Wizard of Odds (`EdgeCalculatorTests`, ≥ 10 rule combinations) must keep passing.
+- Accuracy bar: the house edge matches Wizard of Odds' calculator ("basic strategy with cut card") for ≥ 20 reference rule combinations covering every rule (`EdgeCalculatorTests`). The rating applies to that figure. (Amended 2026-09-27: the additive model is replaced by WoO's own table; see the Step 5 spec §1.)
 
 ### Progress tab
 
