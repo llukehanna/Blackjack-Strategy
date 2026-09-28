@@ -59,7 +59,7 @@ The view model reloads whenever `SessionStore.revision` or the range changes. So
   | > 50% | `incorrect` at 100% |
 
   The opacities may be tuned once at the design check. After that they're part of the component and fixed.
-- **Legend:** one row of swatches under the grid: "Not enough data · 0% · ≤15% · ≤30% · ≤50% · >50%".
+- **Legend:** swatches under the grid: "Not enough data" on its own line, then one row of the five error-rate bins "0% · ≤15% · ≤30% · ≤50% · >50%". (Amended at the design check: a single row of all six truncates "Not enough data" on the SE, and the plan's 3 × 2 grid truncated it on both devices.)
 - **Selection:** tapping a cell selects it with a 2 pt `cream` ring. The caption below the grid then reads e.g. "Hard 16 vs 10 · 3 of 7 wrong (43%)", or "Soft 18 vs 9 · 2 decisions, not enough data". Tapping it again clears the selection.
   - Cells are smaller than the 44 pt `FeltTapTarget.minimum`. That's accepted for a dense grid: the caption is an enhancement, and VoiceOver reaches every cell individually.
 - **Accessibility:** each cell is an element labelled "Hard 16 vs 10", with the caption's text as its value.
@@ -100,9 +100,9 @@ All new logic is pure and tested with hand-built fixtures (parent §7).
   - `userAction` is nil for a timeout;
   - `surrenderContext` comes from the rules, as today;
   - `preferredIllegal` is the table's first preference for the cell when it differs from `correctAction`, otherwise nil.
-  - **The ambiguous case:** the early-surrender composition note (hard 14 vs a ten, 1–2 decks, `hard14VsTenSurrenders` set) when the saved correct action isn't surrender and the chart's first preference is surrender. A two-card 10+4 (surrender legal, note applies) and a three-card 14 (surrender illegal) save identical records. The rebuild sets `compositionNote = true` and `preferredIllegal = nil`. That is exactly right for the two-card case. For the three-card case it explains the composition rule instead of "surrender isn't allowed here", which is still true.
+  - **The ambiguous case:** a saved decision in the early-surrender composition-note cell (hard 14 vs a ten, 1–2 decks, `hard14VsTenSurrenders` set) whose saved correct action isn't surrender (in practice, hit). A first-decision two-card non-pair 14 such as 10+4 (surrender legal, the note applies) saves the same record as a hard 14 where surrender wasn't legal: a three-card 14, an unsplit 7,7 graded on the hard row, or a two-card 14 after a split. The rebuild can't tell them apart, so it assumes the two-card hand: `compositionNote = true` and `preferredIllegal = nil`. That is exactly right for the two-card case. For the others, live WHY showed no composition note; the rebuilt WHY adds it, which is still true of the cell.
   - When the saved correct action is surrender and the note applies, `compositionNote = true`.
-  - **Property test:** for seeded random decision spots across every rule preset, `WhyContext(cell:…)` equals `WhyContext(spot:…)`, ignoring `id`. The only exception is the ambiguous case, which has its own test.
+  - **Property test:** for seeded random decision spots across every rule preset, `WhyContext(cell:…)` equals `WhyContext(spot:…)`, ignoring `id`, with ten-valued ranks canonicalised: the saved cell keeps only values, so the rebuild uses `.ten` for a ten-value pair rank or upcard, and the generator draws tens only as `.ten` (a live J,J or Q upcard would differ from its rebuild only in that rank). The only exception is the ambiguous case, which has its own test.
   - If the property test finds any other mismatch (for example the unsplittable soft-12 special case), the implementer fixes the rebuild where the saved data allows. Otherwise they document it in this section and flag it in the handoff.
 
 ## 5. App layer

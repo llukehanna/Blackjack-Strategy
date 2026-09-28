@@ -357,3 +357,58 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   - **M6 (Minor), fixed:** the parent spec's Edge output bullet on negative-edge display was amended to match the accuracy-bar line's style.
   - Deliberately left (non-blocking, per the final review): a throwaway VM on a store change; spec tolerance wording; UI-test assertions without explicit waits.
 - Next: Step 6 (Progress) — brainstorm and plan in a fresh session.
+
+## Step 6 — Progress (2026-09-27)
+
+- Spec: `docs/superpowers/specs/2026-09-27-step-6-progress-design.md`. Plan: `docs/superpowers/plans/2026-09-27-step-6-progress.md`.
+  Branch `step-6-progress` (merge base 0663306), commits 02d2993..4b64e8e plus this handoff. Built task by task with subagents, each task reviewed clean; then the design check (Task 10, one fix commit). The final whole-branch review is still to come; its outcome is appended below.
+- Tests: BJSCore 260 passing; app 230 unit tests + 6 UI tests passing (`ProgressUITests` adds 2), with no compiler warnings (the `appintentsmetadataprocessor` "warning:" line is a tool notice).
+- Shipped:
+  - BJSCore: `ProgressRange` (calendar-day windows, adopted by the hub), `HeatBin`, `HeatMapLayout`, and `WhyContext(cell:userAction:correctAction:rules:table:)` for WHY from history.
+  - `SessionStore`: `historyEntries()`, `sessionSamples(since:)` / `decisionSamples(modules:since:)`, `sessionDetail(id:)`.
+  - `Features/Progress`: `ProgressTabView`, `ProgressViewModel`, `ProgressText`, `SessionDetailView`, `SessionDetailViewModel`.
+  - `HeatMapGrid` with `HeatMapSwatch` and `HeatMapLegend` (new Felt component, built from existing tokens; "Progress components" section in `FeltCatalogue`).
+  - Moved to `Shared/`: `WhySheet`, `TrainingText` (action/upcard/hand labels, `signed`, `minus`, `conventionRule`).
+  - The DEBUG `-progressFixture` launch argument (`ProgressFixture`).
+- Deviations from the plan:
+  - The app unit baseline was 202, not 201: Task 1 added a `HubViewModelTests` test. Later counts build on 202.
+  - `RecordedChoice` is now `nonisolated` (`SessionDraft.swift`) so the detail mapper compiles.
+  - The detail mapper drops (and logs) cells outside the valid ranges (hard 4–20, soft 12–20, pair 2–11, upcard 2–11). This was a controller ruling in Task 3: `WhyContext(cell:)` traps on a corrupt cell through `Rank(rawValue:)!`.
+  - Design check: `HeatMapLegend` changed from a 3 × 2 grid to "Not enough data" on its own line above one row of the five rate bins, and the trend chart's `LineMark` is hidden from VoiceOver (below). Spec §2's legend line was amended to match.
+- `#Predicate` probe: the date filter compiles and runs in main-actor app code, so `since` filters in the fetch.
+- WHY-rebuild limitation (Task 3; spec §4 wording corrected in this task):
+  - In the early-surrender composition-note cell (hard 14 vs a ten, 1–2 decks, `hard14VsTenSurrenders` set), a saved decision whose correct action isn't surrender (in practice, hit) can't be told apart. It could be a first-decision two-card 10+4 (surrender legal, the note applies), or a hard 14 where surrender wasn't legal: a three-card 14, an unsplit 7,7 graded on the hard row, or a two-card 14 after a split.
+  - The rebuild assumes the two-card hand: `compositionNote = true`, `preferredIllegal = nil`. For the other hands, rebuilt WHY adds the composition note that live WHY didn't show. It's still true of the cell.
+  - Ten-valued ranks rebuild as `.ten`: a J,J pair or a Q upcard reads as tens. The property test compares with tens canonicalised.
+- Design check: screenshots on iPhone 16 (18.4) and SE 3rd gen (18.3.1) with the fixture. States: top of screen (7 days and All time), the trend for each module (Shoe shows "No sessions in this range"), the heat map on Hard (with the hard 4 row), Soft and Pairs, hard 16 vs 10 selected with its caption, history, a Strategy detail with mistakes (including "Time's up → Stand"), WHY from history (a mistake and a timeout), TC, RC and Learn details, the empty state, and `FeltCatalogue`'s "Progress components".
+  - Only Felt tokens are used; brass never appears in Progress or `HeatMapGrid`.
+  - Nothing truncates on the SE after the legend fix: the four chip labels ("RUNNING COUNT" fits), the four trend segments, the grid's "10,10" label, the legend, history rows and captions.
+  - **Fixed:** the legend's "Not enough data" truncated to "NOT ENOUGH DA…" on both devices in the plan's 3 × 2 grid. A single row of all six would need about 390 pt, more than the SE's 343 pt, so it now sits on its own line above one row of the five rate bins. This reads as a scale and fits both devices at full size.
+  - The heat-map bins are distinguishable on the felt, and the "not enough data" outline is faint but visible. The opacities are unchanged (35% correct; 30/50/75/100% incorrect).
+  - The 2 pt cream ring is clearly visible on the severe hard 16 vs 10 cell. The catalogue demo's selected cell happens to be an outline-only cell, so the severe case is shown only on the live screen.
+  - The chart's cream line, points and `textTertiary` axis labels are legible on both devices. The x-axis ends at the end of today, so the last date label sits just inside the plot.
+  - The navigation bar appears only on the session detail, with a working Back button.
+  - `FeltColorTests` and `ProgressComponentTests` are green.
+- Extra checks from the task reviews:
+  - `HeatMapLegend` (Task 6): fixed as above; spec §2 amended.
+  - Chart VoiceOver (Task 9): the container kept its summary label ("Strategy accuracy, 7 days: 5 days, latest 57%"). But each day's element was Swift Charts' generated one ("Sep 21, 2026 at 12 AM to Sep 22, 2026 at 12 AM", value "0.6 to 0.6, 2 values"), because the `LineMark` and `PointMark` shared the day. **Fixed:** the `LineMark` is now `.accessibilityHidden(true)`, and the accessibility tree shows one element per day under `progress.chart`, labelled "Sep 21, 2026" with value "60%".
+  - Spec §4 (Task 3): the ambiguous-case trigger and the "ten-valued ranks canonicalised" wording are corrected.
+- Deferred minors (non-blocking, from the task reviews):
+  - Task 1: `ProgressRangeTests` splits boundary and static tests (readability).
+  - Task 2: `HeatMapTests`' 25% case is out of ascending order.
+  - Task 3: the property generator never draws J/Q/K; the random generator leaves rare pair/soft cells unsampled (a deterministic sweep over `TrainingCell.all` would prove more).
+  - Task 5: the skipped-rows log message is slightly inaccurate for out-of-range cells; `historyEntries` builds its `FetchDescriptor` inline instead of `Self.sessions(since: nil)`; `isValidCell` duplicates `TrainingCell`'s domain in the app layer and only the pair branch is tested.
+  - Task 7: the `loadFailed` path and `reload`'s range pass-through are untested; a safe `since!` force-unwrap in the range filter; `ProgressText.dayLabel` takes no locale/time zone and is untested; `cellName` duplicates `handLabel`'s wording (kept by pre-flight ruling).
+  - Task 8: `.shoe` shares the `.strategy` chips/mistakes branch untested; "Time's up" is a 5th literal copy; `SessionDetailViewModel` is the only struct view model (by design).
+  - Task 9: the empty state can flash before the first load; `ProgressFixture.seed` uses `try?`; the UI test's `progress.chart` id is on both the chart and its no-points caption; the detail shows a stale model when a later reload fails; "Trend", "Heat map", "History", "Mistakes", "Checks" and "Explains the correct play" are inline rather than in `ProgressText`.
+- Carry-overs:
+  - **Resolved in Step 6:**
+    - History passes `forStats: false` (Learn included); stats keep the default.
+    - The heat map respects the Learn exclusion and shows hard 4 / soft 12 rows when they have data.
+    - Ranged views fetch with a `since` filter. "All time" still reads whole tables, which is fine at v1 volumes.
+    - WHY from history infers legal actions from the saved correct action (no schema change), with the limitation above.
+    - The per-card RC trace: accepted as not persisted; the detail says so in a footnote.
+  - Step 8 (from earlier entries, still open): `FeltType.label` tracking doesn't scale with Dynamic Type; `FlipCard` / `SplitHandsView` adaptive layout, the `DealerHandView` placeholder, and `SplitHandsView`'s `accessibilityValue`; `DiscardTray`, the counting screens, the Edge screen and `EdgeContributionRow` need the AX3 pass.
+  - **Add for Step 8:** the Progress tab, `HeatMapGrid` (with its legend) and the session detail need the AX3 pass (Dynamic Type up to AX3, VoiceOver, Reduce Motion — the pre-approved accessibility-only exception).
+  - Still open for Luke (from Step 5): Edge breakdown bar scaling.
+- Next: Step 7 (Shoe Sim).
