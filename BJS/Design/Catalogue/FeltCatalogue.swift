@@ -53,6 +53,18 @@ struct FeltCatalogue: View {
                             DiscardTray(decksTotal: 1, decksPlayed: 0.25)
                         }
                     }
+                    section("Edge components") {
+                        SettingsSection(title: "Breakdown") {
+                            EdgeContributionRow(label: "Dealer hits soft 17", value: "+0.21%", change: 0.21,
+                                                scale: 1.39, accessibilityText: "Dealer hits soft 17")
+                            EdgeContributionRow(label: "2 decks", value: "\u{2212}0.19%", change: -0.19,
+                                                scale: 1.39, accessibilityText: "2 decks")
+                            EdgeContributionRow(label: "Blackjack pays 6:5", value: "+1.39%", change: 1.39,
+                                                scale: 1.39, accessibilityText: "Blackjack pays 6:5")
+                            EdgeContributionRow(label: "Split to 3 hands", value: "0.00%", change: 0.001,
+                                                scale: 1.39, accessibilityText: "Split to 3 hands")
+                        }
+                    }
                     section("Chips, tiles, buttons") { surfaces }
                     section("Mode picker and settings") { controls }
                     section("Count keypad") {
