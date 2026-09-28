@@ -65,6 +65,11 @@ struct FeltCatalogue: View {
                                                 scale: 1.39, accessibilityText: "Split to 3 hands")
                         }
                     }
+                    section("Progress components") {
+                        HeatMapGrid(columns: ["2", "3", "4", "5", "6", "7", "8", "9", "10", "A"],
+                                    rows: Self.heatDemoRows, onSelect: { _, _ in })
+                        HeatMapLegend()
+                    }
                     section("Chips, tiles, buttons") { surfaces }
                     section("Mode picker and settings") { controls }
                     section("Count keypad") {
@@ -77,6 +82,15 @@ struct FeltCatalogue: View {
                 .padding(FeltSpacing.l)
             }
         }
+    }
+
+    /// Two rows cycling through every bin, with hard 16 vs 10 selected.
+    private static let heatDemoRows: [HeatMapGrid.Row] = [16, 17].map { value in
+        HeatMapGrid.Row(id: value, label: "\(value)", cells: (2...11).map { up in
+            let bin = HeatBin.allCases[(up - 2 + value) % HeatBin.allCases.count]
+            return HeatMapGrid.Cell(id: up, bin: bin, accessibilityLabel: "Hard \(value) vs \(up)",
+                                    accessibilityValue: "\(bin)", isSelected: value == 16 && up == 10)
+        })
     }
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
