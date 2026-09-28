@@ -67,6 +67,14 @@ struct ProgressViewModelTests {
         #expect(model.chartDomain == startOfDay(2)...startOfDay(-1))
     }
 
+    @Test("hasLoaded starts false and becomes true once apply runs, even when the load failed")
+    func hasLoadedFlag() {
+        let model = ProgressViewModel()
+        #expect(!model.hasLoaded)
+        model.apply(entries: [], sessions: [], decisions: [], now: now, calendar: utc)
+        #expect(model.hasLoaded)
+    }
+
     @Test("No sessions at all is the empty state; sessions outside the range are not")
     func emptyStates() {
         let model = ProgressViewModel()
@@ -122,6 +130,20 @@ struct ProgressViewModelTests {
         #expect(model.caption == nil)
         model.select(row: 16, column: 10)
         model.heatType = .soft
+        #expect(model.caption == nil)
+    }
+
+    @Test("A selected cell clears when its row disappears after a range change or reload")
+    func selectionClearsWhenRowGone() {
+        let h4 = TrainingCell(handType: .hard, playerValue: 4, dealerUpcard: 5)
+        let model = ProgressViewModel()
+        model.range = .allTime
+        model.apply(entries: [], sessions: [], decisions: [decision(h4, true, daysAgo: 10)], now: now, calendar: utc)
+        model.select(row: 4, column: 5)
+        #expect(model.caption == "Hard 4 vs 5 · 1 decision, not enough data")
+
+        model.range = .week
+        model.apply(entries: [], sessions: [], decisions: [decision(h4, true, daysAgo: 10)], now: now, calendar: utc)
         #expect(model.caption == nil)
     }
 

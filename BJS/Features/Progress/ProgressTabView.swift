@@ -30,15 +30,21 @@ struct ProgressTabView: View {
                                 .feltText(.body)
                                 .foregroundStyle(FeltColor.incorrect)
                         }
-                        if model.hasAnySessions {
+                        // Before the first load resolves, show only the title and the range
+                        // picker — no empty state, no content — so nothing flashes (spec §2).
+                        if !model.hasLoaded || model.hasAnySessions {
                             ModePicker(options: ProgressRange.allCases, selection: $model.range,
                                        title: ProgressText.rangeTitle)
-                            headlines
-                            trend(model)
-                            heatMap(model)
-                            history
-                        } else if !model.loadFailed {
-                            emptyState
+                        }
+                        if model.hasLoaded {
+                            if model.hasAnySessions {
+                                headlines
+                                trend(model)
+                                heatMap(model)
+                                history
+                            } else if !model.loadFailed {
+                                emptyState
+                            }
                         }
                     }
                     .padding(FeltSpacing.l)

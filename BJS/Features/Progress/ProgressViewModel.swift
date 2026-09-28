@@ -39,6 +39,9 @@ final class ProgressViewModel {
     }
     private(set) var selectedCell: TrainingCell?
 
+    /// False until `apply` has run once (including on the failure path), so the view doesn't
+    /// flash the empty state or its button before the first load resolves.
+    private(set) var hasLoaded = false
     private(set) var hasAnySessions = false
     private(set) var loadFailed = false
     private(set) var chips: [Chip] = ProgressViewModel.modules.map { Chip(module: $0, value: PercentText.noData) }
@@ -119,12 +122,16 @@ final class ProgressViewModel {
                 .map { ChartPoint(day: $0.day, accuracy: $0.accuracy) })
         })
         heat = ProgressStats.heatMap(decisions.filter { since == nil || $0.date >= since! })
+        if let selected = selectedCell, !HeatMapLayout.rows(for: selected.handType, cells: heat).contains(selected.playerValue) {
+            selectedCell = nil
+        }
         history = entries.map { entry in
             HistoryRow(id: entry.id,
                        title: ProgressText.sessionTitle(module: entry.sample.module, mode: entry.mode),
                        dateText: ProgressText.dateTime(entry.sample.startedAt),
                        accuracy: Self.accuracyText(entry.sample))
         }
+        hasLoaded = true
     }
 
     /// Reads the store for the current range. A failed fetch shows `ProgressText.loadFailed`, never crashes.
