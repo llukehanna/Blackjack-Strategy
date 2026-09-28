@@ -67,6 +67,15 @@ struct HubViewModelTests {
         #expect(model.streak == "0")
     }
 
+    @Test("The 30-day window is today plus the previous 29 calendar days")
+    func windowIsCalendarDays() {
+        let model = HubViewModel()
+        model.update(sessions: [session(.strategy, daysAgo: 29, decisions: 10, correct: 10),
+                                session(.strategy, daysAgo: 30, decisions: 10, correct: 0)],
+                     decisions: [], now: now, calendar: utc)
+        #expect(model.strategyAccuracy == "100%")
+    }
+
     @Test("Percent rounds to a whole number")
     func percent() {
         #expect(HubViewModel.percent(2.0 / 3.0) == "67%")
