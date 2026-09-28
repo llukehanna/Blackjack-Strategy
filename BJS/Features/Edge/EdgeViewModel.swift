@@ -4,20 +4,26 @@ import BJSCore
 
 /// The Edge screen's state: the rules being evaluated (a copy of the active rules at open) and
 /// everything derived from them. Nothing is persisted; the maths is `EdgeCalculator`'s.
+///
+/// `result` is computed once per `rules` change (on `init` and on `didSet`) rather than on every
+/// access, since a single `body` evaluation reads several derived properties.
 @MainActor
 @Observable
 final class EdgeViewModel {
-    var rules: BlackjackRules
+    var rules: BlackjackRules {
+        didSet { result = calculator.analyze(rules: rules) }
+    }
     private(set) var activeRules: BlackjackRules
+
+    private(set) var result: EdgeResult
 
     @ObservationIgnored private let calculator = EdgeCalculator()
 
     init(activeRules: BlackjackRules) {
         self.rules = activeRules
         self.activeRules = activeRules
+        self.result = calculator.analyze(rules: activeRules)
     }
-
-    var result: EdgeResult { calculator.analyze(rules: rules) }
 
     var rating: EdgeRating { EdgeRating(houseEdge: result.houseEdge) }
 
