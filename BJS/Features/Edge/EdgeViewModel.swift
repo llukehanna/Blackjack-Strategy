@@ -1,0 +1,43 @@
+import Foundation
+import Observation
+import BJSCore
+
+/// The Edge screen's state: the rules being evaluated (a copy of the active rules at open) and
+/// everything derived from them. Nothing is persisted; the maths is `EdgeCalculator`'s.
+@MainActor
+@Observable
+final class EdgeViewModel {
+    var rules: BlackjackRules
+    private(set) var activeRules: BlackjackRules
+
+    @ObservationIgnored private let calculator = EdgeCalculator()
+
+    init(activeRules: BlackjackRules) {
+        self.rules = activeRules
+        self.activeRules = activeRules
+    }
+
+    var result: EdgeResult { calculator.analyze(rules: rules) }
+
+    var rating: EdgeRating { EdgeRating(houseEdge: result.houseEdge) }
+
+    var isPlayerEdge: Bool { result.houseEdge < 0 }
+
+    /// The form's edge less the active rules' edge; nil when they are the same rules.
+    var comparison: Double? {
+        rules == activeRules ? nil : result.houseEdge - calculator.houseEdge(for: activeRules)
+    }
+
+    var canApply: Bool { rules != activeRules }
+
+    /// Breakdown bars are drawn relative to the largest change on screen. The floor keeps a
+    /// lone tiny change from filling the bar.
+    var breakdownScale: Double {
+        max(result.contributions.map { abs($0.edgeChange) }.max() ?? 0, 0.01)
+    }
+
+    func apply(to store: ActiveRulesStore) {
+        store.rules = rules
+        activeRules = store.rules
+    }
+}
