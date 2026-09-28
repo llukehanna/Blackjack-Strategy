@@ -361,8 +361,8 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
 ## Step 6 — Progress (2026-09-27)
 
 - Spec: `docs/superpowers/specs/2026-09-27-step-6-progress-design.md`. Plan: `docs/superpowers/plans/2026-09-27-step-6-progress.md`.
-  Branch `step-6-progress` (merge base 0663306), commits 02d2993..4b64e8e plus this handoff. Built task by task with subagents, each task reviewed clean; then the design check (Task 10, one fix commit). The final whole-branch review is still to come; its outcome is appended below.
-- Tests: BJSCore 260 passing; app 230 unit tests + 6 UI tests passing (`ProgressUITests` adds 2), with no compiler warnings (the `appintentsmetadataprocessor` "warning:" line is a tool notice).
+  Branch `step-6-progress` (merge base 0663306), commits 02d2993..4b64e8e plus this handoff. Built task by task with subagents, each task reviewed clean; then the design check (Task 10, one fix commit). The final whole-branch review found the branch ready to merge; its outcome and fix wave are appended below.
+- Tests: BJSCore 263 passing; app 233 unit tests + 6 UI tests passing (`ProgressUITests` adds 2, the final-review fix wave adds 3 unit + 3 core), with no compiler warnings (the `appintentsmetadataprocessor` "warning:" line is a tool notice).
 - Shipped:
   - BJSCore: `ProgressRange` (calendar-day windows, adopted by the hub), `HeatBin`, `HeatMapLayout`, and `WhyContext(cell:userAction:correctAction:rules:table:)` for WHY from history.
   - `SessionStore`: `historyEntries()`, `sessionSamples(since:)` / `decisionSamples(modules:since:)`, `sessionDetail(id:)`.
@@ -401,6 +401,17 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
   - Task 7: the `loadFailed` path and `reload`'s range pass-through are untested; a safe `since!` force-unwrap in the range filter; `ProgressText.dayLabel` takes no locale/time zone and is untested; `cellName` duplicates `handLabel`'s wording (kept by pre-flight ruling).
   - Task 8: `.shoe` shares the `.strategy` chips/mistakes branch untested; "Time's up" is a 5th literal copy; `SessionDetailViewModel` is the only struct view model (by design).
   - Task 9: the empty state can flash before the first load; `ProgressFixture.seed` uses `try?`; the UI test's `progress.chart` id is on both the chart and its no-points caption; the detail shows a stale model when a later reload fails; "Trend", "Heat map", "History", "Mistakes", "Checks" and "Explains the correct play" are inline rather than in `ProgressText`.
+- Final whole-branch review (0663306..50dd351): verdict ready to merge, 0 Critical/Important, 9 Minor findings, all fixed in one wave:
+  1. The empty state could flash for a frame before the first load (closes the Task 9 deferred minor above), and VoiceOver could briefly focus its button. `hasLoaded` now gates the empty state and content behind the first `apply`/`reload`, including the failure path.
+  2. A selected heat-map cell could outlive its row after a range change or reload. `apply` now clears `selectedCell` when its row is no longer in `HeatMapLayout.rows(for:cells:)`.
+  3. Added a drift guard: a test asserts every `StrategyMode` and `TrueCountConvention` raw value gets a title from `ProgressText.modeTitle`.
+  4. Documented `WhyContext(cell:)`'s valid domain (hard 4–20, soft 12–20, pair 2–11, upcard 2–11) and that callers must validate first, as `SchemaV1.DecisionRecord.detail` already does; the initializer stays non-failable.
+  5. Added `ProgressRange` coverage for the midnight boundary (two moments a minute apart give different windows) and a DST spring-forward window (America/New_York, 2026-03-10), compared against `Calendar.date(from:)` rather than a fixed offset.
+  6. Corrected the spec's stale "Approved in brainstorming; pending written-spec review" status line.
+  7. Documented in the spec that the heat map filters by `decidedAt` while headlines/trend filter by `startedAt`, so a session straddling the window's start midnight can contribute decisions to the heat map without its headline/trend counting the session.
+  8. Added a deterministic sweep of `WhyContext(cell:)` over every `TrainingCell` (plus hard 4 and soft 12) and rule set, reusing the random property test's live-vs-rebuilt oracle (closes the Task 3 deferred minor above).
+  - Carried to Step 8's AX3 pass: `HeatMapLegend`'s `.accessibilityElement(children: .combine)` plus its `"Legend"` label may hide the swatch text from VoiceOver.
+  - The other deferred minors above (Tasks 1, 2, 5, 7, 8, and the rest of Task 9) weren't in scope for this wave and stay open as listed.
 - Carry-overs:
   - **Resolved in Step 6:**
     - History passes `forStats: false` (Learn included); stats keep the default.
