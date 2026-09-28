@@ -17,6 +17,15 @@ struct WoOEdgeDataTests {
         // Index 0: 1D S17 NDAS any-two 2 hands, no RSA/HSA, peek, no surrender, 3:2.
         #expect(WoOEdgeData.cutCard.first == 0.12743)
         // Last: 8D H17 DAS 10-11 4 hands RSA HSA, no hole card, late surrender, 6:5.
-        #expect(WoOEdgeData.cutCard.last != nil)
+        #expect(WoOEdgeData.cutCard.last == 2.00129)
+    }
+
+    @Test("Index 0 is the lowest-index rule combination")
+    func indexZero() {
+        var rules = BlackjackRules()
+        rules.deckCount = .one
+        rules.doubleAfterSplit = false
+        rules.maxSplitHands = 2
+        #expect(EdgeCalculator.tableIndex(rules, lateSurrender: false, sixToFive: false) == 0)
     }
 }

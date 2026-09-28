@@ -13,11 +13,15 @@ struct EdgeRatingTests {
         #expect(EdgeRating(houseEdge: edge) == expected)
     }
 
-    @Test("Vegas Strip rates Good; single-deck 6:5 rates Poor")
+    @Test("Presets rate as expected on the cut-card figure")
     func presets() {
         let calc = EdgeCalculator()
-        #expect(EdgeRating(houseEdge: calc.houseEdge(for: RulePreset.vegasStrip.rules)) == .good)
-        #expect(EdgeRating(houseEdge: calc.houseEdge(for: RulePreset.singleDeckSixFive.rules)) == .poor)
+        func rating(_ preset: RulePreset) -> EdgeRating { EdgeRating(houseEdge: calc.houseEdge(for: preset.rules)) }
+        #expect(rating(.vegasStrip) == .good)          // 0.43%
+        #expect(rating(.downtownVegas) == .good)       // 0.39%
+        #expect(rating(.atlanticCity) == .good)        // 0.37%
+        #expect(rating(.europeanNoHoleCard) == .ok)    // 0.54%
+        #expect(rating(.singleDeckSixFive) == .poor)   // 1.70%
     }
 
     @Test("Display names")

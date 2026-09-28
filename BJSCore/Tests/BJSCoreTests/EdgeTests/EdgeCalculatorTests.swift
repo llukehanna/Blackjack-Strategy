@@ -1,184 +1,238 @@
 import Testing
 @testable import BJSCore
 
-struct EdgeTestCase: Sendable {
+/// A rule set and WoO's "basic strategy with cut card" house edge for it (Step 5 spec §2).
+struct EdgeReference: Sendable, CustomTestStringConvertible {
     let label: String
+    let expected: Double
     let rules: BlackjackRules
-    let expectedEdge: Double
-    let tolerance: Double = 0.02
-}
 
-extension EdgeTestCase: CustomTestStringConvertible {
     var testDescription: String { label }
+
+    init(_ label: String, _ expected: Double, _ configure: (inout BlackjackRules) -> Void = { _ in }) {
+        var rules = BlackjackRules()
+        configure(&rules)
+        self.label = label
+        self.expected = expected
+        self.rules = rules
+    }
 }
 
-let edgeTestCases: [EdgeTestCase] = [
-    // Case 1: 6D S17 DAS standard
-    EdgeTestCase(label: "6D S17 DAS standard", rules: {
-        let r = BlackjackRules()
-        // defaults: 6D S17 DAS no-surr 3:2 4-splits peek any-two
-        return r
-    }(), expectedEdge: 0.40),
-
-    // Case 2: 6D H17 DAS
-    EdgeTestCase(label: "6D H17 DAS", rules: {
-        var r = BlackjackRules()
-        r.dealerSoft17 = .hits
-        return r
-    }(), expectedEdge: 0.62),
-
-    // Case 3: 6D S17 DAS late surrender
-    EdgeTestCase(label: "6D S17 DAS late surrender", rules: {
-        var r = BlackjackRules()
-        r.surrenderRule = .late
-        return r
-    }(), expectedEdge: 0.33),
-
-    // Case 4: 8D S17 DAS (baseline)
-    EdgeTestCase(label: "8D S17 DAS baseline", rules: {
-        var r = BlackjackRules()
-        r.deckCount = .eight
-        return r
-    }(), expectedEdge: 0.43),
-
-    // Case 5: 1D H17 DAS
-    EdgeTestCase(label: "1D H17 DAS", rules: {
-        var r = BlackjackRules()
-        r.deckCount = .one
-        r.dealerSoft17 = .hits
-        return r
-    }(), expectedEdge: 0.04),
-
-    // Case 6: 1D H17 NDAS D9-11 max-2-splits
-    EdgeTestCase(label: "1D H17 NDAS D9-11 2-splits", rules: {
-        var r = BlackjackRules()
-        r.deckCount = .one
-        r.dealerSoft17 = .hits
-        r.doubleAfterSplit = false
-        r.doubleRestriction = .nineToEleven
-        r.maxSplitHands = 2
-        return r
-    }(), expectedEdge: 0.05),
-
-    // Case 7: 1D H17 DAS 6:5
-    EdgeTestCase(label: "1D H17 DAS 6:5", rules: {
-        var r = BlackjackRules()
-        r.deckCount = .one
-        r.dealerSoft17 = .hits
-        r.blackjackPayout = .sixToFive
-        return r
-    }(), expectedEdge: 1.44),
-
-    // Case 8: 2D H17 DAS
-    EdgeTestCase(label: "2D H17 DAS", rules: {
-        var r = BlackjackRules()
-        r.deckCount = .two
-        r.dealerSoft17 = .hits
-        return r
-    }(), expectedEdge: 0.19),
-
-    // Case 9: 6D S17 DAS late-surr RSA
-    EdgeTestCase(label: "6D S17 DAS late-surr RSA", rules: {
-        var r = BlackjackRules()
-        r.surrenderRule = .late
-        r.resplitAces = true
-        return r
-    }(), expectedEdge: 0.26),
-
-    // Case 10: 8D H17 DAS late surrender
-    // Note: Plan specified 0.35% but delta computation gives 0.43 + 0.22 - 0.08 = 0.57%.
-    // The plan's "computed" note confirms: baseline 0.43 + H17(+0.22 house edge) - LS(-0.08 house edge).
-    // 0.57% is the correct delta-computed value.
-    EdgeTestCase(label: "8D H17 DAS late surrender", rules: {
-        var r = BlackjackRules()
-        r.deckCount = .eight
-        r.dealerSoft17 = .hits
-        r.surrenderRule = .late
-        return r
-    }(), expectedEdge: 0.57),
-
-    // Case 11: 4D S17 NDAS D9-11 max-3-splits
-    EdgeTestCase(label: "4D S17 NDAS D9-11 3-splits", rules: {
-        var r = BlackjackRules()
-        r.deckCount = .four
-        r.doubleAfterSplit = false
-        r.doubleRestriction = .nineToEleven
-        r.maxSplitHands = 3
-        return r
-    }(), expectedEdge: 0.51),
-
-    // Case 12: 6D S17 DAS 6:5
-    EdgeTestCase(label: "6D S17 DAS 6:5", rules: {
-        var r = BlackjackRules()
-        r.blackjackPayout = .sixToFive
-        return r
-    }(), expectedEdge: 1.79),
+let wooEdgeReferences: [EdgeReference] = [
+    EdgeReference("6D", 0.42622),
+    EdgeReference("6D H17", 0.63873) { $0.dealerSoft17 = .hits },
+    EdgeReference("6D LS", 0.35361) { $0.surrenderRule = .late },
+    EdgeReference("8D", 0.44686) { $0.deckCount = .eight },
+    EdgeReference("1D H17", 0.15945) { $0.deckCount = .one; $0.dealerSoft17 = .hits },
+    EdgeReference("1D H17 NDAS D9-11 2 hands", 0.46612) {
+        $0.deckCount = .one; $0.dealerSoft17 = .hits; $0.doubleAfterSplit = false
+        $0.doubleRestriction = .nineToEleven; $0.maxSplitHands = 2
+    },
+    EdgeReference("1D H17 6:5", 1.55422) { $0.deckCount = .one; $0.dealerSoft17 = .hits; $0.blackjackPayout = .sixToFive },
+    EdgeReference("2D H17", 0.45688) { $0.deckCount = .two; $0.dealerSoft17 = .hits },
+    EdgeReference("6D LS RSA", 0.28507) { $0.surrenderRule = .late; $0.resplitAces = true },
+    EdgeReference("8D H17 LS", 0.56926) { $0.deckCount = .eight; $0.dealerSoft17 = .hits; $0.surrenderRule = .late },
+    EdgeReference("4D NDAS D9-11 3 hands", 0.62718) {
+        $0.deckCount = .four; $0.doubleAfterSplit = false; $0.doubleRestriction = .nineToEleven; $0.maxSplitHands = 3
+    },
+    EdgeReference("6D 6:5", 1.78591) { $0.blackjackPayout = .sixToFive },
+    EdgeReference("1D", -0.03119) { $0.deckCount = .one },
+    EdgeReference("2D", 0.25532) { $0.deckCount = .two },
+    EdgeReference("4D", 0.38699) { $0.deckCount = .four },
+    EdgeReference("6D NDAS", 0.56799) { $0.doubleAfterSplit = false },
+    EdgeReference("6D hit split aces", 0.23881) { $0.hitSplitAces = true },
+    EdgeReference("6D D10-11", 0.61830) { $0.doubleRestriction = .tenToEleven },
+    EdgeReference("6D D9-11", 0.52232) { $0.doubleRestriction = .nineToEleven },
+    EdgeReference("6D 2 hands", 0.47999) { $0.maxSplitHands = 2 },
+    EdgeReference("6D 3 hands", 0.43486) { $0.maxSplitHands = 3 },
+    EdgeReference("6D no hole card", 0.53727) { $0.peekRule = .europeanNoPeek },
+    EdgeReference("6D RSA", 0.35767) { $0.resplitAces = true },
+    EdgeReference("2D H17 LS", 0.39072) { $0.deckCount = .two; $0.dealerSoft17 = .hits; $0.surrenderRule = .late },
+    EdgeReference("8D LS", 0.37104) { $0.deckCount = .eight; $0.surrenderRule = .late },
+    EdgeReference("1D H17 NDAS 6:5", 1.69824) {
+        $0.deckCount = .one; $0.dealerSoft17 = .hits; $0.doubleAfterSplit = false; $0.blackjackPayout = .sixToFive
+    },
+    EdgeReference("1D NDAS", 0.11008) { $0.deckCount = .one; $0.doubleAfterSplit = false },
+    EdgeReference("2D NDAS D10-11", 0.60446) {
+        $0.deckCount = .two; $0.doubleAfterSplit = false; $0.doubleRestriction = .tenToEleven
+    },
+    EdgeReference("8D 6:5", 1.80485) { $0.deckCount = .eight; $0.blackjackPayout = .sixToFive },
+    EdgeReference("1D 6:5", 1.36358) { $0.deckCount = .one; $0.blackjackPayout = .sixToFive },
+    EdgeReference("8D no hole card", 0.55853) { $0.deckCount = .eight; $0.peekRule = .europeanNoPeek },
+    EdgeReference("6D H17 no hole card", 0.75015) { $0.dealerSoft17 = .hits; $0.peekRule = .europeanNoPeek },
+    EdgeReference("1D RSA hit split aces", -0.19917) { $0.deckCount = .one; $0.resplitAces = true; $0.hitSplitAces = true },
+    EdgeReference("2D NDAS D10-11 2 hands", 0.63191) {
+        $0.deckCount = .two; $0.doubleAfterSplit = false; $0.doubleRestriction = .tenToEleven; $0.maxSplitHands = 2
+    },
+    EdgeReference("4D H17 LS RSA", 0.45042) {
+        $0.deckCount = .four; $0.dealerSoft17 = .hits; $0.surrenderRule = .late; $0.resplitAces = true
+    },
+    EdgeReference("8D H17 NDAS D10-11 2 hands 6:5", 2.37443) {
+        $0.deckCount = .eight; $0.dealerSoft17 = .hits; $0.doubleAfterSplit = false
+        $0.doubleRestriction = .tenToEleven; $0.maxSplitHands = 2; $0.blackjackPayout = .sixToFive
+    },
+    EdgeReference("6D H17 LS", 0.55051) { $0.dealerSoft17 = .hits; $0.surrenderRule = .late },
+    EdgeReference("1D H17 LS", 0.12144) { $0.deckCount = .one; $0.dealerSoft17 = .hits; $0.surrenderRule = .late },
 ]
 
-@Suite("Edge Calculator")
+@Suite("EdgeCalculator")
 struct EdgeCalculatorTests {
+    let calculator = EdgeCalculator()
 
-    @Test("Edge calculator matches WoO reference", arguments: edgeTestCases)
-    func edgeMatchesWizardOfOdds(testCase: EdgeTestCase) {
-        let calculator = EdgeCalculator()
-        let result = calculator.analyze(rules: testCase.rules)
-        #expect(abs(result.houseEdge - testCase.expectedEdge) <= testCase.tolerance,
-                "\(testCase.label): Expected \(testCase.expectedEdge)% but got \(result.houseEdge)%")
+    @Test("Matches WoO's calculator (basic strategy, cut card)", arguments: wooEdgeReferences)
+    func matchesWizardOfOdds(_ reference: EdgeReference) {
+        // WoO rounds to 5 decimals; the table stores those same rounded values.
+        #expect(abs(calculator.houseEdge(for: reference.rules) - reference.expected) <= 0.00001)
     }
 
-    @Test("Edge contributions sum to total edge")
-    func contributionsSumToTotal() {
-        let calculator = EdgeCalculator()
+    @Test("There are at least 20 reference combinations")
+    func referenceCount() {
+        #expect(wooEdgeReferences.count >= 20)
+    }
+
+    @Test("Table index is a bijection onto the WoO data")
+    func tableIndexBijection() {
+        var seen = Set<Int>()
+        for deckCount in BlackjackRules.DeckCount.allCases {
+            for soft17 in BlackjackRules.DealerSoft17.allCases {
+                for das in [false, true] {
+                    for restriction in BlackjackRules.DoubleRestriction.allCases {
+                        for hands in 2...4 {
+                            for rsa in [false, true] {
+                                for hsa in [false, true] {
+                                    for peek in BlackjackRules.PeekRule.allCases {
+                                        var rules = BlackjackRules()
+                                        rules.deckCount = deckCount
+                                        rules.dealerSoft17 = soft17
+                                        rules.doubleAfterSplit = das
+                                        rules.doubleRestriction = restriction
+                                        rules.maxSplitHands = hands
+                                        rules.resplitAces = rsa
+                                        rules.hitSplitAces = hsa
+                                        rules.peekRule = peek
+                                        for late in [false, true] {
+                                            for sixToFive in [false, true] {
+                                                seen.insert(EdgeCalculator.tableIndex(
+                                                    rules, lateSurrender: late, sixToFive: sixToFive))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        #expect(seen.count == WoOEdgeData.cutCard.count)
+        #expect(seen.min() == 0)
+        #expect(seen.max() == WoOEdgeData.cutCard.count - 1)
+    }
+
+    @Test("2:1 sits 5/3 of the 6:5 gap on the other side of 3:2")
+    func twoToOne() {
+        var eight = BlackjackRules()
+        eight.deckCount = .eight
+        let threeToTwo = calculator.houseEdge(for: eight)
+        eight.blackjackPayout = .twoToOne
+        // WoO rule variations (8 decks): blackjack pays 2 to 1, +2.27% for the player.
+        #expect(abs((calculator.houseEdge(for: eight) - threeToTwo) - (-2.27)) < 0.01)
+
+        var one = BlackjackRules()
+        one.deckCount = .one
+        one.blackjackPayout = .twoToOne
+        let expected = -0.03119 - 5.0 / 3.0 * (1.36358 - (-0.03119))
+        #expect(abs(calculator.houseEdge(for: one) - expected) < 1e-9)
+    }
+
+    @Test("Early surrender is the no-surrender edge less 0.63", arguments: BlackjackRules.DeckCount.allCases)
+    func earlySurrender(_ deckCount: BlackjackRules.DeckCount) {
         var rules = BlackjackRules()
+        rules.deckCount = deckCount
+        let none = calculator.houseEdge(for: rules)
+        rules.surrenderRule = .early
+        #expect(abs(calculator.houseEdge(for: rules) - (none - 0.63)) < 1e-9)
+    }
+
+    @Test("Under no hole card, late surrender is priced as early")
+    func noHoleCardLateSurrender() {
+        var rules = BlackjackRules()
+        rules.peekRule = .europeanNoPeek
+        rules.surrenderRule = .late
+        let late = calculator.analyze(rules: rules)
+        #expect(abs(late.houseEdge - (0.53727 - 0.63)) < 1e-9)
+        #expect(late.contributions.last?.factor == .surrender(.late, pricedAsEarly: true))
+
+        rules.surrenderRule = .early
+        #expect(abs(calculator.houseEdge(for: rules) - late.houseEdge) < 1e-9)
+        #expect(calculator.analyze(rules: rules).contributions.last?.factor == .surrender(.early, pricedAsEarly: false))
+
+        var peek = BlackjackRules()
+        peek.surrenderRule = .late
+        #expect(calculator.analyze(rules: peek).contributions.last?.factor == .surrender(.late, pricedAsEarly: false))
+    }
+
+    @Test("Baseline is WoO's 8-deck game with no contributions")
+    func baseline() {
+        #expect(EdgeCalculator.baselineRules.deckCount == .eight)
+        var expected = BlackjackRules()
+        expected.deckCount = .eight
+        #expect(EdgeCalculator.baselineRules == expected)
+        #expect(abs(EdgeCalculator.baselineHouseEdge - 0.44686) < 1e-9)
+        #expect(calculator.analyze(rules: EdgeCalculator.baselineRules).contributions.isEmpty)
+    }
+
+    @Test("Downtown Vegas: each step is the table difference, in order")
+    func attributionDowntown() {
+        let result = calculator.analyze(rules: RulePreset.downtownVegas.rules)  // 2D H17 DAS LS 3:2
+        #expect(result.contributions.map(\.factor) == [.decks(.two), .dealerHitsSoft17,
+                                                       .surrender(.late, pricedAsEarly: false)])
+        let changes = result.contributions.map(\.edgeChange)
+        #expect(abs(changes[0] - (0.25532 - 0.44686)) < 1e-9)
+        #expect(abs(changes[1] - (0.45688 - 0.25532)) < 1e-9)
+        #expect(abs(changes[2] - (0.39072 - 0.45688)) < 1e-9)
+    }
+
+    @Test("Single Deck 6:5: payout comes before DAS")
+    func attributionSingleDeck() {
+        let result = calculator.analyze(rules: RulePreset.singleDeckSixFive.rules)  // 1D H17 NDAS 6:5
+        #expect(result.contributions.map(\.factor) == [.decks(.one), .dealerHitsSoft17,
+                                                       .payout(.sixToFive), .noDoubleAfterSplit])
+        let changes = result.contributions.map(\.edgeChange)
+        #expect(abs(changes[0] - (-0.03119 - 0.44686)) < 1e-9)
+        #expect(abs(changes[1] - (0.15945 - -0.03119)) < 1e-9)
+        #expect(abs(changes[2] - (1.55422 - 0.15945)) < 1e-9)
+        #expect(abs(changes[3] - (1.69824 - 1.55422)) < 1e-9)
+    }
+
+    @Test("Every factor appears in attribution order")
+    func attributionOrder() {
+        var rules = BlackjackRules()
+        rules.deckCount = .two
         rules.dealerSoft17 = .hits
+        rules.blackjackPayout = .twoToOne
+        rules.doubleAfterSplit = false
+        rules.doubleRestriction = .tenToEleven
+        rules.maxSplitHands = 3
+        rules.resplitAces = true
+        rules.hitSplitAces = true
+        rules.peekRule = .europeanNoPeek
         rules.surrenderRule = .late
         let result = calculator.analyze(rules: rules)
-        let summedEdge = EdgeCalculator.baselineHouseEdge - result.contributions.reduce(0.0) { $0 + $1.delta }
-        #expect(abs(summedEdge - result.houseEdge) < 0.001,
-                "Contributions should sum to total edge")
+        #expect(result.contributions.map(\.factor) == [
+            .decks(.two), .dealerHitsSoft17, .payout(.twoToOne), .noDoubleAfterSplit,
+            .doubleRestriction(.tenToEleven), .maxSplitHands(3), .resplitAces, .hitSplitAces,
+            .noHoleCard, .surrender(.late, pricedAsEarly: true),
+        ])
+        let sum = result.contributions.reduce(0) { $0 + $1.edgeChange }
+        #expect(abs(EdgeCalculator.baselineHouseEdge + sum - result.houseEdge) < 1e-9)
     }
 
-    @Test("H17 contribution is approximately -0.22%")
-    func h17Contribution() {
-        let calculator = EdgeCalculator()
-        var rules = BlackjackRules()
-        rules.dealerSoft17 = .hits
-        let result = calculator.analyze(rules: rules)
-        let h17 = result.contributions.first { $0.rule.contains("soft 17") }
-        #expect(h17 != nil, "Should have H17 contribution")
-        #expect(abs(h17!.delta - (-0.22)) < 0.001, "H17 delta should be -0.22%")
-    }
-
-    @Test("6:5 contribution is approximately -1.39%")
-    func sixToFiveContribution() {
-        let calculator = EdgeCalculator()
-        var rules = BlackjackRules()
-        rules.blackjackPayout = .sixToFive
-        let result = calculator.analyze(rules: rules)
-        let sixFive = result.contributions.first { $0.rule.contains("6:5") }
-        #expect(sixFive != nil, "Should have 6:5 contribution")
-        #expect(abs(sixFive!.delta - (-1.39)) < 0.001, "6:5 delta should be -1.39%")
-    }
-
-    @Test("Baseline rules (8D S17 DAS) produce 0.43% edge with no contributions")
-    func baselineRulesNoContributions() {
-        let calculator = EdgeCalculator()
-        var rules = BlackjackRules()
-        rules.deckCount = .eight
-        let result = calculator.analyze(rules: rules)
-        #expect(result.contributions.isEmpty,
-                "Baseline rules should produce no rule contributions")
-        #expect(abs(result.houseEdge - 0.43) < 0.001)
-    }
-
-    @Test("houseEdge(for:) convenience method matches analyze result")
-    func convenienceMethodMatches() {
-        let calculator = EdgeCalculator()
-        var rules = BlackjackRules()
-        rules.dealerSoft17 = .hits
-        rules.surrenderRule = .late
-        let analyzeResult = calculator.analyze(rules: rules)
-        let convenienceResult = calculator.houseEdge(for: rules)
-        #expect(analyzeResult.houseEdge == convenienceResult)
+    @Test("Contributions sum to the headline for every preset", arguments: RulePreset.allCases)
+    func contributionsSum(_ preset: RulePreset) {
+        let result = calculator.analyze(rules: preset.rules)
+        let sum = result.contributions.reduce(0) { $0 + $1.edgeChange }
+        #expect(abs(EdgeCalculator.baselineHouseEdge + sum - result.houseEdge) < 1e-9)
+        #expect(result.houseEdge == calculator.houseEdge(for: preset.rules))
     }
 }
