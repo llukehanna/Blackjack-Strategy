@@ -187,4 +187,75 @@ struct SessionStoreTests {
         #expect(try store.countSamples(modules: [.countingTC]).count == 1)
         #expect(try store.countSamples(modules: [.countingRC]).isEmpty)
     }
+
+    @Test("History lists every session newest first, Learn included, with its mode")
+    func historyEntries() throws {
+        var learn = draft(start: 300)
+        learn.mode = "learn"
+        try store.save(draft(start: 100))
+        try store.save(learn)
+        try store.save(draft(.countingRC, start: 200))
+        let entries = try store.historyEntries()
+        #expect(entries.map(\.sample.startedAt) == [t(300), t(200), t(100)])
+        #expect(entries.map(\.mode) == ["learn", "test", "test"])
+        #expect(entries.map(\.sample.module) == [.strategy, .countingRC, .strategy])
+    }
+
+    @Test("since filters sessions and decisions by date")
+    func sinceFilter() throws {
+        try store.save(draft(start: 100, decisions: [decision(true, at: 101)]))
+        try store.save(draft(start: 500, decisions: [decision(false, at: 501)]))
+        #expect(try store.sessionSamples(since: t(400)).map(\.startedAt) == [t(500)])
+        #expect(try store.decisionSamples(since: t(400)).map(\.isCorrect) == [false])
+        #expect(try store.sessionSamples().count == 2)
+        #expect(try store.decisionSamples().count == 2)
+    }
+
+    @Test("sessionDetail returns one session's records in order")
+    func sessionDetail() throws {
+        let d = draft(start: 100,
+                      decisions: [decision(true, at: 101, ms: 900), decision(false, at: 102)],
+                      checks: [CountCheckDraft(kind: .trueCount, expected: 2.8, answered: 3, isCorrect: true,
+                                               responseMs: 400, cardsSeen: 104, checkedAt: t(103))])
+        try store.save(d)
+        try store.save(draft(start: 200, decisions: [decision(true, at: 201)]))
+
+        let detail = try #require(try store.sessionDetail(id: d.id))
+        #expect(detail.sample.id == d.id)
+        #expect(detail.mode == "test")
+        #expect(detail.rules == RulePreset.downtownVegas.rules)
+        #expect(detail.bestStreak == 1)
+        #expect(detail.decisions.map(\.isCorrect) == [true, false])
+        #expect(detail.decisions[0].responseMs == 900)
+        #expect(detail.decisions[1].chosen == .action(.stand))
+        #expect(detail.decisions[1].correctAction == .hit)
+        #expect(detail.decisions[1].cell == TrainingCell(handType: .hard, playerValue: 16, dealerUpcard: 10))
+        #expect(detail.checks.map(\.cardsSeen) == [104])
+        #expect(detail.checks[0].sample.expected == 2.8)
+        #expect(detail.checks[0].sample.kind == .trueCount)
+    }
+
+    @Test("sessionDetail is nil for an unknown id")
+    func sessionDetailMissing() throws {
+        try store.save(draft())
+        #expect(try store.sessionDetail(id: UUID()) == nil)
+    }
+
+    @Test("sessionDetail omits a decision whose cell is outside WhyContext's safe range")
+    func sessionDetailDropsOutOfRangeCell() throws {
+        let d = draft(start: 100, decisions: [decision(true, at: 101)])
+        try store.save(d)
+        let session = try #require(try context.fetch(FetchDescriptor<Session>()).first)
+        // A pair playerValue of 12 is outside the valid pair range (2...11): WhyContext(cell:)
+        // would otherwise misinterpret it as a queen pair.
+        let bogus = DecisionRecord(sequence: 9, decidedAt: t(102), handNumber: 1, handType: "pair",
+                                   playerValue: 12, dealerUpcard: 10, chosenAction: "hit",
+                                   correctAction: "hit", isCorrect: true, responseMs: nil)
+        session.decisions.append(bogus)
+        try context.save()
+
+        let detail = try #require(try store.sessionDetail(id: d.id))
+        #expect(detail.decisions.count == 1)
+        #expect(detail.decisions[0].isCorrect == true)
+    }
 }

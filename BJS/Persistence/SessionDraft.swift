@@ -2,7 +2,8 @@ import Foundation
 import BJSCore
 
 /// A strategy decision's chosen play: an action, or running out of time in Speed mode.
-enum RecordedChoice: Equatable {
+/// `nonisolated` because SwiftData's `@Model` extensions (`RecordMappers`) read it off the main actor.
+nonisolated enum RecordedChoice: Equatable {
     case action(Action)
     case timeout
 

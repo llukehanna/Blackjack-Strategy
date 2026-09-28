@@ -62,20 +62,65 @@ final class SessionStore {
     /// Learn mode shows the answer before the user chooses.
     static let statsExcludedModes: Set<String> = ["learn"]
 
-    /// All sessions, oldest first. `forStats` drops sessions in `statsExcludedModes`.
-    func sessionSamples(forStats: Bool = true) throws -> [SessionSample] {
-        let sessions = try context.fetch(FetchDescriptor<Session>())
+    /// All sessions since `since` (all when nil), oldest first. `forStats` drops sessions in
+    /// `statsExcludedModes`.
+    func sessionSamples(forStats: Bool = true, since: Date? = nil) throws -> [SessionSample] {
+        let sessions = try context.fetch(Self.sessions(since: since))
             .filter { !forStats || Self.countsForStats($0) }
             .sorted { $0.startedAt < $1.startedAt }
         return mapLogging(sessions, kind: "session") { $0.sample }
     }
 
-    /// Decisions from sessions in `modules` (all when nil), chronological.
-    func decisionSamples(modules: Set<TrainingModule>? = nil, forStats: Bool = true) throws -> [DecisionSample] {
-        let records = try context.fetch(FetchDescriptor<DecisionRecord>())
+    /// Decisions since `since` (all when nil) from sessions in `modules` (all when nil), chronological.
+    func decisionSamples(modules: Set<TrainingModule>? = nil, forStats: Bool = true,
+                         since: Date? = nil) throws -> [DecisionSample] {
+        let records = try context.fetch(Self.decisions(since: since))
             .filter { Self.matches($0.session, modules) && (!forStats || Self.countsForStats($0.session)) }
             .sorted { ($0.decidedAt, $0.sequence) < ($1.decidedAt, $1.sequence) }
         return mapLogging(records, kind: "decision") { $0.sample }
+    }
+
+    /// Every session, newest first, Learn included (Step 6 spec §1: history shows what the user did).
+    func historyEntries() throws -> [HistoryEntry] {
+        let sessions = try context.fetch(FetchDescriptor<Session>())
+            .sorted { $0.startedAt > $1.startedAt }
+        return mapLogging(sessions, kind: "session") { session in
+            session.sample.map { HistoryEntry(sample: $0, mode: session.mode) }
+        }
+    }
+
+    /// One session with its records in the order they happened; nil when no session has `id`
+    /// or its module is unknown.
+    func sessionDetail(id: UUID) throws -> SessionDetail? {
+        var descriptor = FetchDescriptor<Session>(predicate: #Predicate { $0.id == id })
+        descriptor.fetchLimit = 1
+        guard let session = try context.fetch(descriptor).first, let sample = session.sample else { return nil }
+        let rules: BlackjackRules
+        do {
+            rules = try JSONDecoder().decode(BlackjackRules.self, from: session.rulesJSON)
+        } catch {
+            logger.error("Session rules failed to decode; showing defaults: \(error.localizedDescription)")
+            rules = BlackjackRules()
+        }
+        let decisions = mapLogging(session.decisions.sorted { $0.sequence < $1.sequence },
+                                   kind: "decision") { $0.detail }
+        let checks = mapLogging(session.countChecks.sorted { $0.sequence < $1.sequence },
+                                kind: "count check") { record in
+            record.sample.map { SessionDetail.Check(sample: $0, cardsSeen: record.cardsSeen) }
+        }
+        return SessionDetail(sample: sample, mode: session.mode, rules: rules,
+                             bestStreak: session.bestStreak, meanResponseMs: session.meanResponseMs,
+                             decisions: decisions, checks: checks)
+    }
+
+    private static func sessions(since: Date?) -> FetchDescriptor<Session> {
+        guard let since else { return FetchDescriptor<Session>() }
+        return FetchDescriptor<Session>(predicate: #Predicate { $0.startedAt >= since })
+    }
+
+    private static func decisions(since: Date?) -> FetchDescriptor<DecisionRecord> {
+        guard let since else { return FetchDescriptor<DecisionRecord>() }
+        return FetchDescriptor<DecisionRecord>(predicate: #Predicate { $0.decidedAt >= since })
     }
 
     /// Count checks from sessions in `modules` (all when nil), chronological.
