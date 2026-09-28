@@ -111,7 +111,8 @@ struct HeatMapSwatch: View {
     }
 }
 
-/// The heat map's key: one swatch per bin.
+/// The heat map's key: one swatch per bin. "Not enough data" sits on its own line above the five
+/// error-rate bins, which share one row; a single row of all six doesn't fit the SE without truncating.
 struct HeatMapLegend: View {
     static let items: [(bin: HeatBin, label: String)] = [
         (.insufficient, "Not enough data"), (.none, "0%"), (.low, "≤15%"),
@@ -120,21 +121,27 @@ struct HeatMapLegend: View {
     static let swatchSize: CGFloat = 12
 
     var body: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: 3),
-                  alignment: .leading, spacing: FeltSpacing.s) {
-            ForEach(Self.items, id: \.bin) { item in
-                HStack(spacing: FeltSpacing.xs) {
-                    HeatMapSwatch(bin: item.bin)
-                        .frame(width: Self.swatchSize, height: Self.swatchSize)
-                    Text(item.label)
-                        .feltText(.label)
-                        .foregroundStyle(FeltColor.textTertiary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+        VStack(alignment: .leading, spacing: FeltSpacing.s) {
+            item(Self.items[0])
+            HStack(spacing: FeltSpacing.s) {
+                ForEach(Self.items.dropFirst(), id: \.bin) { entry in
+                    item(entry).frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Legend")
+    }
+
+    private func item(_ entry: (bin: HeatBin, label: String)) -> some View {
+        HStack(spacing: FeltSpacing.xs) {
+            HeatMapSwatch(bin: entry.bin)
+                .frame(width: Self.swatchSize, height: Self.swatchSize)
+            Text(entry.label)
+                .feltText(.label)
+                .foregroundStyle(FeltColor.textTertiary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
     }
 }

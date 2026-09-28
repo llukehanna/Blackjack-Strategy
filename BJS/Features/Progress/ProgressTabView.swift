@@ -81,6 +81,8 @@ struct ProgressTabView: View {
                 Chart(model.chartPoints) { point in
                     LineMark(x: .value("Day", point.day, unit: .day), y: .value("Accuracy", point.accuracy))
                         .foregroundStyle(FeltColor.cream)
+                        // One VoiceOver element per day: the point, with its own label and value.
+                        .accessibilityHidden(true)
                     PointMark(x: .value("Day", point.day, unit: .day), y: .value("Accuracy", point.accuracy))
                         .foregroundStyle(FeltColor.cream)
                         .accessibilityLabel(ProgressText.dayLabel(point.day))
