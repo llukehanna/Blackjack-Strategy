@@ -18,7 +18,7 @@ struct TrueCountSetupView: View {
                 }
                 SettingsSection(title: "Grading") {
                     SettingsRow(label: "Rounding",
-                                footnote: "\(CountingText.conventionRule(convention)) Change it in Settings.") {
+                                footnote: "\(TrainingText.conventionRule(convention)) Change it in Settings.") {
                         Text(convention.label)
                     }
                     SettingsRow(label: "Shoe") { Text(deckCount.label) }

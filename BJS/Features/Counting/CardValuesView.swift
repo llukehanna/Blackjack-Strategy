@@ -31,7 +31,7 @@ struct CardValuesView: View {
                         CountingHeader(title: "Card values", onBack: onBack)
                         SettingsSection(title: "Hi-Lo values") {
                             ForEach(Self.rows) { row in
-                                SettingsRow(label: CountingText.signed(row.value)) {
+                                SettingsRow(label: TrainingText.signed(row.value)) {
                                     HStack(spacing: FeltSpacing.xs) {
                                         ForEach(row.ranks, id: \.self) { rank in
                                             PlayingCard(card: Card(rank: rank, suit: .spades), width: 28)
@@ -91,7 +91,7 @@ struct CardValuesView: View {
                 .id(model.answered)
             HStack(spacing: FeltSpacing.s) {
                 ForEach([1, 0, -1], id: \.self) { value in
-                    SecondaryButton(title: CountingText.signed(value)) { model.answer(value) }
+                    SecondaryButton(title: TrainingText.signed(value)) { model.answer(value) }
                         .accessibilityIdentifier("counting.value.\(value)")
                 }
             }

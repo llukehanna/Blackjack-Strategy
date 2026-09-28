@@ -11,14 +11,14 @@ struct WhySheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: FeltSpacing.l) {
                     HStack {
-                        Text(StrategyText.handLabel(context)).feltText(.display).foregroundStyle(FeltColor.textPrimary)
+                        Text(TrainingText.handLabel(context)).feltText(.display).foregroundStyle(FeltColor.textPrimary)
                         Spacer()
                         CloseButton(identifier: "strategy.close") { dismiss() }
                     }
                     HStack(spacing: FeltSpacing.s) {
                         StatChip(label: "Your play",
-                                 value: context.userAction.map(StrategyText.actionName) ?? "Time's up")
-                        StatChip(label: "Correct play", value: StrategyText.actionName(context.correctAction))
+                                 value: context.userAction.map(TrainingText.actionName) ?? "Time's up")
+                        StatChip(label: "Correct play", value: TrainingText.actionName(context.correctAction))
                     }
                     Text(WhyExplanation.explain(context))
                         .feltText(.body).foregroundStyle(FeltColor.textPrimary)

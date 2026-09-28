@@ -21,13 +21,13 @@ struct TrueCountWorkingSheet: View {
                     }
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: FeltSpacing.s),
                                         GridItem(.flexible(), spacing: FeltSpacing.s)], spacing: FeltSpacing.s) {
-                        StatChip(label: "Running count", value: CountingText.signed(question.runningCount))
+                        StatChip(label: "Running count", value: TrainingText.signed(question.runningCount))
                         StatChip(label: "Decks left", value: CountingText.decks(question.decksRemaining))
-                        StatChip(label: "RC ÷ decks", value: CountingText.signed(question.exactTrueCount))
-                        StatChip(label: "Answer", value: CountingText.signed(question.keypadAnswer(for: convention)))
-                        StatChip(label: "You said", value: CountingText.signed(answered))
+                        StatChip(label: "RC ÷ decks", value: TrainingText.signed(question.exactTrueCount))
+                        StatChip(label: "Answer", value: TrainingText.signed(question.keypadAnswer(for: convention)))
+                        StatChip(label: "You said", value: TrainingText.signed(answered))
                     }
-                    Text(CountingText.conventionRule(convention))
+                    Text(TrainingText.conventionRule(convention))
                         .feltText(.body).foregroundStyle(FeltColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text("The tray shows the decks already played out of a \(deckCount)-deck shoe. "

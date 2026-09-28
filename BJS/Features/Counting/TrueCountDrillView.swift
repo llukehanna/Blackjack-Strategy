@@ -26,7 +26,7 @@ struct TrueCountDrillView: View {
                 topBar
                 Spacer(minLength: 0)
                 HStack(alignment: .center, spacing: FeltSpacing.xl) {
-                    StatChip(label: "Running count", value: CountingText.signed(model.question.runningCount))
+                    StatChip(label: "Running count", value: TrainingText.signed(model.question.runningCount))
                         .frame(maxWidth: 160)
                     DiscardTray(decksTotal: Double(model.deckCount), decksPlayed: model.decksPlayed)
                 }

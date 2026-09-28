@@ -8,18 +8,18 @@ struct CountingTextTests {
 
     @Test("Signed integers use a true minus sign")
     func signedInt() {
-        #expect(CountingText.signed(3) == "+3")
-        #expect(CountingText.signed(-2) == "\u{2212}2")
-        #expect(CountingText.signed(0) == "0")
+        #expect(TrainingText.signed(3) == "+3")
+        #expect(TrainingText.signed(-2) == "\u{2212}2")
+        #expect(TrainingText.signed(0) == "0")
     }
 
     @Test("Signed doubles round to one decimal and drop .0")
     func signedDouble() {
-        #expect(CountingText.signed(7.0 / 3) == "+2.3")
-        #expect(CountingText.signed(-3.0) == "\u{2212}3")
-        #expect(CountingText.signed(0.5) == "+0.5")
-        #expect(CountingText.signed(0.04) == "0")
-        #expect(CountingText.signed(-2.5) == "\u{2212}2.5")
+        #expect(TrainingText.signed(7.0 / 3) == "+2.3")
+        #expect(TrainingText.signed(-3.0) == "\u{2212}3")
+        #expect(TrainingText.signed(0.5) == "+0.5")
+        #expect(TrainingText.signed(0.04) == "0")
+        #expect(TrainingText.signed(-2.5) == "\u{2212}2.5")
     }
 
     @Test("Decks keep quarters")
@@ -36,8 +36,8 @@ struct CountingTextTests {
     func numbers() {
         #expect(CountingText.pace(0.3) == "0.3 s")
         #expect(CountingText.seconds(1.0 / 3) == "0.33 s")
-        #expect(CountingText.meanError(nil) == "—")
-        #expect(CountingText.meanError(0.72) == "0.7")
+        #expect(TrainingText.meanError(nil) == "—")
+        #expect(TrainingText.meanError(0.72) == "0.7")
     }
 
     @Test("RC feedback: correct, and wrong with the user's answer")
@@ -71,9 +71,9 @@ struct CountingTextTests {
 
     @Test("Convention rules name each convention")
     func rules() {
-        #expect(CountingText.conventionRule(.exact).hasPrefix("Exact:"))
-        #expect(CountingText.conventionRule(.floor).hasPrefix("Floor:"))
-        #expect(CountingText.conventionRule(.truncate).hasPrefix("Truncate:"))
+        #expect(TrainingText.conventionRule(.exact).hasPrefix("Exact:"))
+        #expect(TrainingText.conventionRule(.floor).hasPrefix("Floor:"))
+        #expect(TrainingText.conventionRule(.truncate).hasPrefix("Truncate:"))
     }
 
     @Test("Summary rows")

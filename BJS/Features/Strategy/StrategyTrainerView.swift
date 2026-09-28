@@ -164,7 +164,7 @@ struct StrategyTrainerView: View {
         case .feedback(let graded):
             let text = StrategyText.feedback(isCorrect: graded.isCorrect, chosen: graded.chosen,
                                              correct: graded.correctAction,
-                                             label: StrategyText.handLabel(graded.why))
+                                             label: TrainingText.handLabel(graded.why))
             FeedbackCard(verdict: graded.isCorrect ? .correct : .incorrect, headline: text.headline,
                          reason: text.reason, onWhy: { whyContext = graded.why }, onNext: { model.next() })
                 .padding(.horizontal, -FeltSpacing.l)

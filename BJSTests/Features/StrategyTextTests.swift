@@ -12,16 +12,16 @@ struct StrategyTextTests {
 
     @Test("Hand labels")
     func labels() {
-        #expect(StrategyText.handLabel(context(total: 16, type: .hard, up: .king)) == "Hard 16 vs 10")
-        #expect(StrategyText.handLabel(context(total: 18, type: .soft, up: .ace)) == "Soft 18 vs A")
-        #expect(StrategyText.handLabel(context(total: 16, type: .pair, pair: .eight, up: .six)) == "Pair of 8s vs 6")
-        #expect(StrategyText.handLabel(context(total: 12, type: .pair, pair: .ace, up: .two)) == "Pair of Aces vs 2")
-        #expect(StrategyText.handLabel(context(total: 20, type: .pair, pair: .king, up: .two)) == "Pair of 10s vs 2")
+        #expect(TrainingText.handLabel(context(total: 16, type: .hard, up: .king)) == "Hard 16 vs 10")
+        #expect(TrainingText.handLabel(context(total: 18, type: .soft, up: .ace)) == "Soft 18 vs A")
+        #expect(TrainingText.handLabel(context(total: 16, type: .pair, pair: .eight, up: .six)) == "Pair of 8s vs 6")
+        #expect(TrainingText.handLabel(context(total: 12, type: .pair, pair: .ace, up: .two)) == "Pair of Aces vs 2")
+        #expect(TrainingText.handLabel(context(total: 20, type: .pair, pair: .king, up: .two)) == "Pair of 10s vs 2")
     }
 
     @Test("Action names")
     func actionNames() {
-        #expect(Action.allCases.map(StrategyText.actionName) == ["Hit", "Stand", "Double", "Split", "Surrender"])
+        #expect(Action.allCases.map(TrainingText.actionName) == ["Hit", "Stand", "Double", "Split", "Surrender"])
     }
 
     @Test("Feedback text for correct, wrong and timeout")

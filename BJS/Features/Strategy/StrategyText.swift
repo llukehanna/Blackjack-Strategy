@@ -3,42 +3,15 @@ import BJSCore
 /// Display strings for the Strategy trainer.
 enum StrategyText {
 
-    static func actionName(_ action: Action) -> String {
-        switch action {
-        case .hit: return "Hit"
-        case .stand: return "Stand"
-        case .double: return "Double"
-        case .split: return "Split"
-        case .surrender: return "Surrender"
-        }
-    }
-
-    static func upcardName(_ rank: Rank) -> String {
-        rank == .ace ? "A" : "\(rank.blackjackValue)"
-    }
-
-    /// "Hard 16 vs 10", "Soft 18 vs A", "Pair of 8s vs 6", "Pair of Aces vs 2".
-    static func handLabel(_ c: WhyContext) -> String {
-        let up = upcardName(c.dealerUpCard)
-        switch c.handType {
-        case .hard: return "Hard \(c.handTotal) vs \(up)"
-        case .soft: return "Soft \(c.handTotal) vs \(up)"
-        case .pair:
-            let rank = c.pairRank ?? .two
-            let name = rank == .ace ? "Aces" : "\(rank.blackjackValue)s"
-            return "Pair of \(name) vs \(up)"
-        }
-    }
-
     static func feedback(isCorrect: Bool, chosen: RecordedChoice, correct: Action,
                          label: String) -> (headline: String, reason: String) {
         let lowered = label.prefix(1).lowercased() + label.dropFirst()
         switch chosen {
         case .timeout:
-            return ("Time's up", "The play was \(actionName(correct)) on \(lowered).")
+            return ("Time's up", "The play was \(TrainingText.actionName(correct)) on \(lowered).")
         case .action(let action):
-            if isCorrect { return ("Correct: \(actionName(correct))", label) }
-            return ("The play is \(actionName(correct))", "You chose \(actionName(action)) on \(lowered).")
+            if isCorrect { return ("Correct: \(TrainingText.actionName(correct))", label) }
+            return ("The play is \(TrainingText.actionName(correct))", "You chose \(TrainingText.actionName(action)) on \(lowered).")
         }
     }
 

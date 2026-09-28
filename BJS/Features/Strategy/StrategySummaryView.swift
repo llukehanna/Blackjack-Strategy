@@ -31,7 +31,7 @@ struct StrategySummaryView: View {
                     SettingsSection(title: "Mistakes") {
                         ForEach(summary.mistakes) { mistake in
                             Button { onWhy(mistake) } label: {
-                                SettingsRow(label: StrategyText.handLabel(mistake.why)) {
+                                SettingsRow(label: TrainingText.handLabel(mistake.why)) {
                                     Text(mistakeValue(mistake))
                                 }
                             }
@@ -57,8 +57,8 @@ struct StrategySummaryView: View {
         let chosen: String
         switch d.chosen {
         case .timeout: chosen = "Time's up"
-        case .action(let a): chosen = StrategyText.actionName(a)
+        case .action(let a): chosen = TrainingText.actionName(a)
         }
-        return "\(chosen) → \(StrategyText.actionName(d.correctAction))"
+        return "\(chosen) → \(TrainingText.actionName(d.correctAction))"
     }
 }

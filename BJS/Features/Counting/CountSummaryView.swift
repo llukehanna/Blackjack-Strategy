@@ -17,7 +17,7 @@ struct CountSummaryView: View {
                                     GridItem(.flexible(), spacing: FeltSpacing.s)], spacing: FeltSpacing.s) {
                     StatChip(label: "Accuracy", value: PercentText.text(summary.score.accuracy))
                     StatChip(label: "Correct", value: "\(summary.score.correct) / \(summary.score.checks)")
-                    StatChip(label: "Mean error", value: CountingText.meanError(summary.score.meanAbsoluteError))
+                    StatChip(label: "Mean error", value: TrainingText.meanError(summary.score.meanAbsoluteError))
                     if let secondsPerCard = summary.secondsPerCard {
                         StatChip(label: "Per card", value: CountingText.seconds(secondsPerCard))
                     }

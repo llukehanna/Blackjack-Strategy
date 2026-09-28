@@ -18,13 +18,13 @@ struct CountTraceSheet: View {
                         CloseButton(identifier: "counting.sheet.close") { dismiss() }
                     }
                     HStack(spacing: FeltSpacing.s) {
-                        StatChip(label: "You said", value: CountingText.signed(Int(check.answered)))
-                        StatChip(label: "Running count", value: CountingText.signed(Int(check.expected)))
+                        StatChip(label: "You said", value: TrainingText.signed(Int(check.answered)))
+                        StatChip(label: "Running count", value: TrainingText.signed(Int(check.expected)))
                     }
                     SettingsSection(title: check.id == 0 ? "Since the start" : "Since the last check") {
                         ForEach(Array(entries.enumerated()), id: \.offset) { _, entry in
                             SettingsRow(label: entry.card.spokenName) {
-                                Text("\(CountingText.signed(entry.value))  →  \(CountingText.signed(entry.runningCount))")
+                                Text("\(TrainingText.signed(entry.value))  →  \(TrainingText.signed(entry.runningCount))")
                                     .monospacedDigit()
                             }
                         }
