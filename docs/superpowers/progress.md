@@ -298,3 +298,55 @@ Newest entry last. Each entry: step, date, commit range, what shipped, test stat
 - Verified with screenshots on iPhone 16 and SE (RC keypad, RC feedback, TC keypad).
 - Tests: BJSCore 241, app 184 unit + 3 UI, all passing.
 - Next: Step 5 (Edge): brainstorm and plan in a fresh session.
+
+## Step 5 — Edge (2026-09-27)
+
+- Spec: `docs/superpowers/specs/2026-09-27-step-5-edge-design.md`. Plan: `docs/superpowers/plans/2026-09-27-step-5-edge.md`.
+  Branch `step-5-edge`, commits 12e1bbc..(this handoff). Built task by task with subagents, each task reviewed (Task 5 needed one fix round); then this design check, with a final whole-branch review still to follow.
+- Tests: BJSCore 249 passing; app 198 unit tests + 4 UI tests (`FoundationUITests`, `StrategyUITests`, `CountingUITests`, `EdgeUITests`) passing, with no compiler warnings.
+- Luke's decisions in brainstorming (Step 5 spec §1):
+  - The WoO house-edge table replaces the old additive model.
+  - The headline is the cut-card figure.
+  - The breakdown shows the baseline plus a vs-yours comparison line.
+  - A pinned layout: the number/rating/comparison stay fixed while the breakdown and rules form scroll underneath.
+  - The screen always opens on fresh state (a copy of the active rules; edits are discarded unless applied).
+- **Amendment to the parent spec:** §5's Edge accuracy bar now means the WoO calculator's cut-card figure, checked against ≥ 20 reference rule combinations (`EdgeCalculatorTests`); the Good/OK/Poor rating applies to that same figure.
+- Shipped:
+  - `tools/woo-edge`: the WoO house-edge table extractor.
+  - `WoOEdgeData` (the generated table), the `EdgeCalculator` rewrite (`analyze(rules:)`, `houseEdge(for:)`, breakdown attribution) and the `EdgeFactor` API.
+  - `Features/Edge`: `EdgeView`/`EdgeScreen`, `EdgeViewModel`, `EdgeText`.
+  - `EdgeContributionRow` (new Felt component, built from existing tokens; added to `FeltCatalogue`).
+- The old additive model's errors, for the record (WoO's actual figures vs. what the old model gave):
+  - 2D H17 DAS: 0.19% vs 0.46%.
+  - 1D H17 NDAS D9-11 2 hands: 0.05% vs 0.47%.
+  - 2:1 payout: +0.32% vs +2.27%.
+  - Early surrender: +0.24% vs +0.63%.
+- Deviations from the plan:
+  - Task 5 fix round: the plan-mandated "important" finding that `analyze()` was recomputed ~5x per body was fixed outright rather than parked — `EdgeViewModel` caches `result`, recomputed in `rules`'s `didSet` (and `init`); the public API is unchanged.
+  - `EdgeUITests` uses the Single Deck 6:5 preset to reach a "Poor" rule set, rather than changing Decks to 1 from the default (6D S17 DAS 3:2 is itself already close to the preset grid, and the preset gives a fixed, named target rather than an ad hoc picker change).
+  - The spec's WoO table size was corrected to 5,760 entries.
+- Design check (this task): screenshots on iPhone 16 (18.4) and SE 3rd gen (18.3.1) across 8 states — default rules, the Single Deck 6:5 preset (Poor, longest 6:5 bar), a partial scroll showing the breakdown tail and Preset/Table rules rows under the pinned bar, a full scroll to the apply button and footnote, the confirmation dialog, the applied caption, a player-edge state (1 deck, "PLAYER EDGE" unsigned "0.03%"), and an added zero-change-row state (Max split hands 2 + Resplit aces, to check the flagged zero-change rendering). No fixes were needed in `Features/Edge`:
+  - Only Felt tokens are used; brass never appears.
+  - The pinned bar stays fixed with a hairline separator; scrolled content is cleanly clipped at the boundary, nothing draws under it.
+  - The number, rating badge and comparison line all fit on the SE without truncating.
+  - Breakdown bars: red grows right for edge-raising rules, green grows left for edge-lowering ones; the 6:5 bar is the longest in the Single Deck 6:5 breakdown; a zero-change row (Resplit aces at 2 hands) renders "0.00%" with only the centre tick showing, no fill either side, matching `FeltCatalogue`'s "Split to 3 hands" demo row.
+  - `EdgeContributionRow`'s `FeltSpacing.s` vertical padding (vs. `SettingsRow`'s `.xs` in the same section) reads fine — the row carries a bar the plain rows don't, so the extra padding doesn't look inconsistent.
+  - The player-edge state reads "PLAYER EDGE" with the unsigned number (0.03%), full sign carried by the label only, as designed.
+  - `FeltColorTests` is green (part of the app unit-test run above). `FeltCatalogue`'s "Edge components" section matches the live screen's rows exactly, including the zero-change row.
+- Needs Luke's decision: none from this design check — the screen conforms to spec §4 as built.
+- Deferred minors (non-blocking, triaged across the task reviews and this check):
+  - `extract.js` is mode 755 vs `woo-strategy`'s 644; its header date is local, not UTC (chosen deliberately).
+  - `maxSplitHands` outside 2...4 is silently clamped in `EdgeCalculator.tableIndex`; undocumented on the public API.
+  - The `lateAsEarly` condition is duplicated in `analyze` vs `effectiveSurrender` (`EdgeCalculator.swift:123/134`).
+  - The early-surrender test mirrors the formula (no independent oracle); `referenceCount` is trivially true; "sum exactly" should say "to rounding" in the doc comment.
+  - The unreachable `.surrender(.none)` label branch has no comment; unused `Foundation` imports in `EdgeText`/`EdgeViewModel`.
+  - The confirmation dialog relies on the implicit system Cancel (no comment); `FeltToast` has no accessibility identifier, so its 0.8s display couldn't be captured reliably in the design-check screenshots (it's the unchanged Step 3 component, and its bottom-anchored position doesn't overlap the apply button either way).
+  - `SettingsRow`'s menu-style `Picker` buttons (Decks, Dealer soft 17, etc.) report an accessibility frame of ~40pt tall, just under the `FeltTapTarget.minimum` (44pt) token; this is inherited from the Step 2 `SettingsRow`/`RulesForm` pattern (used unchanged in Settings since Step 2), not introduced by Edge, so no fix went into `Features/Edge`. Worth a look if Luke wants to true up the frozen component.
+- Carry-overs:
+  - **Resolved:** the ENHC late-surrender carry-over — `EdgeCalculator` now prices no-hole-card late surrender as early (`.surrender(.late, pricedAsEarly: true)`), matching how `RoundEngine` actually settles it.
+  - Step 6 (from earlier entries, still open): history screens pass `forStats: false`; the heat map should respect the Learn exclusion and ignores hard 4 / soft 12; fetches read whole tables; WHY-from-history needs legal actions; the per-card RC trace isn't persisted.
+  - Step 8 (from earlier entries, still open): `FeltType.label` tracking doesn't scale with Dynamic Type; `FlipCard` / `SplitHandsView` adaptive layout, the `DealerHandView` placeholder, and `SplitHandsView`'s `accessibilityValue`; `DiscardTray` and the counting screens need the AX3 pass.
+  - **Add for Step 8:** the Edge screen and `EdgeContributionRow` need the AX3 pass (Dynamic Type up to AX3, VoiceOver, Reduce Motion — the pre-approved accessibility-only exception).
+  - Note: early surrender is priced as an 8-deck estimate throughout (WoO's rule-variation figures), not deck-specific.
+- A final whole-branch review still follows this design check before Step 5 closes.
+- Next: Step 6 (Progress) — brainstorm and plan in a fresh session.
