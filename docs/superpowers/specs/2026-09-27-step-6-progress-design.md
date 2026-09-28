@@ -26,7 +26,7 @@ The Felt design system is frozen. This step adds one new component built from ex
 
 ## 2. Screen
 
-`ProgressView` sits in a `NavigationStack` on `FeltBackground`. It is one `ScrollView`, top to bottom:
+`ProgressTabView` (named to avoid SwiftUI's `ProgressView`) sits in a `NavigationStack` on `FeltBackground`. It is one `ScrollView`, top to bottom:
 
 1. **Title** "Progress" (`FeltType.display`) and the **range picker**.
 2. **Headlines:** a 2 × 2 grid of `StatChip`s.
@@ -46,7 +46,7 @@ The view model reloads whenever `SessionStore.revision` or the range changes. So
 
 ### `HeatMapGrid` (new component, built from existing tokens)
 
-- **Layout:** a leading column of row labels ("5"…"20", or "A,A", "2,2"…) and a header row of upcards (2…10, A), in `FeltType.label` / `textTertiary`. The columns share the width evenly: about 31 pt per cell on the SE, 28 pt tall, with 2 pt gaps.
+- **Layout:** a leading column of row labels ("5"…"20", or "2,2"…"10,10", "A,A") and a header row of upcards (2…10, A), in `FeltType.label` / `textTertiary`. The columns share the width evenly: about 31 pt per cell on the SE, 28 pt tall, with 2 pt gaps.
 - **Fills**, all from existing tokens:
 
   | State | Fill |
@@ -121,7 +121,7 @@ All new logic is pure and tested with hand-built fixtures (parent §7).
   - `StrategyText.actionName`, `upcardName` and `handLabel`, as `TrainingText`;
   - `CountingText.signed` (both overloads) and `minus`;
   - `CountingText.conventionRule`.
-- **`RootTabView`:** the Progress tab hosts `ProgressView` in place of `ComingSoonView`.
+- **`RootTabView`:** the Progress tab hosts `ProgressTabView` in place of `ComingSoonView`.
 - **Fixture:** a DEBUG, `-uiTesting`-only `-progressFixture` launch argument seeds a deterministic history through `SessionStore.save`, with dates relative to launch:
   - Strategy Test sessions over about 10 days with mistakes (including a timeout);
   - one Learn session;
