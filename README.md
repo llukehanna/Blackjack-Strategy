@@ -17,13 +17,18 @@ The product's credibility rests on one thing: the numbers must be right.
 
 ## Status
 
-In active development. Today:
+The app layer was rebuilt on `BJSCore` in eight steps, starting 23 September 2026. Six are done and merged:
 
-- ✅ **Core engine** (rules, hands, decks, strategy tables, Hi-Lo counting, edge calc) — shipped as a separate Swift Package (`BJSCore`) with its own test suite
-- ✅ **Strategy Trainer** — hand generation, decision feedback, "Why" explanation sheet, session stats
-- ✅ **Rules Configurator** — H17/S17, DAS, RSA, double rules, surrender, deck count, penetration
-- 🚧 **UI foundation rebuild** (dark token system, full-bleed trainer views)
-- ⏭️ Hi-Lo Practice UI, Edge Calculator UI, Full Shoe Sim, Analytics — engine done, UI in progress
+- ✅ **Engine**: rules, shoes, and a round engine with splits, surrender and peek. Strategy is decoded from Wizard of Odds' published charts and matches them cell for cell across 48 rule combinations
+- ✅ **Felt design system**: tokens with tested contrast pairs, shared components, a debug catalogue
+- ✅ **Strategy trainer**: learn, test, speed and weak-spot modes, graded decisions, the "Why" sheet, saved sessions
+- ✅ **Counting**: card values, running-count and true-count drills
+- ✅ **Edge calculator**: house edge for the configured rules, checked against 20+ reference rule combinations
+- ✅ **Progress**: session history, a strategy heat map, session detail
+- ⏭️ **Shoe simulation**: next
+- ⏭️ **Launch prep**: accessibility pass, App Store metadata, TestFlight
+
+As of Step 6: 263 engine tests, 233 app tests and 6 UI tests. Not released yet.
 
 ## Stack
 
@@ -39,22 +44,27 @@ In active development. Today:
 ```
 BJSCore/                 — Pure Swift package, no UIKit/SwiftUI. Testable in isolation.
   Sources/BJSCore/
-    Strategy/            — Basic strategy tables (rule-variant aware)
-    Counting/            — Hi-Lo running/true count
-    Edge/                — House-edge math across rule permutations
     Models/              — Card, Deck, Hand, Shoe
+    Rules/               — Rule presets
+    Round/               — RoundEngine: one round with splits, surrender, peek
+    Strategy/            — Strategy tables decoded from Wizard of Odds charts
+    Counting/            — Hi-Lo running/true count and drills
+    Edge/                — House-edge math across rule permutations
+    Explain/             — Why a play is correct
+    Training/            — Hand generation, training cells, weak-spot weights
+    Progress/            — Session stats, date ranges, heat-map bins
+    Support/             — Seeded random number generator
   Tests/                 — Swift Testing, parameterized over rule sets
 
-BJS/                     — iOS app shell
-  App/                   — Entry point, DI composition
-  Views/                 — SwiftUI views (Trainer, Rules, Common)
-  ViewModels/            — @Observable VMs (TrainerViewModel, RulesViewModel)
-  Domain/                — App-layer domain types (WhyExplanation)
-  Models/                — App-layer models (TrainingSession, SessionDecision)
-  Design/                — Design tokens (colors, type, spacing)
+BJS/                     — iOS app
+  App/                   — Entry point, tab root, launch configuration
+  Design/                — Felt design system: tokens, components, debug catalogue
+  Features/              — Hub, Strategy, Counting, Edge, Progress, Settings
+  Persistence/           — SwiftData schema and session store
+  Shared/                — Rules form, stores, router
 
-BJSTests/                — App-level tests (VM state, integration)
-design-system/           — Token reference + component playground
+BJSTests/                — App tests (view models, persistence, design tokens)
+BJSUITests/              — One UI test suite per module
 ```
 
 The split is deliberate: **all math lives in `BJSCore`**, so the rules engine and edge calculator can be tested without booting SwiftUI. That's the part that has to be right.
