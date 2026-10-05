@@ -7,6 +7,8 @@ A native iOS blackjack training app for players who want to get seriously better
 3. **Casino Rule / House-Edge Analysis** — see how each rule variation shifts the house edge
 4. **Full Card-Counting Simulation** — realistic shoe sim to pressure-test strategy under actual conditions
 
+<img src=".github/screenshot.webp" alt="BJS strategy trainer on iPhone" width="300">
+
 ## Why it exists
 
 Every other blackjack trainer I tried either (a) taught generic strategy that was wrong for the table you were actually sitting at, or (b) hid the math behind cartoons. BJS is rule-aware — you configure the exact rules of the casino you're playing and the app adjusts strategy and edge calculations to match.
